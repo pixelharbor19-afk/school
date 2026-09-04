@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/hooks/utils";
-import { useSubtitleCue } from "./use-subtitle-cue";
+import { useSubtitleCue } from "../player_hooks/use-subtitle-cue";
 import { Poppins } from "next/font/google";
 
 interface Props {

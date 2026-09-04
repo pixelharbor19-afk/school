@@ -25,6 +25,7 @@ interface Props {
   onSubtitleChange: (subtitle: MediaOption | null) => void;
   setSubtitlesModal: (enabled: boolean) => void;
   subtitlesModal: boolean;
+  canPlay: boolean
 }
 
 const TAB_TITLES = {
@@ -39,6 +40,7 @@ export default function SubtitleModal({
   onSubtitleChange,
   setSubtitlesModal,
   subtitlesModal,
+  canPlay,
 }: Props) {
   const [tab, setTab] = useState<"main" | "style" | "delay">("main");
 
@@ -49,7 +51,7 @@ export default function SubtitleModal({
 
   return (
     <AnimatePresence>
-      {subtitlesModal && (
+      {subtitlesModal && canPlay && (
         <>
           <motion.div
             initial={{ opacity: 0 }}

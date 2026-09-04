@@ -5,7 +5,7 @@ import "ldrs/react/Tailspin.css";
 import { AnimatePresence, motion } from "motion/react";
 import { Anton, Audiowide } from "next/font/google";
 import { cn } from "@/lib/utils";
-import { ServerTypes, SourceStatus } from "../embed/[...params]/server-types";
+import { ServerTypes, SourceStatus } from "../player_types/server-types";
 import { Check, LoaderCircle, Minus, X } from "lucide-react";
 
 const SWEEP_DURATION = 3.8;

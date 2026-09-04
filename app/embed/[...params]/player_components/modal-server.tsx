@@ -7,7 +7,7 @@ import { Poppins } from "next/font/google";
 import type {
   ServerTypes,
   SourceStatus,
-} from "@/app/embed/[...params]/server-types";
+} from "@/app/embed/[...params]/player_types/server-types";
 
 const font = Poppins({
   weight: "500",

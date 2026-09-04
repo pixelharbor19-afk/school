@@ -9,26 +9,31 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Hls from "hls.js";
 import * as dashjs from "dashjs";
 import { useQueries } from "@tanstack/react-query";
-import LoadingScreen from "@/app/load/page";
-import VideoControls from "./video-controls";
-import { useVideoControls } from "./use-video-controls";
-import { SERVERS, ServerTypes, sourceKey, SourceStatus } from "./server-types";
-import { useHiddenOverlay } from "./use-overlay";
+import LoadingScreen from "@/app/embed/[...params]/player_components/loading-screen";
+import VideoControls from "./player-controls";
+import { useVideoControls } from "./player_hooks/use-video-controls";
+import {
+  SERVERS,
+  ServerTypes,
+  sourceKey,
+  SourceStatus,
+} from "./player_types/server-types";
+import { useHiddenOverlay } from "./player_hooks/use-overlay";
 import { cn } from "@/hooks/utils";
 import useSubtitle from "@/hooks/subs";
-import SubtitleOverlay from "./subtitle-overlay";
+import SubtitleOverlay from "./player_components/overlay-subtitle";
 import { MediaOption } from "@/hooks/open-subtitle";
-import SubtitleModal from "./subtitle-modal";
-import Spinner from "./spinner";
-import ServerModal from "./server-modal";
+import SubtitleModal from "./player_components/modal-subtitle";
+import Spinner from "./player_components/spinner";
+import ServerModal from "./player_components/modal-server";
 
 import { useDoubleTap } from "use-double-tap";
-import { useMobile } from "./use-mobile";
+import { useMobile } from "./player_hooks/use-mobile";
 import { AnimatePresence, motion } from "motion/react";
 import { useIntro } from "@/hooks/intro";
-import { SkipSegment } from "./skip-segment";
-import { useKeyboardControls } from "./use-keyboard";
-import Pause from "./pause";
+import { SkipSegment } from "./player_components/skip-segment";
+import { useKeyboardControls } from "./player_hooks/use-keyboard";
+import Pause from "./player_components/overlay-pause";
 
 export default function Embed() {
   const { params } = useParams();
@@ -630,7 +635,7 @@ export default function Embed() {
       ref={playerRef}
       className={cn(
         "relative h-dvh w-full overflow-hidden bg-black",
-        !isVisible && "cursor-none",
+        !isVisible && canPlay && "cursor-none",
       )}
     >
       <VideoControls
@@ -699,6 +704,7 @@ export default function Embed() {
         onSubtitleChange={handleSubtitleChange}
         setSubtitlesModal={setSubtitlesModal}
         subtitlesModal={subtitlesModal}
+        canPlay={canPlay}
       />
 
       <LoadingScreen
@@ -732,7 +738,7 @@ export default function Embed() {
       />
 
       <AnimatePresence>
-        {skipIndicator && (
+        {skipIndicator && canPlay && (
           <motion.div
             key={skipIndicator}
             initial={{ opacity: 0, scale: 0.8 }}
@@ -755,11 +761,13 @@ export default function Embed() {
         )}
       </AnimatePresence>
 
-      <div
-        className="absolute inset-0 "
-        {...handleDoubleTap}
-        onMouseMove={!isMobile ? resetTimer : undefined}
-      />
+      {canPlay && (
+        <div
+          className="absolute inset-0 "
+          {...handleDoubleTap}
+          onMouseMove={!isMobile ? resetTimer : undefined}
+        />
+      )}
       <Pause
         metadata={metadata}
         playing={playing}
