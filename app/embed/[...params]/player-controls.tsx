@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   Cloud,
   Gauge,
+  Hd,
   Maximize,
   Pause,
   Play,
@@ -17,6 +18,17 @@ import {
 import { cn } from "@/hooks/utils";
 import { Poppins } from "next/font/google";
 import { IntroType } from "@/hooks/intro";
+import { useState } from "react";
+import SubtitleModal from "./player_components/modal-subtitle";
+import { MediaOption } from "@/hooks/open-subtitle";
+import ModalSettings from "./player_components/modal-settings";
+import ServerModal from "./player_components/modal-server";
+import { ServerTypes, SourceStatus } from "./player_types/server-types";
+import { usePlayerSettings } from "./player_store/settings";
+import { useRouter } from "next/navigation";
+import QualityModal from "./player_components/modal-quality";
+import EpisodesModal from "./player_components/modal-episodes";
+import { SeasonsType, SeasonTypes } from "@/types/tmdb-types";
 const font = Poppins({
   weight: "400",
   subsets: ["latin"],
@@ -46,18 +58,31 @@ type Props = {
   isVisible: boolean;
   resetTimer: () => void;
   lockTimer: () => void;
-  playbackRate: number;
-  handlePlaybackRate: (rate: number) => void;
-  aspectRatio: "contain" | "cover" | "fill";
-  toggleAspectRatio: () => void;
   title: string;
-  setSubtitlesModal: (enabled: boolean) => void;
-  showServer: boolean;
-  setShowServer: React.Dispatch<React.SetStateAction<boolean>>;
+  media_type: string;
+
   intro: IntroType | null;
   outro: IntroType | null;
   canNext: boolean;
   onNext: () => void;
+  //
+  playerRef: React.RefObject<HTMLDivElement | null>;
+  //
+  subtitles: MediaOption[];
+  selectedSubtitle?: MediaOption;
+  onSubtitleChange: (subtitle: MediaOption | null) => void;
+  //
+  servers: ServerTypes[];
+  serverIndex: number;
+  sourceIndex: number;
+  sourceStatus: SourceStatus;
+  handleServerSelect: (index: number) => void;
+  setServerIndex: React.Dispatch<React.SetStateAction<number>>;
+  setSourceIndex: React.Dispatch<React.SetStateAction<number>>;
+  setSourceStatus: React.Dispatch<React.SetStateAction<SourceStatus>>;
+  back: boolean;
+  //
+  seasons: SeasonsType[];
 };
 
 export default function VideoControls({
@@ -83,19 +108,43 @@ export default function VideoControls({
   isVisible,
   resetTimer,
   lockTimer,
-  playbackRate,
-  handlePlaybackRate,
-  aspectRatio,
-  toggleAspectRatio,
   title,
-  setSubtitlesModal,
-  setShowServer,
+  media_type,
+
   intro,
   outro,
 
   canNext,
   onNext,
+  //
+  playerRef,
+  //
+  subtitles,
+  selectedSubtitle,
+  onSubtitleChange,
+
+  //
+  servers,
+  serverIndex,
+  sourceIndex,
+  sourceStatus,
+
+  handleServerSelect,
+  setServerIndex,
+  setSourceIndex,
+  setSourceStatus,
+  //
+  back,
+  //
+  seasons,
 }: Props) {
+  const router = useRouter();
+  const [hoverTime, setHoverTime] = useState<number | null>(null);
+  const [hoverX, setHoverX] = useState(0);
+
+  const { aspectRatio, setAspectRatio, quality, qualities, setQuality } =
+    usePlayerSettings();
+
   return (
     <AnimatePresence>
       {canPlay && isVisible && (
@@ -116,24 +165,24 @@ export default function VideoControls({
             animate={{ y: 0 }}
             exit={{ y: -30 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="px-6 py-8 pointer-events-auto flex items-center gap-8"
+            className="md:px-6 px-4 md:py-8 py-6 pointer-events-auto flex items-center md:gap-8 gap-6"
             onMouseEnter={!isMobile ? lockTimer : undefined}
-            onMouseLeave={!isMobile ? resetTimer : undefined}
+            // onMouseLeave={!isMobile ? resetTimer : undefined}
           >
-            <button
-              className={cn(
-                "flex items-center md:gap-6 gap-3",
-                "text-shadow-lg transition-opacity hover:opacity-70",
-              )}
-            >
-              <ChevronLeft className="md:size-8 size-6" />
-              {/* <span className="text-left">
-                <h3 className="text-sm text-white/80">You're Watching</h3>
-                <h1 className="md:text-xl text-sm tracking-wide font-semibold">
-                  {title}
-                </h1>
-              </span> */}
-            </button>
+            {back && (
+              <button
+                onClick={() => router.back()}
+                className={cn(
+                  "flex items-center md:gap-6 gap-3",
+                  "text-shadow-lg transition-opacity hover:opacity-70",
+                )}
+              >
+                <ChevronLeft className="md:size-8 size-6" strokeWidth={3} />
+                <span className="text-left">
+                  <h1 className="tracking-wide font-medium">{title}</h1>
+                </span>
+              </button>
+            )}
 
             <div className="flex-1" />
 
@@ -146,19 +195,27 @@ export default function VideoControls({
               <Settings className="md:size-7 size-6" />
               <h1 className="text-sm tracking-wide text-white/80">Settings</h1>
             </button> */}
-
-            <button
-              onClick={() => setShowServer(true)}
-              className={cn(
-                "flex flex-col items-center gap-1",
-                "text-shadow-lg transition-opacity hover:opacity-70",
-              )}
-            >
-              <Cloud className="md:size-7 size-6 fill-current" />
-              {/* <h1 className="text-sm tracking-wide text-white/80 hidden md:block">
-                Servers
-              </h1> */}
-            </button>
+            {media_type === "tv" && (
+              <EpisodesModal
+                color={color}
+                seasons={seasons}
+                playerRef={playerRef}
+                canPlay={canPlay}
+              />
+            )}
+            <ModalSettings playerRef={playerRef} canPlay={canPlay} />
+            <ServerModal
+              servers={servers}
+              serverIndex={serverIndex}
+              sourceIndex={sourceIndex}
+              sourceStatus={sourceStatus}
+              handleServerSelect={handleServerSelect}
+              setServerIndex={setServerIndex}
+              setSourceIndex={setSourceIndex}
+              setSourceStatus={setSourceStatus}
+              canPlay={canPlay}
+              playerRef={playerRef}
+            />
           </motion.div>
 
           {/* <div className="p-4">
@@ -176,12 +233,12 @@ export default function VideoControls({
             animate={{ y: 0 }}
             exit={{ y: 30 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="px-6 py-8 pointer-events-auto"
+            className="md:px-6 px-4 md:py-8 py-6 pointer-events-auto flex flex-col items-center md:gap-6 gap-3"
             onMouseEnter={!isMobile ? lockTimer : undefined}
             onMouseLeave={!isMobile ? resetTimer : undefined}
           >
             {/* Progress */}
-            <div className="group mb-6 flex w-full items-center gap-3 px-1">
+            <div className="group flex items-center gap-3 px-1 w-full">
               <div
                 ref={progressRef}
                 className="relative h-6 flex-1 cursor-pointer touch-none "
@@ -189,7 +246,39 @@ export default function VideoControls({
                 onPointerMove={handleSeekMove}
                 onPointerUp={commitSeek}
                 onPointerCancel={commitSeek}
+                onMouseMove={(e) => {
+                  if (!duration) return;
+
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = Math.max(
+                    0,
+                    Math.min(e.clientX - rect.left, rect.width),
+                  );
+                  const time = (x / rect.width) * duration;
+
+                  setHoverX(x);
+                  setHoverTime(time);
+                }}
+                onMouseLeave={() => {
+                  setHoverTime(null);
+                }}
               >
+                <AnimatePresence>
+                  {hoverTime !== null && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                      className="pointer-events-none absolute bottom-full z-50 mb-2 -translate-x-1/2"
+                      style={{ left: hoverX }}
+                    >
+                      <div className="rounded-sm bg-black/50 px-2 py-1 text-sm tabular-nums text-white shadow-lg">
+                        {formatTime(hoverTime)}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 {duration > 0 && (
                   <div className="absolute inset-x-0 top-1/2 flex h-1.5 -translate-y-1/2 gap-0.5 md:gap-1 group-hover:scale-y-150 transition-transform duration-150">
                     {/* Before intro */}
@@ -230,14 +319,19 @@ export default function VideoControls({
                     {/* Intro */}
                     {intro && (
                       <div
-                        className="relative h-full rounded-[1px] bg-white/20"
+                        className={cn(
+                          "relative h-full bg-white/20",
+                          intro && intro.start_sec > 0
+                            ? "rounded-r-[1px]"
+                            : "rounded-l-full rounded-r-[1px]",
+                        )}
                         style={{
                           width: `${((intro.end_sec - intro.start_sec) / duration) * 100}%`,
                         }}
                       >
                         {/* Buffered */}
                         <div
-                          className="absolute inset-y-0 left-0 rounded-[1px] bg-white/30"
+                          className="absolute inset-y-0 left-0 rounded-full bg-white/30"
                           style={{
                             width: `${Math.min(
                               100,
@@ -254,7 +348,12 @@ export default function VideoControls({
 
                         {/* Played */}
                         <div
-                          className="absolute inset-y-0 left-0 rounded-[1px]"
+                          className={cn(
+                            "absolute inset-y-0 left-0",
+                            intro && intro.start_sec > 0
+                              ? "rounded-r-[1px]"
+                              : "rounded-l-full rounded-r-[1px]",
+                          )}
                           style={{
                             width: `${Math.min(
                               100,
@@ -265,7 +364,7 @@ export default function VideoControls({
                                   100,
                               ),
                             )}%`,
-                            backgroundColor: "orange",
+                            backgroundColor: "#facc15",
                           }}
                         />
                       </div>
@@ -273,7 +372,10 @@ export default function VideoControls({
 
                     {/* Main */}
                     <div
-                      className="relative h-full rounded-[1px] bg-white/20 "
+                      className={cn(
+                        "relative h-full  bg-white/20",
+                        !intro ? "rounded-full" : "rounded-[1px]",
+                      )}
                       style={{
                         width: `${
                           (((outro?.start_sec ?? duration) -
@@ -303,7 +405,10 @@ export default function VideoControls({
 
                       {/* Played */}
                       <div
-                        className="absolute inset-y-0 left-0 rounded-[1px]"
+                        className={cn(
+                          "absolute inset-y-0 left-0 rounded-[1px]",
+                          !intro ? "rounded-full" : "rounded-[1px]",
+                        )}
                         style={{
                           width: `${Math.min(
                             100,
@@ -323,14 +428,24 @@ export default function VideoControls({
                     {/* Outro */}
                     {outro && (
                       <div
-                        className="relative h-full rounded-[1px] bg-white/20"
+                        className={cn(
+                          "relative h-full bg-white/20",
+                          outro.end_sec < duration
+                            ? "rounded-[1px]"
+                            : "rounded-l-[1px] rounded-r-full",
+                        )}
                         style={{
                           width: `${((outro.end_sec - outro.start_sec) / duration) * 100}%`,
                         }}
                       >
                         {/* Buffered */}
                         <div
-                          className="absolute inset-y-0 left-0 rounded-full bg-white/30"
+                          className={cn(
+                            "absolute inset-y-0 left-0 rounded-full bg-white/30",
+                            outro.end_sec < duration
+                              ? "rounded-full"
+                              : "rounded-l-full rounded-r-full",
+                          )}
                           style={{
                             width: `${Math.min(
                               100,
@@ -347,7 +462,12 @@ export default function VideoControls({
 
                         {/* Played */}
                         <div
-                          className="absolute inset-y-0 left-0 rounded-[1px]"
+                          className={cn(
+                            "absolute inset-y-0 left-0",
+                            outro.end_sec < duration
+                              ? "rounded-[1px]"
+                              : "rounded-l-[1px] rounded-r-full",
+                          )}
                           style={{
                             width: `${Math.min(
                               100,
@@ -358,7 +478,7 @@ export default function VideoControls({
                                   100,
                               ),
                             )}%`,
-                            backgroundColor: "orange",
+                            backgroundColor: "#f97316",
                           }}
                         />
                       </div>
@@ -419,7 +539,7 @@ export default function VideoControls({
               </div>
             </div>
 
-            <div className="flex items-center md:gap-8 gap-4 text-white">
+            <div className="flex items-center md:gap-8 gap-4 text-white w-full ">
               {/* Play */}
               <button
                 onClick={togglePlay}
@@ -437,13 +557,15 @@ export default function VideoControls({
                   />
                 )}
               </button>
-              <button
-                onClick={onNext}
-                disabled={!canNext}
-                className="transition-opacity hover:opacity-70 disabled:opacity-30"
-              >
-                <SkipForward className="md:size-7 size-6 fill-current" />
-              </button>
+              {media_type === "tv" && canNext && (
+                <button
+                  onClick={onNext}
+                  disabled={!canNext}
+                  className="hidden md:block transition-opacity hover:opacity-70 disabled:opacity-30"
+                >
+                  <SkipForward className="md:size-7 size-6 fill-current" />
+                </button>
+              )}
               {/* Volume */}
               <div className="flex items-center gap-2">
                 <button
@@ -451,9 +573,9 @@ export default function VideoControls({
                   className="transition-opacity hover:opacity-70"
                 >
                   {muted || volume === 0 ? (
-                    <VolumeX className="md:size-7 size-6" />
+                    <VolumeX className="md:size-8 size-6" strokeWidth={2.5} />
                   ) : (
-                    <Volume2 className="md:size-7 size-6" />
+                    <Volume2 className="md:size-8 size-6" strokeWidth={2.5} />
                   )}
                 </button>
 
@@ -470,7 +592,7 @@ export default function VideoControls({
 
               <div
                 className={cn(
-                  "flex items-center gap-2 tabular-nums md:text-base text-xs",
+                  " flex items-center gap-2 tabular-nums font-medium text-sm tracking-wide",
                 )}
               >
                 <span className="text-white/80">{formatTime(currentTime)}</span>
@@ -482,14 +604,20 @@ export default function VideoControls({
               <div className="flex-1" />
 
               <button
-                onClick={toggleAspectRatio}
+                onClick={() => {
+                  const values = ["contain", "cover", "fill"] as const;
+                  const index = values.indexOf(aspectRatio);
+
+                  setAspectRatio(values[(index + 1) % values.length]);
+                }}
                 className={cn(
                   "md:flex hidden items-center gap-2",
                   "transition-opacity hover:opacity-70",
+                  "cursor-pointer",
                 )}
               >
-                <SquareDimensions className="md:size-7 size-6" />
-                <h1 className="text-sm tracking-wide text-white/90 hidden md:block">
+                {/* <SquareDimensions className="md:size-7 size-6" /> */}
+                <h1 className="text-sm font-medium tracking-wide text-white/90 hidden md:block">
                   {aspectRatio === "contain"
                     ? "Fit"
                     : aspectRatio === "cover"
@@ -497,7 +625,10 @@ export default function VideoControls({
                       : "Fill"}
                 </h1>
               </button>
-              <button
+
+              {/* Quality */}
+
+              {/* <button
                 onClick={() => {
                   const rates = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
                   const index = rates.indexOf(playbackRate);
@@ -512,21 +643,33 @@ export default function VideoControls({
                 <h1 className="text-sm tracking-wide text-white/90 hidden md:block">
                   {playbackRate}x
                 </h1>
-              </button>
+              </button> */}
 
-              <button
-                onClick={() => setSubtitlesModal(true)}
+              <SubtitleModal
+                playerRef={playerRef}
+                subtitles={subtitles ?? []}
+                selectedSubtitle={selectedSubtitle}
+                onSubtitleChange={onSubtitleChange}
+                canPlay={canPlay}
+              />
+              {/* <button
+                onClick={() => {
+                  const values: (number | "auto")[] = ["auto", ...qualities];
+                  const index = values.indexOf(quality);
+
+                  setQuality(values[(index + 1) % values.length]);
+                }}
                 className={cn(
-                  "flex items-center gap-2",
+                  "md:flex hidden items-center gap-2",
                   "transition-opacity hover:opacity-70",
                 )}
               >
-                <Captions className="md:size-7 size-6" />
-                <h1 className="text-sm font-medium tracking-wide text-white/90 hidden md:block">
-                  Language
+                <h1 className="text-sm tracking-wide hidden md:block">
+                  {quality === "auto" ? "Auto" : `${quality}p`}
                 </h1>
-              </button>
+              </button> */}
 
+              <QualityModal canPlay={canPlay} playerRef={playerRef} />
               {/* Fullscreen */}
               <button
                 onClick={toggleFullscreen}

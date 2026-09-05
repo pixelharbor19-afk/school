@@ -6,7 +6,7 @@ import { decryptLink } from "@/lib/source-link-enc-dec";
 import { FIELD_MAP } from "@/lib/field-map";
 
 export interface QualityTrack {
-  resolution?: number;
+  resolution: number | null;
   format?: string;
   size?: string;
   type: "mp4" | "hls" | "dash";

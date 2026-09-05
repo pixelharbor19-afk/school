@@ -1,12 +1,5 @@
 export const SERVERS: ServerTypes[] = [
   {
-    name: "Zinogre I",
-    status: "queue",
-    server: "zinogre",
-    desc: "Movies & TV Shows - HD Support",
-    sources: [],
-  },
-  {
     name: "Valstrax I",
     status: "queue",
     server: "valstrax",
@@ -14,7 +7,23 @@ export const SERVERS: ServerTypes[] = [
     sources: [],
   },
   {
-    name: "Alatreon II",
+    name: "Berkas II",
+    status: "queue",
+    server: "berkas",
+    desc: "4K Support & Reliable",
+    sources: [],
+  },
+
+  {
+    name: "Zinogre III",
+    status: "queue",
+    server: "zinogre",
+    desc: "Movies & TV Shows - HD Support",
+    sources: [],
+  },
+
+  {
+    name: "Alatreon IV",
     status: "queue",
     server: "alatreon",
     desc: "Extensive Movie & TV Library",
@@ -27,7 +36,7 @@ export type SourceStatus = "queue" | "connecting" | "ready" | "failed";
 export type SourceTypes = {
   type: "mp4" | "hls" | "dash";
   link: string;
-  resolution?: number;
+  resolution: number | null;
   status: SourceStatus;
 };
 

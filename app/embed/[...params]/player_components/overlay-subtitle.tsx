@@ -9,10 +9,12 @@ interface Props {
   currentTime: number;
   isVisible: boolean;
 }
+
 const font = Poppins({
   weight: "500",
   subsets: ["latin"],
 });
+
 export default function SubtitleOverlay({
   subtitleUrl,
   currentTime,
@@ -22,20 +24,29 @@ export default function SubtitleOverlay({
 
   if (!cue) return null;
 
+  const html = cue.replace(/<br\s*\/?>/gi, "<br />");
+
   return (
     <div
       className={cn(
-        "fixed inset-x-0 bottom-0 p-4",
-        "flex items-center justify-center",
-        "whitespace-pre-line",
-        "lg:text-4xl md:text-3xl text-lg  text-center",
-        "[text-shadow:-2px_-2px_0_black,2px_-2px_0_black,-2px_2px_0_black,2px_2px_0_black]",
+        "fixed inset-x-0 bottom-0 pointer-events-none z-30",
+        "flex justify-center items-center",
         "transition duration-150 ease-out",
-        isVisible ? "-translate-y-30" : "-translate-y-10",
+        isVisible ? "-translate-y-35" : "-translate-y-10",
         font.className,
       )}
     >
-      {cue.replace(/<br\s*\/?>/gi, "\n")}
+      <div
+        className={cn(
+          "text-yellow-300",
+          "max-w-4xl",
+          "p-3 rounded-md",
+          "lg:text-4xl md:text-3xl text-lg text-center",
+          "[text-shadow:0_3px_8px_rgba(0,0,0,0.9)]",
+        )}
+      >
+        <h1 dangerouslySetInnerHTML={{ __html: html }} />
+      </div>
     </div>
   );
 }

@@ -1,31 +1,32 @@
 "use client";
 
+import {
+  Popover,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 import { MediaOption } from "@/hooks/open-subtitle";
 import { cn } from "@/hooks/utils";
-import { AnimatePresence, motion } from "motion/react";
 import {
-  ArrowDownToLine,
   ArrowLeft,
+  Captions,
   Check,
+  Download,
   Settings2,
   TextInitial,
-  X,
 } from "lucide-react";
-import { Poppins } from "next/font/google";
 import { useState } from "react";
-
-const font = Poppins({
-  weight: "500",
-  subsets: ["latin"],
-});
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Props {
   subtitles: MediaOption[];
   selectedSubtitle?: MediaOption;
   onSubtitleChange: (subtitle: MediaOption | null) => void;
-  setSubtitlesModal: (enabled: boolean) => void;
-  subtitlesModal: boolean;
-  canPlay: boolean
+  canPlay: boolean;
+  playerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 const TAB_TITLES = {
@@ -38,230 +39,164 @@ export default function SubtitleModal({
   subtitles,
   selectedSubtitle,
   onSubtitleChange,
-  setSubtitlesModal,
-  subtitlesModal,
+
   canPlay,
+  playerRef,
 }: Props) {
   const [tab, setTab] = useState<"main" | "style" | "delay">("main");
+  const [subtitlesModal, setSubtitlesModal] = useState(false);
+  const handleOpenChange = (open: boolean) => {
+    setSubtitlesModal(open);
 
-  const handleClose = () => {
-    setSubtitlesModal(false);
-    setTab("main");
+    if (!open) {
+      setTab("main");
+    }
   };
 
-  return (
-    <AnimatePresence>
-      {subtitlesModal && canPlay && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="absolute inset-0 z-40 bg-black/40"
-            onClick={handleClose}
-          />
+  if (!canPlay) return null;
 
-          <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{
-              type: "spring",
-              stiffness: 400,
-              damping: 35,
-              mass: 0.8,
-            }}
+  return (
+    <Popover open={subtitlesModal} onOpenChange={handleOpenChange}>
+      <PopoverTrigger
+        render={
+          <button
             className={cn(
-              "absolute inset-y-0 right-0 z-50 flex w-80 flex-col",
-              "rounded-l-md bg-black/40 shadow-2xl backdrop-blur-xl",
-              font.className,
+              "flex items-center gap-2",
+              "transition-opacity hover:opacity-70",
+              "cursor-pointer",
             )}
           >
-            {/* Header */}
-            <div
-              className={cn(
-                "flex items-center justify-between",
-                "rounded-t-md border-b border-white/15",
-                "bg-black/30 px-4 py-3.5",
-              )}
+            {/* <Captions className="md:size-7 size-6" /> */}
+            <h1 className="text-sm font-medium tracking-wide text-white/90 hidden md:block">
+              {selectedSubtitle ? selectedSubtitle.display : "Language"}
+            </h1>
+          </button>
+        }
+      />
+
+      <PopoverContent
+        container={playerRef}
+        side="top"
+        align="end"
+        sideOffset={18}
+        className="w-89 overflow-hidden shadow-2xl p-1"
+      >
+        <PopoverHeader className="flex text-xs flex-row items-center gap-2 border-b px-4 py-3">
+          {tab !== "main" && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setTab("main")}
+              className="-ml-2"
             >
-              <div className="flex items-center gap-2">
-                {tab !== "main" && (
-                  <button
-                    type="button"
-                    onClick={() => setTab("main")}
-                    aria-label="Back"
-                    className={cn(
-                      "-ml-1 rounded-md p-1 text-white/60",
-                      "transition-colors hover:bg-white/10 hover:text-white",
-                    )}
-                  >
-                    <ArrowLeft className="size-4" />
-                  </button>
-                )}
+              <ArrowLeft className="size-4" />
+            </Button>
+          )}
 
-                <h2 className="text-sm font-medium tracking-wide text-white">
-                  {TAB_TITLES[tab]}
-                </h2>
-              </div>
+          <PopoverTitle className="uppercase tracking-wider flex items-center gap-1.5 text-muted-foreground">
+            <Captions className="size-5" /> {TAB_TITLES[tab]}
+          </PopoverTitle>
+        </PopoverHeader>
 
-              <button
-                type="button"
-                onClick={handleClose}
-                aria-label="Close subtitles panel"
-                className={cn(
-                  "rounded-md p-1 text-white/50",
-                  "transition-colors",
-                  "hover:bg-white/10 hover:text-white",
-                )}
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-
-            {/* List */}
-            <div className="flex-1 overflow-y-auto p-2">
-              {tab === "style" ? (
-                <StylePanel />
-              ) : tab === "delay" ? (
-                <DelayPanel />
-              ) : (
-                <div className="space-y-0.5">
-                  {/* Off */}
-                  <button
-                    type="button"
-                    onClick={() => onSubtitleChange(null)}
-                    aria-current={!selectedSubtitle}
-                    className={cn(
-                      "group flex w-full items-center justify-between",
-                      "rounded-lg px-3 py-2.5 text-left text-sm",
-                      "transition-colors",
-                      !selectedSubtitle
-                        ? "bg-white/15 text-white"
-                        : "text-white/60 hover:bg-white/10 hover:text-white",
-                    )}
-                  >
-                    <span>Off</span>
-
-                    {!selectedSubtitle ? (
-                      <Check className="size-4 shrink-0 text-red-500" />
-                    ) : (
-                      <ArrowDownToLine
-                        className={cn(
-                          "size-4 shrink-0 opacity-0",
-                          "transition-opacity group-hover:opacity-60",
-                        )}
-                      />
-                    )}
-                  </button>
-
-                  {subtitles.map((subtitle) => {
-                    const isSelected = selectedSubtitle?.id === subtitle.id;
-
-                    return (
-                      <button
-                        key={subtitle.id}
-                        type="button"
-                        onClick={() => onSubtitleChange(subtitle)}
-                        aria-current={isSelected}
-                        className={cn(
-                          "group flex w-full items-center justify-between",
-                          "rounded-lg px-3 py-2.5 text-left text-sm",
-                          "transition-colors",
-                          isSelected
-                            ? "bg-white/15 text-white"
-                            : "text-white/60 hover:bg-white/10 hover:text-white",
-                        )}
-                      >
-                        <span className="truncate">{subtitle.display}</span>
-
-                        {isSelected ? (
-                          <Check className="size-4 shrink-0 text-red-500" />
-                        ) : (
-                          <ArrowDownToLine
-                            className={cn(
-                              "size-4 shrink-0 opacity-0",
-                              "transition-opacity group-hover:opacity-60",
-                            )}
-                          />
-                        )}
-                      </button>
-                    );
-                  })}
-
-                  {subtitles.length === 0 && (
-                    <p className="px-3 py-6 text-center text-sm text-white/40">
-                      No subtitles available
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
+        <ScrollArea className="max-h-80 pr-2">
+          <div className="px-2">
             {tab === "main" && (
-              <div
-                className={cn(
-                  "flex items-center gap-1",
-                  "rounded-b-md border-t border-white/15",
-                  "bg-black/30 p-2",
+              <div className="space-y-0.5">
+                <SubtitleItem
+                  label="Off"
+                  selected={!selectedSubtitle}
+                  onClick={() => onSubtitleChange(null)}
+                />
+
+                {subtitles.map((subtitle) => (
+                  <SubtitleItem
+                    key={subtitle.id}
+                    label={subtitle.display}
+                    selected={selectedSubtitle?.id === subtitle.id}
+                    onClick={() => onSubtitleChange(subtitle)}
+                  />
+                ))}
+
+                {!subtitles.length && (
+                  <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+                    No subtitles available
+                  </p>
                 )}
-              >
-                <button
-                  onClick={() => setTab("style")}
-                  type="button"
-                  className={cn(
-                    "flex flex-1 items-center justify-center gap-2",
-                    "rounded-lg py-2.5 text-sm font-medium text-white/70",
-                    "transition-colors",
-                    "hover:bg-white/10 hover:text-white",
-                  )}
-                >
-                  <TextInitial className="size-4" strokeWidth={2.5} />
-                  Style
-                </button>
-
-                <div className="h-5 w-px bg-white/10" />
-
-                <button
-                  onClick={() => setTab("delay")}
-                  type="button"
-                  className={cn(
-                    "flex flex-1 items-center justify-center gap-2",
-                    "rounded-lg py-2.5 text-sm font-medium text-white/70",
-                    "transition-colors",
-                    "hover:bg-white/10 hover:text-white",
-                  )}
-                >
-                  <Settings2 className="size-4" strokeWidth={2.5} />
-                  Delay
-                </button>
               </div>
             )}
-          </motion.div>
-        </>
+
+            {tab === "style" && (
+              <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+                Style options coming soon
+              </p>
+            )}
+
+            {tab === "delay" && (
+              <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+                Delay controls coming soon
+              </p>
+            )}
+          </div>
+        </ScrollArea>
+
+        {tab === "main" && (
+          <div className="flex items-center gap-1 border-t p-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setTab("style")}
+              className="flex-1"
+            >
+              <TextInitial className="size-4" />
+              Style
+            </Button>
+
+            <div className="h-5 w-px bg-border" />
+
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setTab("delay")}
+              className="flex-1"
+            >
+              <Settings2 className="size-4" />
+              Delay
+            </Button>
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+interface SubtitleItemProps {
+  label: string;
+  selected: boolean;
+  onClick: () => void;
+}
+
+function SubtitleItem({ label, selected, onClick }: SubtitleItemProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-current={selected}
+      className={cn(
+        "group",
+        "flex w-full items-center justify-between rounded-lg px-3 py-2.5",
+        "text-left text-base transition-colors",
+        selected
+          ? "bg-accent"
+          : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
       )}
-    </AnimatePresence>
-  );
-}
+    >
+      <span className="truncate">{label}</span>
 
-function StylePanel() {
-  return (
-    <div className="space-y-4 px-1 py-2">
-      <p className="text-center text-sm text-white/40">
-        Style options coming soon
-      </p>
-    </div>
-  );
-}
-
-function DelayPanel() {
-  return (
-    <div className="space-y-4 px-1 py-2">
-      <p className="text-center text-sm text-white/40">
-        Delay controls coming soon
-      </p>
-    </div>
+      {selected && <Check className="size-4 shrink-0 text-primary" />}
+      {!selected && (
+        <Download className="size-4 shrink-0 text-primary opacity-0 group-hover:opacity-100" />
+      )}
+    </button>
   );
 }

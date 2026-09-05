@@ -38,3 +38,80 @@ export type CastMember = {
   character: string;
   profile_path: string | null;
 };
+
+//
+export interface SeasonTypes {
+  _id: string;
+  id: number;
+  name: string;
+  overview: string;
+  poster_path: string | null;
+  season_number: number;
+  air_date: string;
+  vote_average: number;
+  episodes: EpisodeTypes[];
+  networks: NetworkTypes[];
+}
+
+export interface EpisodeTypes {
+  id: number;
+  name: string;
+  overview: string;
+  air_date: string;
+  episode_number: number;
+  episode_type: string;
+  runtime: number;
+  season_number: number;
+  show_id: number;
+  still_path: string | null;
+  vote_average: number;
+  vote_count: number;
+  production_code: string;
+  crew: CrewMemberTypes[];
+  guest_stars: GuestStarTypes[];
+}
+export interface CrewMemberTypes {
+  id: number;
+  name: string;
+  job: string;
+  department: string;
+  profile_path: string | null;
+}
+export interface GuestStarTypes {
+  id: number;
+  name: string;
+  original_name: string;
+  character: string;
+  credit_id: string;
+  order: number;
+  adult: boolean;
+  gender: number;
+  known_for_department: string;
+  popularity: number;
+  profile_path: string | null;
+}
+export interface NetworkTypes {
+  id: number;
+  name: string;
+  logo_path: string | null;
+  origin_country: string;
+}
+
+//
+export type TmdbPopularMoviesResponse = {
+  page: number;
+  results: TmdbMovie[];
+  total_pages: number;
+  total_results: number;
+};
+
+export type TmdbMovie = {
+  id: number;
+  title: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  overview: string;
+  release_date: string;
+  vote_average: number;
+  vote_count: number;
+};

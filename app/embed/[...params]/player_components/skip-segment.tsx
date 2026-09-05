@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface Segment {
   start_sec: number;
@@ -26,40 +26,52 @@ export function SkipSegment({
 }: Props) {
   const active =
     intro && currentTime >= intro.start_sec && currentTime < intro.end_sec
-      ? { label: "Skip Intro", end: intro.end_sec }
+      ? { label: "Skip Intro", start: intro.start_sec, end: intro.end_sec }
       : outro && currentTime >= outro.start_sec && currentTime < outro.end_sec
-        ? { label: "Skip Outro", end: outro.end_sec }
+        ? { label: "Skip Outro", start: outro.start_sec, end: outro.end_sec }
         : null;
+
+  const progress = active
+    ? Math.min(
+        100,
+        Math.max(
+          0,
+          ((currentTime - active.start) / (active.end - active.start)) * 100,
+        ),
+      )
+    : 0;
 
   return (
     <AnimatePresence mode="wait">
       {canPlay && active && (
-        <motion.button
+        <motion.div
           key={active.label}
-          type="button"
-          onClick={() => onSkip(active.end)}
           initial={{ opacity: 0, x: 20, scale: 0.95 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: 20, scale: 0.95 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
-          className={cn(
-            "pointer-events-auto flex items-center gap-2",
-            "rounded-lg border border-white/20",
-            "bg-black/60 px-4 py-2",
-            "text-sm font-medium text-white",
-            "backdrop-blur-md",
-            "shadow-lg shadow-black/20",
-            "transition-all duration-200",
-            "hover:bg-white/15 hover:border-white/30",
-            "active:scale-95",
-            "select-none",
-            className,
-          )}
+          className={className}
         >
-          <span>{active.label}</span>
+          <Button
+            type="button"
+            onClick={() => onSkip(active.end)}
+            variant="outline"
+            size="lg"
+            className=" pointer-events-auto relative cursor-pointer select-none overflow-hidden border-none hover:scale-105"
+          >
+            {/* Filling background */}
+            <motion.div
+              className="absolute inset-y-0 left-0 bg-foreground/20 backdrop-blur-2xl"
+              initial={{ width: "0%" }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.1, ease: "linear" }}
+            />
 
-          <ArrowRight className="size-4" strokeWidth={2.5} />
-        </motion.button>
+            {/* Content */}
+            <span className="relative z-10">{active.label}</span>
+            <ArrowRight className="relative z-10 size-4" strokeWidth={2.5} />
+          </Button>
+        </motion.div>
       )}
     </AnimatePresence>
   );

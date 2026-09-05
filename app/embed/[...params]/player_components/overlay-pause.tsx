@@ -32,7 +32,7 @@ export default function Pause({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
           className={cn(
-            "absolute inset-0 z-20 flex items-center bg-black/70 backdrop-blur-[2px] pointer-events-none select-none",
+            "absolute inset-0 z-40 flex items-center bg-black/70 backdrop-blur-[2px] pointer-events-none select-none",
             poppins.className,
           )}
         >
@@ -41,17 +41,17 @@ export default function Pause({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3, delay: 0.05 }}
-            className="w-full max-w-3xl px-8 sm:px-12 lg:px-16"
+            className="w-full max-w-3xl px-6 md:px-16"
           >
             {/* Paused indicator */}
-            <div className="mb-5 flex items-center gap-3 text-sm font-medium uppercase tracking-widest text-white/60">
+            <div className="md:mb-5 mb-3 flex items-center gap-3 text-sm font-medium uppercase tracking-widest text-white/60">
               <span>PAUSED</span>
             </div>
 
             {/* Title */}
             <h1
               className={cn(
-                "text-3xl font-bold leading-tight text-white sm:text-4xl lg:text-6xl text-shadow-2xl",
+                "text-4xl font-bold leading-tight text-white  md:text-6xl text-shadow-2xl",
                 font2.className,
               )}
             >
@@ -60,13 +60,13 @@ export default function Pause({
 
             {/* Tagline */}
             {metadata.tagline && (
-              <p className="mt-2 text-base italic text-white/60 sm:text-lg">
+              <p className="mt-2 md:text-base text-sm italic text-white/60 ">
                 {metadata.tagline}
               </p>
             )}
 
             {/* Metadata */}
-            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/70">
+            <div className="md:mt-4 mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/70">
               {metadata.release_date && (
                 <span>{metadata.release_date.slice(0, 4)}</span>
               )}
@@ -109,7 +109,7 @@ export default function Pause({
             {metadata.overview && (
               <p
                 className={cn(
-                  "mt-5 line-clamp-3 max-w-2xl text-sm leading-6 text-white/65 sm:text-base",
+                  "md:mt-5 mt-3 line-clamp-3 max-w-2xl text-sm leading-6 text-white/65 md:text-base",
                 )}
               >
                 {metadata.overview}
@@ -117,7 +117,7 @@ export default function Pause({
             )}
             <div className="h-px w-16 bg-white/40 mt-6" />
             {/* Resume hint */}
-            <div className="mt-8 flex items-center gap-2 text-base text-white/50">
+            <div className="mt-8 flex items-center gap-2 md:text-base text-xs text-white/50">
               <span>Press space to continue watching</span>
             </div>
           </motion.div>

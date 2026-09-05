@@ -64,7 +64,7 @@ export default function LoadingScreen({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="fixed inset-0 flex items-center justify-center overflow-hidden bg-black"
+          className="fixed inset-0 flex items-center justify-center overflow-hidden bg-black z-40"
           style={{
             backgroundImage:
               "radial-gradient(ellipse at 60% 40%, var(--color-zinc-900), transparent 60%)",
@@ -178,7 +178,7 @@ export default function LoadingScreen({
             exit={{ opacity: 0, y: 30 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
             className={cn(
-              "absolute md:bottom-5 bottom-3 left-1/2 -translate-x-1/2",
+              "absolute md:bottom-5 bottom-3 left-1/2 -translate-x-1/2 hidden md:block",
             )}
           >
             <div className="flex items-end gap-3">
@@ -226,7 +226,6 @@ export default function LoadingScreen({
                               onClick={() => {
                                 setServerIndex(index);
                                 setSourceIndex(sourceIdx);
-                                setSourceStatus("queue");
                               }}
                               disabled={source.status === "failed"}
                               style={

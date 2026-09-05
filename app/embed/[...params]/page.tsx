@@ -4,7 +4,7 @@ import { useTmdbDetails } from "@/hooks/fetch-details";
 import { sourceQueryOptions, QualityTrack } from "@/hooks/source";
 import { useSandboxDetection } from "@/hooks/useSandboxDetection";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-
+import { toast } from "@/components/ui/toast";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Hls from "hls.js";
 import * as dashjs from "dashjs";
@@ -34,6 +34,7 @@ import { useIntro } from "@/hooks/intro";
 import { SkipSegment } from "./player_components/skip-segment";
 import { useKeyboardControls } from "./player_hooks/use-keyboard";
 import Pause from "./player_components/overlay-pause";
+import { usePlayerSettings } from "./player_store/settings";
 
 export default function Embed() {
   const { params } = useParams();
@@ -50,9 +51,10 @@ export default function Embed() {
     (server) => server.server === requestedServer,
   )
     ? requestedServer!
-    : "zinogre";
+    : "valstrax";
   const color = `#${searchParams.get("color") || "dc2626"}`;
   const language = searchParams.get("language") || "en-US";
+  const back = searchParams.get("back") === "1";
   const branding = searchParams.get("branding") || "netflix";
   const dubLang =
     searchParams.get("dubLang") || searchParams.get("dublang") || "";
@@ -89,6 +91,13 @@ export default function Embed() {
 
   const metadataLoad = !!tmdbId && !!metadata && !!title;
 
+  //
+  const loop = usePlayerSettings((state) => state.loop);
+  const autoplay = usePlayerSettings((state) => state.autoplay);
+  const mirror = usePlayerSettings((state) => state.mirror);
+  const brightness = usePlayerSettings((state) => state.brightness);
+  const aspectRatio = usePlayerSettings((state) => state.aspectRatio);
+  const quality = usePlayerSettings((state) => state.quality);
   /*
    * Only stores which servers have been activated.
    *
@@ -104,7 +113,6 @@ export default function Embed() {
     SERVERS.findIndex((server) => server.server === FIRST_SERVER),
   );
   const [sourceIndex, setSourceIndex] = useState(0);
-  const [showServer, setShowServer] = useState(false);
   const [sourceStatus, setSourceStatus] = useState<SourceStatus>("queue");
   const [failedSources, setFailedSources] = useState<Set<string>>(new Set());
 
@@ -316,8 +324,14 @@ export default function Embed() {
    * Video player.
    */
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
+  const dashRef = useRef<dashjs.MediaPlayerClass | null>(null);
   const playerRef = useRef<HTMLDivElement>(null);
 
+  const progressKey =
+    media_type === "tv"
+      ? `tv:${tmdbId}:s${season}:e${episode}`
+      : `movie:${tmdbId}`;
   const {
     playing,
     ended,
@@ -326,7 +340,6 @@ export default function Embed() {
     waiting,
     muted,
     volume,
-    playbackRate,
     currentTime,
     duration,
     progress,
@@ -335,19 +348,23 @@ export default function Embed() {
     skipBy,
     toggleMute,
     handleVolume,
-    handlePlaybackRate,
     handleSeekStart,
     handleSeekMove,
     commitSeek,
     toggleFullscreen,
     formatTime,
     skipTo,
-  } = useVideoControls({ videoRef, playerRef, serverIndex, sourceIndex });
+  } = useVideoControls({
+    videoRef,
+    playerRef,
+    serverIndex,
+    sourceIndex,
+    progressKey,
+  });
 
   useEffect(() => {
     if (canPlay) {
       resetTimer();
-      setShowServer(false);
     }
   }, [canPlay]);
   const handleSourceFailed = () => {
@@ -389,8 +406,30 @@ export default function Embed() {
     if (srcType === "hls") {
       const hls = new Hls();
 
+      hlsRef.current = hls;
+
       hls.loadSource(srcLink);
       hls.attachMedia(video);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        const qualities = hls.levels
+          .map((level) => level.height)
+          .filter((height): height is number => !!height);
+
+        usePlayerSettings
+          .getState()
+          .setQualities([...new Set(qualities)].sort((a, b) => b - a));
+
+        if (quality !== "auto") {
+          const levelIndex = hls.levels.findIndex(
+            (level) => level.height === quality,
+          );
+
+          if (levelIndex !== -1) {
+            hls.currentLevel = levelIndex;
+          }
+        }
+      });
 
       hls.on(Hls.Events.ERROR, (_, data) => {
         if (!data.fatal) return;
@@ -402,8 +441,10 @@ export default function Embed() {
 
         handleSourceFailed();
       });
+
       return () => {
         hls.destroy();
+        hlsRef.current = null;
       };
     }
 
@@ -413,7 +454,21 @@ export default function Embed() {
     if (srcType === "dash") {
       const dash = dashjs.MediaPlayer().create();
 
+      dashRef.current = dash;
+
       dash.initialize(video, srcLink, true);
+
+      dash.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
+        const representations = dash.getRepresentationsByType("video");
+
+        const qualities = representations
+          .map((representation) => representation.height)
+          .filter((height): height is number => !!height);
+
+        usePlayerSettings
+          .getState()
+          .setQualities([...new Set(qualities)].sort((a, b) => b - a));
+      });
 
       dash.on(dashjs.MediaPlayer.events.ERROR, () => {
         handleSourceFailed();
@@ -421,6 +476,7 @@ export default function Embed() {
 
       return () => {
         dash.reset();
+        dashRef.current = null;
       };
     }
 
@@ -435,21 +491,71 @@ export default function Embed() {
     };
   }, [srcLink, srcType]);
 
+  useEffect(() => {
+    if (quality === "auto") {
+      if (srcType === "hls" && hlsRef.current) {
+        hlsRef.current.currentLevel = -1;
+      }
+
+      if (srcType === "dash" && dashRef.current) {
+        dashRef.current.updateSettings({
+          streaming: {
+            abr: {
+              autoSwitchBitrate: {
+                video: true,
+              },
+            },
+          },
+        });
+      }
+
+      return;
+    }
+
+    if (srcType === "hls" && hlsRef.current) {
+      const hls = hlsRef.current;
+
+      const levelIndex = hls.levels.findIndex(
+        (level) => level.height === quality,
+      );
+
+      if (levelIndex !== -1) {
+        hls.currentLevel = levelIndex;
+      }
+    }
+
+    if (srcType === "dash" && dashRef.current) {
+      const dash = dashRef.current;
+
+      const representations = dash.getRepresentationsByType("video");
+
+      const qualityIndex = representations.findIndex(
+        (representation) => representation.height === quality,
+      );
+
+      if (qualityIndex !== -1) {
+        dash.updateSettings({
+          streaming: {
+            abr: {
+              autoSwitchBitrate: {
+                video: false,
+              },
+            },
+          },
+        });
+
+        dash.setRepresentationForTypeByIndex("video", qualityIndex, true);
+      }
+    }
+  }, [quality, srcType]);
+
+  useEffect(() => {
+    usePlayerSettings.getState().setQuality("auto");
+    usePlayerSettings.getState().setQualities([]);
+  }, [media_type, tmdbId, season, episode, serverIndex, sourceIndex]);
+
   const { isVisible, hideOverlay, resetTimer, lockTimer, setIsVisible } =
     useHiddenOverlay();
-  const [aspectRatio, setAspectRatio] = useState<"contain" | "cover" | "fill">(
-    "contain",
-  );
-  const toggleAspectRatio = () => {
-    const values: ("contain" | "cover" | "fill")[] = [
-      "contain",
-      "cover",
-      "fill",
-    ];
-
-    const index = values.indexOf(aspectRatio);
-    setAspectRatio(values[(index + 1) % values.length]);
-  };
 
   const { data: subtitles, isLoading: subtitlesLoading } = useSubtitle({
     tmdbId,
@@ -461,12 +567,27 @@ export default function Embed() {
     date: String(date),
     enable: metadataLoad && canPlay,
   });
+
+  useEffect(() => {
+    if (subtitlesLoading || !subtitles) return;
+
+    if (subtitles.length > 0) {
+      toast.add({
+        title: "Subtitles loaded",
+        description: `${subtitles.length} subtitle${
+          subtitles.length === 1 ? "" : "s"
+        } available`,
+        type: "success",
+      });
+    }
+  }, [subtitles, subtitlesLoading]);
+
   const selectedSubtitle = subtitles?.find(
     (subtitle) =>
       subtitle.display.toLowerCase() === subtitle_param?.toLowerCase(),
   );
 
-  const handleSubtitleChange = (subtitle: MediaOption | null) => {
+  const onSubtitleChange = (subtitle: MediaOption | null) => {
     const params = new URLSearchParams(searchParams.toString());
 
     if (subtitle) {
@@ -477,8 +598,6 @@ export default function Embed() {
 
     router.replace(`?${params.toString()}`, { scroll: false });
   };
-
-  const [subtitlesModal, setSubtitlesModal] = useState(false);
 
   const { data: introData } = useIntro({
     imdbId,
@@ -531,6 +650,7 @@ export default function Embed() {
   );
 
   // ─── Next Episode ────────────────────────────────────────────────────────────
+  const seasons = metadata?.seasons ?? [];
   const allSeason = metadata?.seasons?.length ?? 0;
   const activeSeason = metadata?.seasons?.find(
     (s) => s.season_number === season,
@@ -662,14 +782,9 @@ export default function Embed() {
         isVisible={isVisible}
         resetTimer={resetTimer}
         lockTimer={lockTimer}
-        playbackRate={playbackRate}
-        handlePlaybackRate={handlePlaybackRate}
-        aspectRatio={aspectRatio}
-        toggleAspectRatio={toggleAspectRatio}
+        // toggleAspectRatio={toggleAspectRatio}
         title={title}
-        setSubtitlesModal={setSubtitlesModal}
-        showServer={showServer}
-        setShowServer={setShowServer}
+        media_type={media_type}
         intro={introData?.intro ?? null}
         outro={introData?.outro ?? null}
         canNext={canNext}
@@ -679,11 +794,25 @@ export default function Embed() {
 
           router.replace(query ? `${url}?${query}` : url);
         }}
+        playerRef={playerRef}
+        subtitles={subtitles ?? []}
+        selectedSubtitle={selectedSubtitle}
+        onSubtitleChange={onSubtitleChange}
+        servers={servers}
+        serverIndex={serverIndex}
+        sourceIndex={sourceIndex}
+        sourceStatus={sourceStatus}
+        handleServerSelect={handleServerSelect}
+        setServerIndex={setServerIndex}
+        setSourceIndex={setSourceIndex}
+        setSourceStatus={setSourceStatus}
+        back={back}
+        seasons={seasons}
       />
 
       <Spinner waiting={waiting} canPlay={canPlay} />
 
-      <ServerModal
+      {/* <ServerModal
         servers={servers}
         serverIndex={serverIndex}
         sourceIndex={sourceIndex}
@@ -694,10 +823,10 @@ export default function Embed() {
         setServerIndex={setServerIndex}
         setSourceIndex={setSourceIndex}
         setSourceStatus={setSourceStatus}
-        color={color}
         canPlay={canPlay}
-      />
-
+        playerRef={playerRef}
+      /> */}
+      {/* 
       <SubtitleModal
         subtitles={subtitles ?? []}
         selectedSubtitle={selectedSubtitle}
@@ -705,7 +834,7 @@ export default function Embed() {
         setSubtitlesModal={setSubtitlesModal}
         subtitlesModal={subtitlesModal}
         canPlay={canPlay}
-      />
+      /> */}
 
       <LoadingScreen
         color={color}
@@ -761,19 +890,13 @@ export default function Embed() {
         )}
       </AnimatePresence>
 
-      {canPlay && (
-        <div
-          className="absolute inset-0 "
-          {...handleDoubleTap}
-          onMouseMove={!isMobile ? resetTimer : undefined}
-        />
-      )}
       <Pause
         metadata={metadata}
         playing={playing}
         isVisible={isVisible}
         canPlay={canPlay}
       />
+
       <video
         ref={videoRef}
         className={cn(
@@ -781,18 +904,30 @@ export default function Embed() {
           aspectRatio === "contain" && "object-contain",
           aspectRatio === "cover" && "object-cover",
           aspectRatio === "fill" && "object-fill",
+          mirror && "-scale-x-100",
         )}
+        loop={loop}
         playsInline
         webkit-playsinline="true"
         preload="metadata"
-        autoPlay
+        autoPlay={autoplay}
         onCanPlay={() => setSourceStatus("ready")}
         onError={() => {
           if (srcType === "mp4") {
             handleSourceFailed();
           }
         }}
+        style={{
+          filter: `brightness(${brightness}%)`,
+        }}
       />
+      {canPlay && (
+        <div
+          className="absolute inset-0 "
+          {...handleDoubleTap}
+          onMouseMove={!isMobile ? resetTimer : undefined}
+        />
+      )}
     </div>
   );
 }

@@ -1,69 +1,200 @@
-import Image from "next/image";
+"use client";
+
+import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { useTmdbPopularMovies } from "@/hooks/fetch-popular";
+import { cn } from "@/hooks/utils";
+import { Separator } from "@/components/ui/separator";
+
+const TMDB_IMAGE_URL = "https://image.tmdb.org/t/p/w500";
+
+function MovieColumn({
+  movies,
+  reverse = false,
+  className,
+}: {
+  movies: {
+    id: number;
+    title: string;
+    poster_path: string | null;
+  }[];
+  reverse?: boolean;
+  className?: string;
+}) {
+  const items = [...movies, ...movies];
+
+  return (
+    <div
+      className={cn("relative h-full w-full overflow-hidden", className)}
+      style={{
+        maskImage:
+          "linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%)",
+        WebkitMaskImage:
+          "linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%)",
+      }}
+    >
+      <motion.div
+        animate={{
+          y: reverse ? ["-50%", "0%"] : ["0%", "-50%"],
+        }}
+        transition={{
+          duration: 120,
+          repeat: Infinity,
+          ease: "linear",
+        }}
+        className="flex flex-col gap-3"
+      >
+        {items.map((movie, index) => (
+          <div
+            key={`${movie.id}-${index}`}
+            className="relative aspect-2/3  shrink-0 overflow-hidden rounded-xl shadow-2xl"
+          >
+            {movie.poster_path ? (
+              <img
+                src={`${TMDB_IMAGE_URL}${movie.poster_path}`}
+                alt={movie.title}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-slate-800 text-sm text-muted-foreground">
+                No Image
+              </div>
+            )}
+
+            <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 to-transparent p-3 pt-10">
+              <p className="line-clamp-2 text-sm font-medium text-white">
+                {movie.title}
+              </p>
+            </div>
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
 
 export default function Home() {
+  const { data } = useTmdbPopularMovies("en-US");
+
+  const movies = data?.results ?? [];
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="select-none">
+      <div className="relative min-h-screen overflow-hidden ">
+        {/* Header */}
+        <div className="md:absolute top-0 inset-x-0  py-8">
+          <div className="mx-auto md:max-w-[80%] max-w-[90%]">
+            <nav className=" items-center gap-8 md:text-base font-medium text-shadow-2xs text-muted-foreground flex justify-between md:justify-start text-sm">
+              <Link
+                href="/"
+                className="text-foreground transition-colors hover:text-foreground/70"
+              >
+                Home
+              </Link>
+              <Link
+                href="/demo"
+                className="transition-colors hover:text-foreground"
+              >
+                Demo
+              </Link>
+              <Link
+                href="/documentation"
+                className="transition-colors hover:text-foreground"
+              >
+                Documentation
+              </Link>
+              <Link
+                href="https://discord.gg/yv7wJV97Jd"
+                className="transition-colors hover:text-foreground"
+              >
+                Discord
+              </Link>{" "}
+              {/* <Link
+                href="https://discord.gg/yv7wJV97Jd"
+                className="transition-colors hover:text-foreground"
+              >
+                Telegram
+              </Link> */}
+            </nav>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        {/* Hero */}
+        <div className="mx-auto md:max-w-[80%] max-w-[90%]">
+          <div
+            className="flex flex-col md:flex-row gap-10 "
+            style={{
+              backgroundImage:
+                "radial-gradient(ellipse at 60% 40%, var(--color-zinc-900), transparent 60%)",
+            }}
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            {/* Left content */}
+            <div className="flex-1 flex flex-col justify-center">
+              <Link href="https://discord.gg/s">
+                <Badge variant="secondary" className="mb-1 p-3">
+                  Join our Discord <ArrowRight />
+                </Badge>
+              </Link>
+              <div className="mt-4 flex items-center gap-3">
+                <h1
+                  style={{
+                    textShadow: "1px 1px 1px rgba(0,0,0,0.2)",
+                  }}
+                  className="text-5xl font-bold leading-[1.1] tracking-tighter lg:text-7xl"
+                >
+                  <motion.span
+                    className="bg-linear-to-r from-[rgb(237,236,233)] via-[rgb(94,84,72)] to-[rgb(172,149,119)] bg-clip-text text-transparent"
+                    style={{ backgroundSize: "200% 200%" }}
+                    animate={{
+                      backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                    }}
+                    transition={{
+                      duration: 10,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                  >
+                    @VIDSTUCK
+                  </motion.span>
+                </h1>
+              </div>
+
+              <p className="mt-8 max-w-2xl text-sm text-muted-foreground md:text-2xl">
+                Your movies, shows & anime — all in one place. Free to use,
+                stupidly easy to embed, and ready to stream.
+              </p>
+
+              <div className="mt-8 flex flex-wrap items-center gap-6">
+                <div>
+                  <p className="text-2xl font-bold tracking-tight">100K+</p>
+                  <p className="text-sm text-muted-foreground">Movies</p>
+                </div>
+                <Separator orientation="vertical" />
+                <div>
+                  <p className="text-2xl font-bold tracking-tight">70K+</p>
+                  <p className="text-sm text-muted-foreground">Shows</p>
+                </div>
+                <Separator orientation="vertical" />
+                <div>
+                  <p className="text-2xl font-bold tracking-tight">5K+</p>
+                  <p className="text-sm text-muted-foreground">Anime</p>
+                </div>
+
+                <p className="w-full text-sm text-muted-foreground/70">
+                  Estimated catalog size across 13+ sources
+                </p>
+              </div>
+            </div>
+            {/* Movie carousel */}
+            <div className="flex max-w-2xl gap-3  h-120 md:h-screen">
+              <MovieColumn movies={movies} className="- brightness-50" />
+              <MovieColumn movies={movies} reverse className="z-30" />
+              <MovieColumn movies={movies} className=" brightness-50" />
+            </div>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

@@ -1,32 +1,43 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
-import { Check, ChevronDown, LoaderCircle, Minus, X } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/hooks/utils";
-import { Poppins } from "next/font/google";
+import {
+  Airplay,
+  Check,
+  Cloud,
+  HardDrive,
+  LoaderCircle,
+  Minus,
+  Server,
+  X,
+} from "lucide-react";
+
 import type {
   ServerTypes,
   SourceStatus,
 } from "@/app/embed/[...params]/player_types/server-types";
-
-const font = Poppins({
-  weight: "500",
-  subsets: ["latin"],
-});
+import { useState } from "react";
 
 interface Props {
   servers: ServerTypes[];
   serverIndex: number;
   sourceIndex: number;
   sourceStatus: SourceStatus;
-  showServer: boolean;
-  setShowServer: (enabled: boolean) => void;
+
   handleServerSelect: (index: number) => void;
   setServerIndex: React.Dispatch<React.SetStateAction<number>>;
   setSourceIndex: React.Dispatch<React.SetStateAction<number>>;
   setSourceStatus: React.Dispatch<React.SetStateAction<SourceStatus>>;
-  color: string;
   canPlay: boolean;
+  playerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export default function ServerModal({
@@ -34,252 +45,207 @@ export default function ServerModal({
   serverIndex,
   sourceIndex,
   sourceStatus,
-  showServer,
-  setShowServer,
   handleServerSelect,
   setServerIndex,
   setSourceIndex,
   setSourceStatus,
-  color,
   canPlay,
+  playerRef,
 }: Props) {
-  const glow = `0 0 6px ${color}99, 0 0 16px ${color}59`;
+  const [showServer, setShowServer] = useState(false);
+  if (!canPlay) return null;
 
   return (
-    <AnimatePresence>
-      {showServer && canPlay && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 z-40 bg-black/40"
-            onClick={() => setShowServer(false)}
-          />
-
-          {/* Modal */}
-          <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{
-              type: "spring",
-              stiffness: 400,
-              damping: 35,
-              mass: 0.8,
-            }}
+    <Popover open={showServer} onOpenChange={setShowServer}>
+      <PopoverTrigger
+        render={
+          <button
+            type="button"
             className={cn(
-              "absolute inset-y-0 right-0 z-50 flex w-80 flex-col",
-              "rounded-l-md bg-black/40 shadow-2xl backdrop-blur-xl",
-              font.className,
+              "flex flex-col items-center gap-1.5",
+              "text-shadow-lg transition-opacity hover:opacity-70",
             )}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-white/15 bg-black/30 px-4 py-3.5">
-              <h2 className="text-sm font-medium tracking-wide text-white">
-                Servers
-              </h2>
+            <Airplay
+              className="md:size-7 size-6 text-shadow-md"
+              strokeWidth={2.5}
+            />
+          </button>
+        }
+      />
 
-              <button
-                type="button"
-                onClick={() => setShowServer(false)}
-                className="rounded-md p-1 text-white/50 transition hover:bg-white/10 hover:text-white"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
+      <PopoverContent
+        container={playerRef}
+        side="top"
+        align="end"
+        sideOffset={18}
+        className="md:w-89 w-72 overflow-hidden p-1 shadow-2xl"
+      >
+        <PopoverHeader className=" gap-2 border-b px-4 py-3">
+          <PopoverTitle className="flex items-center gap-1.5 uppercase tracking-wider text-muted-foreground md:text-sm text-xs">
+            <Cloud className="size-5 fill-current" />
+            Servers
+          </PopoverTitle>
+        </PopoverHeader>
 
-            {/* Servers */}
-            <div className="flex-1 overflow-y-auto p-2">
-              <div className="space-y-1">
-                {servers.map((server, index) => {
-                  const selected = serverIndex === index;
+        <ScrollArea className="md:max-h-80 max-h-50 pr-2">
+          <div className="px-2">
+            <div className="space-y-2">
+              {servers.map((server, index) => (
+                <div key={server.server}>
+                  <ServerItem
+                    server={server}
+                    selected={serverIndex === index}
+                    onClick={() => {
+                      handleServerSelect(index);
+                      setShowServer(false);
+                    }}
+                  />
 
-                  return (
-                    <div key={server.server}>
-                      {/* Server */}
-                      <motion.button
-                        type="button"
-                        onClick={() => handleServerSelect(index)}
-                        initial={{ opacity: 0, x: 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{
-                          duration: 0.2,
-                          delay: index * 0.05,
-                        }}
-                        style={
-                          selected
-                            ? {
-                                borderColor: color,
-                                background: `linear-gradient(to right, ${color}20, transparent)`,
-                              }
-                            : undefined
-                        }
-                        className={cn(
-                          "flex w-full items-center justify-between",
-                          "rounded-md border-l border-transparent px-3 py-3",
-                          "text-left transition-colors",
-                          !selected &&
-                            "text-white/60 hover:bg-white/10 hover:text-white",
-                        )}
-                      >
-                        <div className="min-w-0">
-                          <div
-                            style={
-                              selected
-                                ? {
-                                    color,
-                                    textShadow: glow,
-                                  }
-                                : undefined
-                            }
-                            className={cn(
-                              "text-sm font-semibold",
-                              server.status === "failed" &&
-                                "line-through opacity-50",
-                            )}
-                          >
-                            {server.name}
-                          </div>
+                  {server.sources?.length > 0 && (
+                    <div className="ml-4 mt-1.5 space-y-0.5 border-l pl-2">
+                      {server.sources.map((source, sourceIdx) => {
+                        const current =
+                          serverIndex === index && sourceIdx === sourceIndex;
 
-                          <p className="mt-1 truncate text-xs text-white/40">
-                            {server.message || server.desc}
-                          </p>
-                        </div>
+                        const status = current ? sourceStatus : source.status;
 
-                        <div className="ml-3 flex shrink-0 items-center gap-2">
-                          {server.status === "available" && (
-                            <Check
-                              className="size-4"
-                              style={
-                                selected
-                                  ? {
-                                      color,
-                                      filter: `drop-shadow(0 0 6px ${color})`,
-                                    }
-                                  : undefined
-                              }
-                              strokeWidth={2.5}
-                            />
-                          )}
-
-                          {server.status === "checking" && (
-                            <LoaderCircle className="size-4 animate-spin text-white/70" />
-                          )}
-
-                          {server.status === "failed" && (
-                            <X className="size-4 text-red-400" />
-                          )}
-
-                          {server.status === "queue" && (
-                            <Minus className="size-4 text-white/30" />
-                          )}
-
-                          {server.sources?.length > 0 && (
-                            <ChevronDown
-                              className={cn(
-                                "size-4 text-white/30 transition-transform",
-                                selected && "rotate-180",
-                              )}
-                            />
-                          )}
-                        </div>
-                      </motion.button>
-
-                      {/* Sources */}
-                      <AnimatePresence initial={false}>
-                        {selected && server.sources?.length > 0 && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="ml-4 mt-1 space-y-0.5 border-l border-white/10 pl-2">
-                              {server.sources.map((source, sourceIdx) => {
-                                const current = sourceIdx === sourceIndex;
-                                const status = current
-                                  ? sourceStatus
-                                  : source.status;
-
-                                return (
-                                  <motion.button
-                                    key={`${source.link}-${sourceIdx}`}
-                                    type="button"
-                                    disabled={source.status === "failed"}
-                                    onClick={() => {
-                                      setServerIndex(index);
-                                      setSourceIndex(sourceIdx);
-                                      setSourceStatus("queue");
-                                    }}
-                                    className={cn(
-                                      "flex w-full items-center justify-between rounded-md px-3 py-2",
-                                      "text-left transition-colors",
-                                      current
-                                        ? "text-white"
-                                        : "text-white/50 hover:bg-white/5 hover:text-white/80",
-                                      source.status === "failed" &&
-                                        "cursor-not-allowed opacity-40",
-                                    )}
-                                    style={
-                                      current
-                                        ? {
-                                            color,
-                                            background: `linear-gradient(to right, ${color}18, transparent)`,
-                                          }
-                                        : undefined
-                                    }
-                                  >
-                                    <span
-                                      className={cn(
-                                        "text-sm font-medium",
-                                        source.status === "failed" &&
-                                          "line-through",
-                                      )}
-                                    >
-                                      {source.resolution
-                                        ? `${source.resolution}p`
-                                        : source.type.toUpperCase()}
-                                    </span>
-
-                                    <span
-                                      className={cn(
-                                        "text-xs capitalize",
-                                        status === "ready" && "text-green-400",
-                                        status === "connecting" &&
-                                          "text-white/70",
-                                        status === "failed" && "text-red-400",
-                                        status === "queue" && "text-white/30",
-                                      )}
-                                    >
-                                      {status === "connecting"
-                                        ? "loading..."
-                                        : status}
-                                    </span>
-                                  </motion.button>
-                                );
-                              })}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                        return (
+                          <SourceItem
+                            key={`${source.link}-${sourceIdx}`}
+                            source={source}
+                            current={current}
+                            status={status}
+                            onClick={() => {
+                              setServerIndex(index);
+                              setSourceIndex(sourceIdx);
+                              setShowServer(false);
+                            }}
+                          />
+                        );
+                      })}
                     </div>
-                  );
-                })}
-              </div>
+                  )}
+                </div>
+              ))}
             </div>
+          </div>
+        </ScrollArea>
 
-            {/* Footer */}
-            <div className="border-t border-white/15 bg-black/30 px-4 py-3">
-              <p className="text-center text-xs text-white/30">
-                Choose a server or playback quality
-              </p>
-            </div>
-          </motion.div>
-        </>
+        <div className="border-t p-2">
+          <p className="px-3 py-1 text-center text-xs text-muted-foreground">
+            Choose a server or playback quality
+          </p>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function ServerItem({
+  server,
+  selected,
+  onClick,
+}: {
+  server: ServerTypes;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-current={selected}
+      className={cn(
+        "group",
+        "flex w-full items-center justify-between rounded-lg px-3 py-2.5",
+        "text-left md:text-base text-sm transition-colors",
+        selected
+          ? "bg-accent"
+          : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
       )}
-    </AnimatePresence>
+    >
+      <div className="min-w-0">
+        <span
+          className={cn(
+            "md:text-base text-sm font-medium",
+            server.status === "failed" && "line-through opacity-50",
+          )}
+        >
+          {server.name}
+        </span>
+
+        <p className="mt-1 truncate md:text-sm text-xs text-muted-foreground">
+          {server.message || server.desc}
+        </p>
+      </div>
+
+      {server.status === "available" && (
+        <Check className="size-4 shrink-0 text-primary" />
+      )}
+
+      {server.status === "checking" && (
+        <LoaderCircle className="size-4 shrink-0 animate-spin" />
+      )}
+
+      {server.status === "failed" && (
+        <X className="size-4 shrink-0 text-red-400" />
+      )}
+
+      {server.status === "queue" && (
+        <Minus className="size-4 shrink-0 opacity-40" />
+      )}
+    </button>
+  );
+}
+
+function SourceItem({
+  source,
+  current,
+  status,
+  onClick,
+}: {
+  source: ServerTypes["sources"][number];
+  current: boolean;
+  status: SourceStatus;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={source.status === "failed"}
+      onClick={onClick}
+      className={cn(
+        "flex w-full items-center justify-between rounded-md px-3 py-2",
+        "text-left transition-colors",
+        current
+          ? "bg-accent"
+          : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+        source.status === "failed" && "cursor-not-allowed opacity-40",
+      )}
+    >
+      <span
+        className={cn(
+          "text-sm font-medium",
+          source.status === "failed" && "line-through",
+        )}
+      >
+        {source.resolution
+          ? `${source.resolution}p`
+          : source.type.toUpperCase()}
+      </span>
+
+      <span
+        className={cn(
+          "text-xs capitalize",
+          status === "ready" && "text-green-400",
+          status === "connecting" && "text-muted-foreground",
+          status === "failed" && "text-red-400",
+          status === "queue" && "opacity-40",
+        )}
+      >
+        {status === "connecting" ? "loading..." : status}
+      </span>
+    </button>
   );
 }

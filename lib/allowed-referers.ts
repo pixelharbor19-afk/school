@@ -1,5 +1,5 @@
 const ALLOWED_REFERERS = [
-  "http://192.168.1.3:3000/",
+  "http://192.168.1.4:3000/",
   "http://localhost:3000/",
   //
   "https://player.zxcstream.xyz/",
@@ -14,7 +14,7 @@ const ALLOWED_REFERERS = [
 ];
 
 export const ALLOWED_ORIGINS = [
-  "http://192.168.1.3:3000",
+  "http://192.168.1.4:3000",
   "http://localhost:3000",
   //
   "https://player.zxcstream.xyz",
