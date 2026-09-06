@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-const PLAYER_URL = "http://localhost:3000/embed";
+const PLAYER_URL = "https://vidstuck.xyz/embed";
 
 function useCopy() {
   const [copied, setCopied] = useState(false);
