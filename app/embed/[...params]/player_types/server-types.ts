@@ -6,7 +6,6 @@ export const SERVERS: ServerTypes[] = [
     desc: "Smooth Playback & HD",
     sources: [],
   },
-
   {
     name: "Centaurus",
     status: "queue",

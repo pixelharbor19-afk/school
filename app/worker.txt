@@ -1,0 +1,1051 @@
+export default {
+  async fetch(request) {
+    const requestUrl = new URL(request.url);
+    const path = requestUrl.pathname;
+
+    const url = requestUrl.searchParams.get("url");
+    const file = requestUrl.searchParams.get("file");
+    const headerParam = requestUrl.searchParams.get("header");
+
+    let headers = new Headers();
+
+    if (headerParam) {
+      try {
+        headers = new Headers(JSON.parse(headerParam));
+      } catch {
+        return new Response("Invalid header JSON", {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        });
+      }
+    }
+
+    if (
+      path !== "/hls" &&
+      path !== "/dash" &&
+      path !== "/mp4"
+    ) {
+      return new Response("Invalid path", {
+        status: 404,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+
+    const target = file || url;
+
+    if (!target) {
+      return new Response("Missing url or file", {
+        status: 400,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+
+    const fetchHeaders = new Headers(headers);
+    const range = request.headers.get("Range");
+
+    if (range) {
+      fetchHeaders.set("Range", range);
+    }
+
+    try {
+      const response = await fetch(target, {
+        headers: fetchHeaders,
+      });
+
+      if (!response.ok) {
+        return new Response(
+          `Fetch failed: ${response.status} ${response.statusText}`,
+          {
+            status: response.status,
+            headers: {
+              "Access-Control-Allow-Origin": "*",
+            },
+          }
+        );
+      }
+
+      /*
+       * HLS
+       */
+      if (path === "/hls") {
+        const contentType =
+          response.headers.get("content-type") || "";
+
+        if (
+          url ||
+          contentType.includes("mpegurl") ||
+          contentType.includes("m3u8")
+        ) {
+          const text = await response.text();
+
+          if (text.trim().startsWith("#EXTM3U")) {
+            const baseUrl = new URL(target);
+
+            const playlist = text
+              .split("\n")
+              .map((line) => {
+                line = line.trim();
+
+                if (!line) {
+                  return line;
+                }
+
+                if (line.startsWith("#")) {
+                  return line.replace(
+                    /URI="([^"]+)"/g,
+                    (_, value) => {
+                      const absoluteUrl = new URL(
+                        value,
+                        baseUrl
+                      ).href;
+
+                      return `URI="${requestUrl.origin}/hls?file=${encodeURIComponent(
+                        absoluteUrl
+                      )}&header=${encodeURIComponent(
+                        headerParam || "{}"
+                      )}"`;
+                    }
+                  );
+                }
+
+                const absoluteUrl = new URL(
+                  line,
+                  baseUrl
+                ).href;
+
+                return `${requestUrl.origin}/hls?file=${encodeURIComponent(
+                  absoluteUrl
+                )}&header=${encodeURIComponent(
+                  headerParam || "{}"
+                )}`;
+              })
+              .join("\n");
+
+            return new Response(playlist, {
+              headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Content-Type":
+                  "application/vnd.apple.mpegurl",
+                "Cache-Control": "no-cache",
+              },
+            });
+          }
+
+          return new Response(text, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: {
+              "Access-Control-Allow-Origin": "*",
+              "Content-Type":
+                contentType || "application/octet-stream",
+            },
+          });
+        }
+
+        const responseHeaders = new Headers(
+          response.headers
+        );
+
+        responseHeaders.set(
+          "Access-Control-Allow-Origin",
+          "*"
+        );
+
+        return new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+        });
+      }
+
+      /*
+       * DASH
+       */
+      if (path === "/dash") {
+        if (url) {
+          let mpd = await response.text();
+
+          mpd = mpd.replaceAll(
+            'codecs="hev1"',
+            'codecs="hev1.1.6.L93.90"'
+          );
+
+          function proxyTemplate(template) {
+            const absoluteUrl = new URL(
+              template,
+              target
+            ).href;
+
+            const encoded = encodeURIComponent(
+              absoluteUrl
+            )
+              .replace(
+                /%24RepresentationID%24/g,
+                "$RepresentationID$"
+              )
+              .replace(
+                /%24Number%2505d%24/g,
+                "$Number%05d$"
+              );
+
+            return `${requestUrl.origin}/dash?file=${encoded}&header=${encodeURIComponent(
+              headerParam || "{}"
+            )}`;
+          }
+
+          mpd = mpd.replace(
+            /(<SegmentTemplate\b[^>]*\binitialization=")([^"]+)(")/g,
+            (_, start, value, end) =>
+              `${start}${proxyTemplate(value)}${end}`
+          );
+
+          mpd = mpd.replace(
+            /(<SegmentTemplate\b[^>]*\bmedia=")([^"]+)(")/g,
+            (_, start, value, end) =>
+              `${start}${proxyTemplate(value)}${end}`
+          );
+
+          return new Response(mpd, {
+            headers: {
+              "Access-Control-Allow-Origin": "*",
+              "Content-Type": "application/dash+xml",
+              "Cache-Control": "no-cache",
+            },
+          });
+        }
+
+        const responseHeaders = new Headers(
+          response.headers
+        );
+
+        responseHeaders.set(
+          "Access-Control-Allow-Origin",
+          "*"
+        );
+
+        return new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+        });
+      }
+
+      /*
+       * MP4
+       */
+      if (path === "/mp4") {
+        const responseHeaders = new Headers(
+          response.headers
+        );
+
+        responseHeaders.set(
+          "Access-Control-Allow-Origin",
+          "*"
+        );
+
+        return new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+        });
+      }
+    } catch (error) {
+      return new Response(`Fetch failed: ${error.message}`, {
+        status: 500,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+  },
+};
+//
+
+export default {
+  async fetch(request) {
+    const requestUrl = new URL(request.url);
+    const path = requestUrl.pathname;
+
+    const url = requestUrl.searchParams.get("url");
+    const file = requestUrl.searchParams.get("file");
+    const segment = requestUrl.searchParams.get("segment");
+    const chunks = requestUrl.searchParams.get("chunks");
+    const headerParam = requestUrl.searchParams.get("header");
+
+    let headers = new Headers();
+
+    if (headerParam) {
+      try {
+        headers = new Headers(JSON.parse(headerParam));
+      } catch {
+        return new Response("Invalid header JSON", {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        });
+      }
+    }
+
+    if (
+      path !== "/hls" &&
+      path !== "/dash" &&
+      path !== "/mp4"
+    ) {
+      return new Response("Invalid path", {
+        status: 404,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+
+    const target = file || url || segment || chunks;
+
+    if (!target) {
+      return new Response("Missing url or file", {
+        status: 400,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+
+    const fetchHeaders = new Headers(headers);
+    const range = request.headers.get("Range");
+
+    if (range) {
+      fetchHeaders.set("Range", range);
+    }
+
+    try {
+      const response = await fetch(target, {
+        headers: fetchHeaders,
+      });
+
+      if (!response.ok) {
+        return new Response(
+          `Fetch failed: ${response.status} ${response.statusText}`,
+          {
+            status: response.status,
+            headers: {
+              "Access-Control-Allow-Origin": "*",
+            },
+          }
+        );
+      }
+
+      /*
+       * HLS
+       */
+      if (path === "/hls") {
+        const contentType =
+          response.headers.get("content-type") || "";
+
+        if (
+          url ||
+          contentType.includes("mpegurl") ||
+          contentType.includes("m3u8")
+        ) {
+          const text = await response.text();
+
+          if (text.trim().startsWith("#EXTM3U")) {
+            const baseUrl = new URL(target);
+
+            const playlist = text
+              .split("\n")
+              .map((line) => {
+                line = line.trim();
+
+                if (!line) {
+                  return line;
+                }
+
+                if (line.startsWith("#")) {
+                  return line.replace(
+                    /URI="([^"]+)"/g,
+                    (_, value) => {
+                      const absoluteUrl = new URL(
+                        value,
+                        baseUrl
+                      ).href;
+
+                      return `URI="${requestUrl.origin}/hls?segment=${encodeURIComponent(
+                        absoluteUrl
+                      )}&header=${encodeURIComponent(
+                        headerParam || "{}"
+                      )}"`;
+                    }
+                  );
+                }
+
+                const absoluteUrl = new URL(
+                  line,
+                  baseUrl
+                ).href;
+
+                return `${requestUrl.origin}/hls?segment=${encodeURIComponent(
+                  absoluteUrl
+                )}&header=${encodeURIComponent(
+                  headerParam || "{}"
+                )}`;
+              })
+              .join("\n");
+
+            return new Response(playlist, {
+              headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Content-Type":
+                  "application/vnd.apple.mpegurl",
+                "Cache-Control": "no-cache",
+              },
+            });
+          }
+
+          return new Response(text, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: {
+              "Access-Control-Allow-Origin": "*",
+              "Content-Type":
+                contentType || "application/octet-stream",
+            },
+          });
+        }
+
+        const responseHeaders = new Headers(
+          response.headers
+        );
+
+        responseHeaders.set(
+          "Access-Control-Allow-Origin",
+          "*"
+        );
+
+        return new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+        });
+      }
+
+      /*
+       * DASH
+       */
+      if (path === "/dash") {
+        if (url) {
+          let mpd = await response.text();
+
+          mpd = mpd.replaceAll(
+            'codecs="hev1"',
+            'codecs="hev1.1.6.L93.90"'
+          );
+
+          function proxyTemplate(template) {
+            const absoluteUrl = new URL(
+              template,
+              target
+            ).href;
+
+            const encoded = encodeURIComponent(
+              absoluteUrl
+            )
+              .replace(
+                /%24RepresentationID%24/g,
+                "$RepresentationID$"
+              )
+              .replace(
+                /%24Number%2505d%24/g,
+                "$Number%05d$"
+              );
+
+            return `${requestUrl.origin}/dash?chunks=${encoded}&header=${encodeURIComponent(
+              headerParam || "{}"
+            )}`;
+          }
+
+          mpd = mpd.replace(
+            /(<SegmentTemplate\b[^>]*\binitialization=")([^"]+)(")/g,
+            (_, start, value, end) =>
+              `${start}${proxyTemplate(value)}${end}`
+          );
+
+          mpd = mpd.replace(
+            /(<SegmentTemplate\b[^>]*\bmedia=")([^"]+)(")/g,
+            (_, start, value, end) =>
+              `${start}${proxyTemplate(value)}${end}`
+          );
+
+          return new Response(mpd, {
+            headers: {
+              "Access-Control-Allow-Origin": "*",
+              "Content-Type": "application/dash+xml",
+              "Cache-Control": "no-cache",
+            },
+          });
+        }
+
+        const responseHeaders = new Headers(
+          response.headers
+        );
+
+        responseHeaders.set(
+          "Access-Control-Allow-Origin",
+          "*"
+        );
+
+        return new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+        });
+      }
+
+      /*
+       * MP4
+       */
+      if (path === "/mp4") {
+        const responseHeaders = new Headers(
+          response.headers
+        );
+
+        responseHeaders.set(
+          "Access-Control-Allow-Origin",
+          "*"
+        );
+
+        return new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+        });
+      }
+    } catch (error) {
+      return new Response(`Fetch failed: ${error.message}`, {
+        status: 500,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+  },
+};
+
+// encryted except chunks url
+function getCorsOrigin(req) {
+  const origin = req.headers.get("Origin");
+
+  if (origin) {
+    try {
+      const hostname = new URL(origin).hostname;
+
+      if (
+        hostname.includes("vidstuck") ||
+        hostname.includes("localhost") ||
+        hostname.includes("zxcstream") ||
+        hostname.includes("zxcprime") ||
+        hostname.includes("mnflix")
+      ) {
+        return origin;
+      }
+    } catch {}
+
+    return null;
+  }
+
+  return null;
+}
+
+export default {
+  async fetch(request, env) {
+    const requestUrl = new URL(request.url);
+    const path = requestUrl.pathname;
+
+    // Health check
+    if (requestUrl.pathname === "/" && !requestUrl.search) {
+      return new Response("OK", { status: 200 });
+    }
+
+    // CORS
+    const corsOrigin = getCorsOrigin(request);
+
+    if (request.method === "OPTIONS") {
+      if (!corsOrigin) {
+        return new Response("Forbidden", { status: 403 });
+      }
+
+      return new Response(null, {
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Origin": corsOrigin,
+          "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+          "Access-Control-Allow-Headers": "Range, Content-Type",
+          "Access-Control-Expose-Headers": "Content-Length, Content-Range, Accept-Ranges",
+        },
+      });
+    }
+
+    if (request.headers.get("Origin") && !corsOrigin) {
+      return new Response("Forbidden", { status: 403 });
+    }
+
+    let url = requestUrl.searchParams.get("url");
+
+    let file = requestUrl.searchParams.get("file");
+
+    let segment = requestUrl.searchParams.get("segment");
+
+    const chunks = requestUrl.searchParams.get("chunks");
+
+    let headerParam = requestUrl.searchParams.get("header");
+
+    const cryptoKey = await getCryptoKey(env.AES_KEY);
+
+    try {
+      if (url) {
+        url = await decryptUrl(url, cryptoKey);
+      }
+
+      if (file) {
+        file = await decryptUrl(file, cryptoKey);
+      }
+
+      if (segment) {
+        segment = await decryptUrl(segment, cryptoKey);
+      }
+
+      if (headerParam) {
+        headerParam = await decryptUrl(headerParam, cryptoKey);
+      }
+    } catch {
+      return new Response("Invalid encrypted data", {
+        status: 400,
+        headers: {
+          "Access-Control-Allow-Origin": corsOrigin || "null",
+        },
+      });
+    }
+
+    let headers = new Headers();
+
+    if (headerParam) {
+      try {
+        headers = new Headers(JSON.parse(headerParam));
+      } catch {
+        return new Response("Invalid header JSON", {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": corsOrigin || "null",
+          },
+        });
+      }
+    }
+
+    if (
+      path !== "/hls" &&
+      path !== "/dash" &&
+      path !== "/mp4"
+    ) {
+      return new Response("Invalid path", {
+        status: 404,
+        headers: {
+          "Access-Control-Allow-Origin": corsOrigin || "null",
+        },
+      });
+    }
+
+    const target = file || url || segment || chunks;
+
+    if (!target) {
+      return new Response("Missing url or file", {
+        status: 400,
+        headers: {
+          "Access-Control-Allow-Origin": corsOrigin || "null",
+        },
+      });
+    }
+
+    const fetchHeaders = new Headers(headers);
+
+    const range = request.headers.get("Range");
+
+    if (range) {
+      fetchHeaders.set("Range", range);
+    }
+
+    try {
+      const response = await fetch(target, {
+        headers: fetchHeaders,
+      });
+
+      if (!response.ok) {
+        return new Response(
+          `Fetch failed: ${response.status} ${response.statusText}`,
+          {
+            status: response.status,
+            headers: {
+              "Access-Control-Allow-Origin": corsOrigin || "null",
+            },
+          }
+        );
+      }
+
+      /*
+       * HLS
+       */
+
+      if (path === "/hls") {
+        const contentType =
+          response.headers.get("content-type") || "";
+
+        if (
+          url ||
+          contentType.includes("mpegurl") ||
+          contentType.includes("m3u8")
+        ) {
+          const text = await response.text();
+
+          if (text.trim().startsWith("#EXTM3U")) {
+            const baseUrl = new URL(target);
+
+            const lines = text.split("\n");
+
+            const playlist = [];
+
+            for (let line of lines) {
+              line = line.trim();
+
+              if (!line) {
+                playlist.push(line);
+                continue;
+              }
+
+              if (line.startsWith("#")) {
+                const matches = [...line.matchAll(/URI="([^"]+)"/g)];
+
+                if (matches.length) {
+                  for (const match of matches) {
+                    const absoluteUrl = new URL(
+                      match[1],
+                      baseUrl
+                    ).href;
+
+                    const encryptedUrl = await encryptUrl(
+                      absoluteUrl,
+                      cryptoKey
+                    );
+
+                    const encryptedHeader = await encryptUrl(
+                      headerParam || "{}",
+                      cryptoKey
+                    );
+
+                    line = line.replace(
+                      match[1],
+                      `${requestUrl.origin}/hls?segment=${encodeURIComponent(
+                        encryptedUrl
+                      )}&header=${encodeURIComponent(
+                        encryptedHeader
+                      )}`
+                    );
+                  }
+                }
+
+                playlist.push(line);
+                continue;
+              }
+
+              const absoluteUrl = new URL(
+                line,
+                baseUrl
+              ).href;
+
+              const encryptedUrl = await encryptUrl(
+                absoluteUrl,
+                cryptoKey
+              );
+
+              const encryptedHeader = await encryptUrl(
+                headerParam || "{}",
+                cryptoKey
+              );
+
+              playlist.push(
+                `${requestUrl.origin}/hls?segment=${encodeURIComponent(
+                  encryptedUrl
+                )}&header=${encodeURIComponent(
+                  encryptedHeader
+                )}`
+              );
+            }
+
+            return new Response(playlist.join("\n"), {
+              headers: {
+                "Access-Control-Allow-Origin": corsOrigin || "null",
+                "Content-Type":
+                  "application/vnd.apple.mpegurl",
+                "Cache-Control": "no-cache",
+              },
+            });
+          }
+
+          return new Response(text, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: {
+              "Access-Control-Allow-Origin": corsOrigin || "null",
+              "Content-Type":
+                contentType || "application/octet-stream",
+            },
+          });
+        }
+
+        const responseHeaders = new Headers(
+          response.headers
+        );
+
+        responseHeaders.set(
+          "Access-Control-Allow-Origin",
+          corsOrigin || "null"
+        );
+
+        return new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+        });
+      }
+
+      /*
+       * DASH
+       */
+
+      if (path === "/dash") {
+        if (url) {
+          let mpd = await response.text();
+
+          mpd = mpd.replaceAll(
+            'codecs="hev1"',
+            'codecs="hev1.1.6.L93.90"'
+          );
+
+          async function proxyTemplate(template) {
+            const absoluteUrl = new URL(
+              template,
+              target
+            ).href;
+
+            const encoded = encodeURIComponent(
+              absoluteUrl
+            )
+              .replace(
+                /%24RepresentationID%24/g,
+                "$RepresentationID$"
+              )
+              .replace(
+                /%24Number%2505d%24/g,
+                "$Number%05d$"
+              );
+
+            const encryptedHeader = await encryptUrl(
+              headerParam || "{}",
+              cryptoKey
+            );
+
+            // chunks = NOT encrypted
+            return `${requestUrl.origin}/dash?chunks=${encoded}&header=${encodeURIComponent(
+              encryptedHeader
+            )}`;
+          }
+
+          const initializationMatches = [
+            ...mpd.matchAll(
+              /(<SegmentTemplate\b[^>]*\binitialization=")([^"]+)(")/g
+            ),
+          ];
+
+          for (const match of initializationMatches) {
+            const replacement = await proxyTemplate(
+              match[2]
+            );
+
+            mpd = mpd.replace(
+              match[0],
+              `${match[1]}${replacement}${match[3]}`
+            );
+          }
+
+          const mediaMatches = [
+            ...mpd.matchAll(
+              /(<SegmentTemplate\b[^>]*\bmedia=")([^"]+)(")/g
+            ),
+          ];
+
+          for (const match of mediaMatches) {
+            const replacement = await proxyTemplate(
+              match[2]
+            );
+
+            mpd = mpd.replace(
+              match[0],
+              `${match[1]}${replacement}${match[3]}`
+            );
+          }
+
+          return new Response(mpd, {
+            headers: {
+              "Access-Control-Allow-Origin": corsOrigin || "null",
+              "Content-Type": "application/dash+xml",
+              "Cache-Control": "no-cache",
+            },
+          });
+        }
+
+        const responseHeaders = new Headers(
+          response.headers
+        );
+
+        responseHeaders.set(
+          "Access-Control-Allow-Origin",
+          corsOrigin || "null"
+        );
+
+        return new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+        });
+      }
+
+      /*
+       * MP4
+       */
+
+      if (path === "/mp4") {
+        const responseHeaders = new Headers(
+          response.headers
+        );
+
+        responseHeaders.set(
+          "Access-Control-Allow-Origin",
+          corsOrigin || "null"
+        );
+
+        return new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+        });
+      }
+    } catch (error) {
+      return new Response(
+        `Fetch failed: ${error.message}`,
+        {
+          status: 500,
+          headers: {
+            "Access-Control-Allow-Origin": corsOrigin || "null",
+          },
+        }
+      );
+    }
+  },
+};
+
+function toBase64Url(bytes) {
+  let str = "";
+
+  for (const b of bytes) {
+    str += String.fromCharCode(b);
+  }
+
+  return btoa(str)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+function fromBase64Url(str) {
+  str = str
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
+
+  while (str.length % 4) {
+    str += "=";
+  }
+
+  const bin = atob(str);
+
+  return Uint8Array.from(
+    bin,
+    (c) => c.charCodeAt(0)
+  );
+}
+
+async function getCryptoKey(aesKey) {
+  const keyBytes = Uint8Array.from(
+    aesKey.match(/.{2}/g).map((b) =>
+      parseInt(b, 16)
+    )
+  );
+
+  return crypto.subtle.importKey(
+    "raw",
+    keyBytes,
+    "AES-GCM",
+    false,
+    ["encrypt", "decrypt"]
+  );
+}
+
+async function encryptUrl(url, cryptoKey) {
+  const iv = crypto.getRandomValues(
+    new Uint8Array(12)
+  );
+
+  const encrypted = await crypto.subtle.encrypt(
+    {
+      name: "AES-GCM",
+      iv,
+    },
+    cryptoKey,
+    new TextEncoder().encode(url)
+  );
+
+  const out = new Uint8Array(
+    iv.length + encrypted.byteLength
+  );
+
+  out.set(iv, 0);
+
+  out.set(
+    new Uint8Array(encrypted),
+    iv.length
+  );
+
+  return toBase64Url(out);
+}
+
+async function decryptUrl(data, cryptoKey) {
+  const bytes = fromBase64Url(data);
+
+  const iv = bytes.slice(0, 12);
+
+  const ciphertext = bytes.slice(12);
+
+  const decrypted = await crypto.subtle.decrypt(
+    {
+      name: "AES-GCM",
+      iv,
+    },
+    cryptoKey,
+    ciphertext
+  );
+
+  return new TextDecoder().decode(decrypted);
+}

@@ -259,7 +259,7 @@ export async function GET(req: NextRequest) {
           }),
         );
 
-        const proxyUrl = `https://api1.zxcstream.xyz/media/dash?url=${url}&header=${header}`;
+        const proxyUrl = `https://shy-rice-3f7d.gmail1.workers.dev/dash?url=${encodeURIComponent(url)}&header=${encodeURIComponent(header)}`;
 
         return {
           type: "dash",
@@ -268,6 +268,28 @@ export async function GET(req: NextRequest) {
         };
       }),
     );
+
+    // const links = await Promise.all(
+    //   scraped.data.map(async (source: any) => {
+    //     const url = source.url;
+
+    //     const header = await JSON.stringify({
+    //       Referer:
+    //         "https://movibox.net/movies/the-runner-McIeQZEGPQ?id=715214082269397240&type=/movie/detail&detailSe=&detailEp=&lang=en",
+    //       "X-MB-Token": source.signCookie,
+    //       "User-Agent":
+    //         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    //     });
+
+    //     const proxyUrl = `https://hakunaymatata.onion1-15b.workers.dev/dash?url=${encodeURIComponent(url)}&header=${encodeURIComponent(header)}`;
+
+    //     return {
+    //       type: "dash",
+    //       link: encryptLink(proxyUrl),
+    //       resolution: Number(source.resolutions?.split(",")[0]) || 0,
+    //     };
+    //   }),
+    // );
 
     logRequest(req, "AQUARIUS", 200, "OK");
 
