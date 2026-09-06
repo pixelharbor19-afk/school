@@ -4,9 +4,17 @@ import { useState } from "react";
 import { Check, Copy, Film, Play, Tv } from "lucide-react";
 import Link from "next/link";
 
+import { SERVERS } from "@/app/embed/[...params]/player_types/server-types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const PLAYER_URL = "https://vidstuck.xyz/embed";
 
@@ -31,7 +39,7 @@ function useCopy() {
 
 export default function PlayerPage() {
   const [type, setType] = useState<"movie" | "tv">("movie");
-  const [id, setId] = useState("");
+  const [id, setId] = useState("1339713");
   const [season, setSeason] = useState("1");
   const [episode, setEpisode] = useState("1");
 
@@ -40,6 +48,7 @@ export default function PlayerPage() {
   const [subtitle, setSubtitle] = useState("");
   const [color, setColor] = useState("");
   const [progress, setProgress] = useState("");
+  const [back, setBack] = useState(false);
 
   const [loadedUrl, setLoadedUrl] = useState("");
 
@@ -59,6 +68,8 @@ export default function PlayerPage() {
     if (color) params.set("color", color.replace("#", ""));
     if (progress) params.set("progress", progress);
 
+    params.set("back", String(back));
+
     const query = params.toString();
 
     return `${PLAYER_URL}${contentPath}${query ? `?${query}` : ""}`;
@@ -74,7 +85,7 @@ export default function PlayerPage() {
 
   const handleTypeChange = (newType: "movie" | "tv") => {
     setType(newType);
-    setId("");
+    setId(newType === "movie" ? "1339713" : "94605");
     setLoadedUrl("");
 
     if (newType === "tv") {
@@ -162,10 +173,10 @@ export default function PlayerPage() {
               </div>
             </div>
 
-            {/* Main Layout */}
-            <div className="grid gap-8 lg:grid-cols-[320px_1fr] lg:items-start">
-              {/* Left — Configuration */}
-              <div className="rounded-2xl border border-white/5 bg-zinc-950/60 p-6">
+            {/* Left / Right */}
+            <div className="grid gap-8 lg:grid-cols-[340px_minmax(0,1fr)]">
+              {/* Configuration */}
+              <div className="rounded-xl bg-zinc-950/60 p-6">
                 <div className="mb-7">
                   <h2 className="text-lg font-semibold">Configuration</h2>
 
@@ -174,42 +185,32 @@ export default function PlayerPage() {
                   </p>
                 </div>
 
-                <div className="space-y-7">
+                <div className="space-y-6">
                   {/* Media */}
                   <div>
-                    <label className="mb-3 block text-sm font-medium">
-                      Media
+                    <label className="mb-2 block text-xs text-muted-foreground">
+                      Media Type
                     </label>
 
-                    <div className="grid grid-cols-2 gap-2 rounded-xl bg-zinc-900 p-1.5">
-                      <button
-                        type="button"
-                        onClick={() => handleTypeChange("movie")}
-                        className={cn(
-                          "flex  p-2 items-center justify-center gap-2 rounded-lg text-sm font-medium transition",
-                          type === "movie"
-                            ? "bg-zinc-700 text-white shadow-sm"
-                            : "text-zinc-500 hover:text-zinc-300",
-                        )}
-                      >
-                        <Film className="h-4 w-4" />
-                        Movie
-                      </button>
+                    <Select
+                      value={type}
+                      onValueChange={(value) => {
+                        if (value === "movie" || value === "tv") {
+                          handleTypeChange(value);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue>
+                          {type === "movie" ? "Movie" : "TV Series"}
+                        </SelectValue>
+                      </SelectTrigger>
 
-                      <button
-                        type="button"
-                        onClick={() => handleTypeChange("tv")}
-                        className={cn(
-                          "flex  p-2 items-center justify-center gap-2 rounded-lg text-sm font-medium transition",
-                          type === "tv"
-                            ? "bg-zinc-700 text-white shadow-sm"
-                            : "text-zinc-500 hover:text-zinc-300",
-                        )}
-                      >
-                        <Tv className="h-4 w-4" />
-                        Series
-                      </button>
-                    </div>
+                      <SelectContent>
+                        <SelectItem value="movie">Movie</SelectItem>
+                        <SelectItem value="tv">TV Series</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Content */}
@@ -224,7 +225,7 @@ export default function PlayerPage() {
                         onChange={(event) =>
                           handleInputChange(setId, event.target.value)
                         }
-                        placeholder="TMDB ID"
+                        placeholder="Tmdb ID"
                         inputMode="numeric"
                       />
 
@@ -258,48 +259,108 @@ export default function PlayerPage() {
                       Parameters
                     </label>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <Input
-                        value={branding}
-                        onChange={(event) =>
-                          handleInputChange(setBranding, event.target.value)
-                        }
-                        placeholder="Branding"
-                        className="col-span-2"
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Branding */}
+                      <div className="col-span-2">
+                        <label className="mb-2 block text-sm text-muted-foreground">
+                          Branding
+                        </label>
 
-                      <Input
-                        value={server}
-                        onChange={(event) =>
-                          handleInputChange(setServer, event.target.value)
-                        }
-                        placeholder="Server"
-                      />
+                        <Input
+                          value={branding}
+                          onChange={(event) =>
+                            handleInputChange(setBranding, event.target.value)
+                          }
+                          placeholder="Your brand name"
+                        />
+                      </div>
 
-                      <Input
-                        value={subtitle}
-                        onChange={(event) =>
-                          handleInputChange(setSubtitle, event.target.value)
-                        }
-                        placeholder="Subtitle"
-                      />
+                      {/* Server */}
+                      <div className="col-span-2">
+                        <label className="mb-2 block text-sm text-muted-foreground">
+                          Server
+                        </label>
 
-                      <Input
-                        value={color}
-                        onChange={(event) =>
-                          handleInputChange(setColor, event.target.value)
-                        }
-                        placeholder="Color"
-                      />
+                        <Select
+                          value={server}
+                          onValueChange={(value) => {
+                            if (value) {
+                              setServer(value);
+                              setLoadedUrl("");
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="h-11 w-full">
+                            <SelectValue placeholder="Select server" />
+                          </SelectTrigger>
 
-                      <Input
-                        value={progress}
-                        onChange={(event) =>
-                          handleInputChange(setProgress, event.target.value)
-                        }
-                        placeholder="Progress"
-                        inputMode="numeric"
-                      />
+                          <SelectContent>
+                            {SERVERS.map((item) => (
+                              <SelectItem key={item.server} value={item.server}>
+                                {item.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Back */}
+                      <div>
+                        <label className="mb-2 block text-sm text-muted-foreground">
+                          Back Button
+                        </label>
+
+                        <Select
+                          value={String(back)}
+                          onValueChange={(value) => {
+                            if (value) {
+                              setBack(value === "true");
+                              setLoadedUrl("");
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="h-11 w-full">
+                            <SelectValue>{back ? "True" : "False"}</SelectValue>
+                          </SelectTrigger>
+
+                          <SelectContent>
+                            <SelectItem value="false">Hidden</SelectItem>
+                            <SelectItem value="true">Visible</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Subtitle */}
+                      <div>
+                        <label className="mb-2 block text-sm text-muted-foreground">
+                          Subtitles
+                        </label>
+
+                        <Input
+                          value={subtitle}
+                          onChange={(event) =>
+                            handleInputChange(setSubtitle, event.target.value)
+                          }
+                          placeholder="English"
+                        />
+                      </div>
+
+                      {/* Color */}
+                      <div className="col-span-2">
+                        <label className="mb-2 block text-sm text-muted-foreground">
+                          Player Color
+                        </label>
+
+                        <Input
+                          value={color}
+                          onChange={(event) =>
+                            handleInputChange(setColor, event.target.value)
+                          }
+                          placeholder="Hex"
+                        />
+                      </div>
+
+                      {/* Progress */}
                     </div>
                   </div>
 
@@ -308,17 +369,19 @@ export default function PlayerPage() {
                     type="button"
                     onClick={handleLoadPlayer}
                     disabled={!id}
+                    variant="secondary"
                     className="h-11 w-full text-sm"
                   >
-                    <Play className="h-4 w-4" />
+                    <Play className="h-4 w-4 fill-current" />
                     Load Player
                   </Button>
                 </div>
               </div>
 
-              {/* Right — Player */}
-              <div className="min-w-0 space-y-4">
-                <div className="flex min-w-0 items-center gap-4 rounded-xl border border-white/5 bg-zinc-950/80 px-5 py-4">
+              {/* Player */}
+              <div className="min-w-0">
+                {/* URL */}
+                <div className="mb-4 flex min-w-0 items-center gap-4 rounded-xl bg-zinc-950/80 px-5 py-4">
                   <span className="shrink-0 text-sm font-medium text-zinc-500">
                     Player URL
                   </span>
@@ -341,8 +404,9 @@ export default function PlayerPage() {
                     )}
                   </button>
                 </div>
+
                 {/* Player */}
-                <div className="overflow-hidden rounded-2xl border border-white/5 bg-black shadow-2xl shadow-black/30">
+                <div className="overflow-hidden rounded-xl bg-black shadow-2xl shadow-black/30">
                   <div className="aspect-video w-full">
                     {loadedUrl ? (
                       <iframe
@@ -355,12 +419,8 @@ export default function PlayerPage() {
                       />
                     ) : (
                       <div className="flex h-full w-full flex-col items-center justify-center gap-5 bg-zinc-950 px-6 text-center">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-900">
-                          <Play className="h-7 w-7 text-zinc-500" />
-                        </div>
-
                         <div>
-                          <p className="text-base font-medium text-zinc-300">
+                          <p className="text-lg font-medium text-zinc-300">
                             Player preview
                           </p>
 
@@ -373,13 +433,11 @@ export default function PlayerPage() {
                   </div>
                 </div>
 
-                {/* URL */}
+                <p className="mt-4 text-sm text-zinc-600">
+                  Changes are applied when you click Load Player.
+                </p>
               </div>
             </div>
-
-            <p className="mt-5 text-center text-sm text-zinc-600">
-              Changes are applied when you click Load Player.
-            </p>
           </section>
         </main>
       </div>

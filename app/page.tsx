@@ -1,12 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Play } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { useTmdbPopularMovies } from "@/hooks/fetch-popular";
 import { cn } from "@/hooks/utils";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 
 const TMDB_IMAGE_URL = "https://image.tmdb.org/t/p/w500";
 
@@ -131,7 +132,7 @@ export default function Home() {
           >
             {/* Left content */}
             <div className="flex-1 flex flex-col justify-center">
-              <Link href="https://discord.gg/s">
+              <Link href="https://discord.gg/bgVHdHgHCe">
                 <Badge variant="secondary" className="mb-1 p-3">
                   Join our Discord <ArrowRight />
                 </Badge>
@@ -180,10 +181,26 @@ export default function Home() {
                   <p className="text-2xl font-bold tracking-tight">5K+</p>
                   <p className="text-sm text-muted-foreground">Anime</p>
                 </div>
-
                 <p className="w-full text-sm text-muted-foreground/70">
                   Estimated catalog size across 13+ sources
                 </p>
+
+                <div className="flex gap-3 items-center">
+                  {" "}
+                  <Link target="_blank" href="/demo">
+                    <Button size="lg" className="p-4 h-11" variant="secondary">
+                      <Play className="fill-current" /> Test Demo
+                    </Button>{" "}
+                  </Link>
+                  <Link
+                    target="_blank"
+                    href="https://vidstuck.xyz/embed/tv/60625/1/2?back=1&branding=streamex"
+                  >
+                    <Button size="lg" className="p-4 h-11" variant="outline">
+                      Try Now <ArrowRight />
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
             {/* Movie carousel */}
