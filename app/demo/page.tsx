@@ -122,7 +122,7 @@ export default function PlayerPage() {
               </Link>
 
               <Link
-                href="https://discord.gg/yv7wJV97Jd"
+                href="https://discord.gg/bgVHdHgHCe"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="transition-colors hover:text-foreground"

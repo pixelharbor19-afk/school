@@ -136,7 +136,7 @@ export default function DocumentationPage() {
             </Link>
 
             <Link
-              href="https://discord.gg/yv7wJV97Jd"
+              href="https://discord.gg/bgVHdHgHCe"
               className="transition-colors hover:text-foreground"
             >
               Discord
