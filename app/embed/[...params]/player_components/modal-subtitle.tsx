@@ -17,12 +17,14 @@ import {
   Download,
   Settings2,
   TextInitial,
+  Upload,
 } from "lucide-react";
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Props {
   subtitles: MediaOption[];
+  openSubtitleData: MediaOption[];
   selectedSubtitle?: MediaOption;
   onSubtitleChange: (subtitle: MediaOption | null) => void;
   canPlay: boolean;
@@ -37,6 +39,7 @@ const TAB_TITLES = {
 
 export default function SubtitleModal({
   subtitles,
+  openSubtitleData,
   selectedSubtitle,
   onSubtitleChange,
 
@@ -45,6 +48,7 @@ export default function SubtitleModal({
 }: Props) {
   const [tab, setTab] = useState<"main" | "style" | "delay">("main");
   const [subtitlesModal, setSubtitlesModal] = useState(false);
+  const [customSubtitles, setCustomSubtitles] = useState<MediaOption[]>([]);
   const handleOpenChange = (open: boolean) => {
     setSubtitlesModal(open);
 
@@ -54,6 +58,20 @@ export default function SubtitleModal({
   };
 
   if (!canPlay) return null;
+
+  const handleSubtitleUpload = (file: File) => {
+    const subtitle: MediaOption = {
+      id: `local-${Date.now()}`,
+      display: customSubtitles.length
+        ? `Custom ${customSubtitles.length + 1}`
+        : "Custom",
+      file: URL.createObjectURL(file),
+    };
+
+    setCustomSubtitles((prev) => [...prev, subtitle]);
+    onSubtitleChange(subtitle);
+    setSubtitlesModal(false);
+  };
 
   return (
     <Popover open={subtitlesModal} onOpenChange={handleOpenChange}>
@@ -103,12 +121,46 @@ export default function SubtitleModal({
           <div className="px-2">
             {tab === "main" && (
               <div className="space-y-0.5">
+                <label
+                  className={cn(
+                    "group",
+                    "flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2.5",
+                    "text-left text-base text-muted-foreground transition-colors",
+                    "hover:bg-accent/60 hover:text-foreground",
+                  )}
+                >
+                  <span className="truncate">Upload subtitle</span>
+
+                  <Upload className="size-4 shrink-0 text-primary opacity-0 group-hover:opacity-100" />
+
+                  <input
+                    type="file"
+                    accept=".vtt,.srt"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+
+                      if (file) {
+                        handleSubtitleUpload(file);
+                        e.target.value = "";
+                      }
+                    }}
+                  />
+                </label>
                 <SubtitleItem
                   label="Off"
                   selected={!selectedSubtitle}
                   onClick={() => onSubtitleChange(null)}
                 />
 
+                {customSubtitles.map((subtitle) => (
+                  <SubtitleItem
+                    key={subtitle.id}
+                    label={subtitle.display}
+                    selected={selectedSubtitle?.id === subtitle.id}
+                    onClick={() => onSubtitleChange(subtitle)}
+                  />
+                ))}
                 {subtitles.map((subtitle) => (
                   <SubtitleItem
                     key={subtitle.id}
@@ -117,12 +169,21 @@ export default function SubtitleModal({
                     onClick={() => onSubtitleChange(subtitle)}
                   />
                 ))}
-
-                {!subtitles.length && (
-                  <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-                    No subtitles available
-                  </p>
-                )}
+                {openSubtitleData.map((subtitle) => (
+                  <SubtitleItem
+                    key={subtitle.id}
+                    label={subtitle.display}
+                    selected={selectedSubtitle?.id === subtitle.id}
+                    onClick={() => onSubtitleChange(subtitle)}
+                  />
+                ))}
+                {!subtitles.length &&
+                  !openSubtitleData.length &&
+                  !customSubtitles.length && (
+                    <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+                      No subtitles available
+                    </p>
+                  )}
               </div>
             )}
 

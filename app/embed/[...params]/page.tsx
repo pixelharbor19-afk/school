@@ -22,7 +22,7 @@ import { useHiddenOverlay } from "./player_hooks/use-overlay";
 import { cn } from "@/hooks/utils";
 import useSubtitle from "@/hooks/subs";
 import SubtitleOverlay from "./player_components/overlay-subtitle";
-import { MediaOption } from "@/hooks/open-subtitle";
+import { MediaOption, useOpenSubtitle } from "@/hooks/open-subtitle";
 import SubtitleModal from "./player_components/modal-subtitle";
 import Spinner from "./player_components/spinner";
 import ServerModal from "./player_components/modal-server";
@@ -98,6 +98,7 @@ export default function Embed() {
   const brightness = usePlayerSettings((state) => state.brightness);
   const aspectRatio = usePlayerSettings((state) => state.aspectRatio);
   const quality = usePlayerSettings((state) => state.quality);
+
   /*
    * Only stores which servers have been activated.
    *
@@ -556,7 +557,16 @@ export default function Embed() {
 
   const { isVisible, hideOverlay, resetTimer, lockTimer, setIsVisible } =
     useHiddenOverlay();
+  const [uploadedSubtitle, setUploadedSubtitle] = useState<MediaOption | null>(
+    null,
+  );
 
+  const { data: openSubtitleData } = useOpenSubtitle({
+    imdbId,
+    season: media_type === "tv" ? season : undefined,
+    episode: media_type === "tv" ? episode : undefined,
+    enabled: metadataLoad && canPlay,
+  });
   const { data: subtitles, isLoading: subtitlesLoading } = useSubtitle({
     tmdbId,
     media_type,
@@ -581,14 +591,24 @@ export default function Embed() {
       });
     }
   }, [subtitles, subtitlesLoading]);
-
-  const selectedSubtitle = subtitles?.find(
-    (subtitle) =>
-      subtitle.display.toLowerCase() === subtitle_param?.toLowerCase(),
-  );
+  const selectedSubtitle =
+    uploadedSubtitle ??
+    subtitles?.find(
+      (subtitle) =>
+        subtitle.display.toLowerCase() === subtitle_param?.toLowerCase(),
+    );
 
   const onSubtitleChange = (subtitle: MediaOption | null) => {
     const params = new URLSearchParams(searchParams.toString());
+
+    if (subtitle?.id.startsWith("local-")) {
+      setUploadedSubtitle(subtitle);
+      params.delete("subtitle");
+      router.replace(`?${params.toString()}`, { scroll: false });
+      return;
+    }
+
+    setUploadedSubtitle(null);
 
     if (subtitle) {
       params.set("subtitle", subtitle.display.toLowerCase());
@@ -796,6 +816,7 @@ export default function Embed() {
         }}
         playerRef={playerRef}
         subtitles={subtitles ?? []}
+        openSubtitleData={openSubtitleData ?? []}
         selectedSubtitle={selectedSubtitle}
         onSubtitleChange={onSubtitleChange}
         servers={servers}

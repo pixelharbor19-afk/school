@@ -69,6 +69,7 @@ type Props = {
   playerRef: React.RefObject<HTMLDivElement | null>;
   //
   subtitles: MediaOption[];
+  openSubtitleData: MediaOption[];
   selectedSubtitle?: MediaOption;
   onSubtitleChange: (subtitle: MediaOption | null) => void;
   //
@@ -120,6 +121,7 @@ export default function VideoControls({
   playerRef,
   //
   subtitles,
+  openSubtitleData,
   selectedSubtitle,
   onSubtitleChange,
 
@@ -648,6 +650,7 @@ export default function VideoControls({
               <SubtitleModal
                 playerRef={playerRef}
                 subtitles={subtitles ?? []}
+                openSubtitleData={openSubtitleData ?? []}
                 selectedSubtitle={selectedSubtitle}
                 onSubtitleChange={onSubtitleChange}
                 canPlay={canPlay}
