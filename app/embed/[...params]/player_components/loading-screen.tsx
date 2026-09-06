@@ -77,7 +77,8 @@ export default function LoadingScreen({
             <div
               className={cn(
                 anton.className,
-                "relative select-none lg:text-[120px] md:text-8xl sm:text-7xl text-6xl leading-none tracking-widest  ",
+                "relative select-none text-[clamp(60px,10vw,120px)] leading-none tracking-widest",
+                // "relative select-none lg:text-[120px] md:text-8xl sm:text-7xl text-6xl leading-none tracking-widest  ",
                 // "relative select-none text-[60px] leading-none tracking-widest  md:text-[120px]  sm:text-[90px]",
               )}
             >
@@ -143,7 +144,7 @@ export default function LoadingScreen({
             </div>
 
             {/* Status */}
-            <div className="md:mt-6 mt-3 md:h-4 h-2">
+            <div className="md:mt-6 mt-5 md:h-4 h-2">
               <motion.p
                 key={text}
                 initial={{ opacity: 0, y: 5 }}

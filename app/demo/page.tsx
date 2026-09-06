@@ -87,7 +87,6 @@ export default function PlayerPage() {
   const handleTypeChange = (newType: "movie" | "tv") => {
     setType(newType);
     setId(newType === "movie" ? "1339713" : "94605");
-    setLoadedUrl("");
 
     if (newType === "tv") {
       setSeason("1");
@@ -100,7 +99,6 @@ export default function PlayerPage() {
     value: string,
   ) => {
     setter(value);
-    setLoadedUrl("");
   };
 
   const currentUrl = buildPlayerUrl();
@@ -167,9 +165,7 @@ export default function PlayerPage() {
                 </div>
 
                 {loadedUrl && (
-                  <span className="text-sm text-green-500 flex gap-1.5 items-center">
-                    Player loaded <Check className="size-5" />
-                  </span>
+                  <span className="text-sm text-green-500 ">Player loaded</span>
                 )}
               </div>
             </div>
@@ -287,7 +283,6 @@ export default function PlayerPage() {
                           onValueChange={(value) => {
                             if (value) {
                               setServer(value);
-                              setLoadedUrl("");
                             }
                           }}
                         >
@@ -319,7 +314,6 @@ export default function PlayerPage() {
                           onValueChange={(value) => {
                             if (value) {
                               setBack(value === "true");
-                              setLoadedUrl("");
                             }
                           }}
                         >
