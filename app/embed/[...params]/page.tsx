@@ -596,6 +596,10 @@ export default function Embed() {
     subtitles?.find(
       (subtitle) =>
         subtitle.display.toLowerCase() === subtitle_param?.toLowerCase(),
+    ) ??
+    openSubtitleData?.find(
+      (subtitle) =>
+        subtitle.display.toLowerCase() === subtitle_param?.toLowerCase(),
     );
 
   const onSubtitleChange = (subtitle: MediaOption | null) => {
