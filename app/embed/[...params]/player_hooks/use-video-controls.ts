@@ -270,7 +270,6 @@ export function useVideoControls({
     setCurrentTime(seekTimeRef.current);
     isSeekingRef.current = false;
   };
-
   const toggleFullscreen = async () => {
     const player = playerRef.current;
     if (!player) return;
@@ -278,17 +277,43 @@ export function useVideoControls({
     try {
       if (document.fullscreenElement) {
         await document.exitFullscreen();
-        screen.orientation?.unlock?.();
+
+        const orientation = screen.orientation as ScreenOrientation & {
+          unlock?: () => void;
+        };
+
+        orientation.unlock?.();
       } else {
         await player.requestFullscreen();
 
-        // Rotate phone to landscape
-        await screen.orientation?.lock?.("landscape").catch(() => {});
+        const orientation = screen.orientation as ScreenOrientation & {
+          lock?: (orientation: OrientationLockType) => Promise<void>;
+        };
+
+        await orientation.lock?.("landscape").catch(() => {});
       }
     } catch {
       // Fullscreen/orientation may not be supported
     }
   };
+  // const toggleFullscreen = async () => {
+  //   const player = playerRef.current;
+  //   if (!player) return;
+
+  //   try {
+  //     if (document.fullscreenElement) {
+  //       await document.exitFullscreen();
+  //       screen.orientation?.unlock?.();
+  //     } else {
+  //       await player.requestFullscreen();
+
+  //       // Rotate phone to landscape
+  //       await screen.orientation?.lock?.("landscape").catch(() => {});
+  //     }
+  //   } catch {
+  //     // Fullscreen/orientation may not be supported
+  //   }
+  // };
 
   // const toggleFullscreen = async () => {
   //   const player = playerRef.current;
