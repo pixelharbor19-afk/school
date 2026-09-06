@@ -58,7 +58,7 @@ export default function LoadingScreen({
   const text = getLoadingText(server, sourceStatus);
   return (
     <AnimatePresence>
-      {canPlay && (
+      {!canPlay && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
