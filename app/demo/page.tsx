@@ -39,8 +39,8 @@ function useCopy() {
 }
 
 export default function PlayerPage() {
-  const [type, setType] = useState<"movie" | "tv">("movie");
-  const [id, setId] = useState("1339713");
+  const [type, setType] = useState<"movie" | "tv">("tv");
+  const [id, setId] = useState("94605");
   const [season, setSeason] = useState("1");
   const [episode, setEpisode] = useState("1");
 

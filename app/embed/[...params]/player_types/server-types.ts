@@ -6,18 +6,18 @@ export const SERVERS: ServerTypes[] = [
     desc: "Smooth Playback & HD",
     sources: [],
   },
-  {
-    name: "Milky Way",
-    status: "queue",
-    server: "milkyway",
-    desc: "Alternative",
-    sources: [],
-  },
 
   {
     name: "Centaurus",
     status: "queue",
     server: "centaurus",
+    desc: "Alternative",
+    sources: [],
+  },
+  {
+    name: "Milky Way",
+    status: "queue",
+    server: "milkyway",
     desc: "Alternative",
     sources: [],
   },
