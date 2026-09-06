@@ -51,7 +51,7 @@ export default function Embed() {
     (server) => server.server === requestedServer,
   )
     ? requestedServer!
-    : "valstrax";
+    : "andromeda";
   const color = `#${searchParams.get("color") || "dc2626"}`;
   const language = searchParams.get("language") || "en-US";
   const back = searchParams.get("back") === "1";
