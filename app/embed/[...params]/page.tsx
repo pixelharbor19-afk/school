@@ -55,7 +55,7 @@ export default function Embed() {
   const color = `#${searchParams.get("color") || "dc2626"}`;
   const language = searchParams.get("language") || "en-US";
   const back = searchParams.get("back") === "1";
-  const branding = searchParams.get("branding") || "netflix";
+  const branding = searchParams.get("branding") || "my player";
   const dubLang =
     searchParams.get("dubLang") || searchParams.get("dublang") || "";
   const dubType =
