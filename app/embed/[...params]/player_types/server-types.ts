@@ -1,32 +1,24 @@
 export const SERVERS: ServerTypes[] = [
   {
-    name: "Valstrax I",
+    name: "Andromeda",
     status: "queue",
-    server: "valstrax",
-    desc: "HD Quality & Reliable",
+    server: "andromeda",
+    desc: "Smooth Playback & HD",
     sources: [],
   },
   {
-    name: "Berkas II",
+    name: "Milky Way",
     status: "queue",
-    server: "berkas",
-    desc: "4K Support & Reliable",
-    sources: [],
-  },
-
-  {
-    name: "Zinogre III",
-    status: "queue",
-    server: "zinogre",
-    desc: "Movies & TV Shows - HD Support",
+    server: "milkyway",
+    desc: "Alternative",
     sources: [],
   },
 
   {
-    name: "Alatreon IV",
+    name: "Centaurus",
     status: "queue",
-    server: "alatreon",
-    desc: "Extensive Movie & TV Library",
+    server: "centaurus",
+    desc: "Alternative",
     sources: [],
   },
 ];
