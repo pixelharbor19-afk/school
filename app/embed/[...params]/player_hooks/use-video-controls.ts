@@ -277,20 +277,10 @@ export function useVideoControls({
     try {
       if (document.fullscreenElement) {
         await document.exitFullscreen();
-
-        const orientation = screen.orientation as ScreenOrientation & {
-          unlock?: () => void;
-        };
-
-        orientation.unlock?.();
+        (screen.orientation as any).unlock?.();
       } else {
         await player.requestFullscreen();
-
-        const orientation = screen.orientation as ScreenOrientation & {
-          lock?: (orientation: OrientationLockType) => Promise<void>;
-        };
-
-        await orientation.lock?.("landscape").catch(() => {});
+        await (screen.orientation as any).lock?.("landscape").catch(() => {});
       }
     } catch {
       // Fullscreen/orientation may not be supported
