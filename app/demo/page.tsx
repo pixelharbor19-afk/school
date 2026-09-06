@@ -167,8 +167,8 @@ export default function PlayerPage() {
                 </div>
 
                 {loadedUrl && (
-                  <span className="text-sm text-green-500">
-                    ● Player loaded
+                  <span className="text-sm text-green-500 flex gap-1.5 items-center">
+                    Player loaded <Check className="size-5" />
                   </span>
                 )}
               </div>
@@ -328,8 +328,8 @@ export default function PlayerPage() {
                           </SelectTrigger>
 
                           <SelectContent>
-                            <SelectItem value="false">Hidden</SelectItem>
-                            <SelectItem value="true">Visible</SelectItem>
+                            <SelectItem value="false">False</SelectItem>
+                            <SelectItem value="true">True</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
