@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 
 const PLAYER_URL = "https://vidstuck.xyz/embed";
 
@@ -43,7 +44,7 @@ export default function PlayerPage() {
   const [season, setSeason] = useState("1");
   const [episode, setEpisode] = useState("1");
 
-  const [branding, setBranding] = useState("");
+  const [branding, setBranding] = useState("StreameX");
   const [server, setServer] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [color, setColor] = useState("");
@@ -188,7 +189,7 @@ export default function PlayerPage() {
                 <div className="space-y-6">
                   {/* Media */}
                   <div>
-                    <label className="mb-2 block text-xs text-muted-foreground">
+                    <label className="mb-2 block text-sm text-muted-foreground">
                       Media Type
                     </label>
 
@@ -252,7 +253,7 @@ export default function PlayerPage() {
                       )}
                     </div>
                   </div>
-
+                  <Separator />
                   {/* Parameters */}
                   <div>
                     <label className="mb-3 block text-sm font-medium">
@@ -291,7 +292,10 @@ export default function PlayerPage() {
                           }}
                         >
                           <SelectTrigger className="h-11 w-full">
-                            <SelectValue placeholder="Select server" />
+                            <SelectValue>
+                              {SERVERS.find((item) => item.server === server)
+                                ?.name ?? "Select server"}
+                            </SelectValue>
                           </SelectTrigger>
 
                           <SelectContent>

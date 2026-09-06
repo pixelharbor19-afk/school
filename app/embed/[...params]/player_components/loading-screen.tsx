@@ -58,7 +58,7 @@ export default function LoadingScreen({
   const text = getLoadingText(server, sourceStatus);
   return (
     <AnimatePresence>
-      {!canPlay && (
+      {canPlay && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -178,10 +178,10 @@ export default function LoadingScreen({
             exit={{ opacity: 0, y: 30 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
             className={cn(
-              "absolute md:bottom-5 bottom-3 left-1/2 -translate-x-1/2 hidden md:block",
+              "absolute md:p-5 p-3 bottom-0  hidden md:block w-full",
             )}
           >
-            <div className="flex items-end gap-3">
+            <div className="flex items-end gap-3  w-full max-w-4xl mx-auto">
               {servers.map((item, index) => {
                 const isCurrentServer = serverIndex === index;
 
@@ -195,7 +195,7 @@ export default function LoadingScreen({
                       delay: index * 0.2,
                       ease: "easeOut",
                     }}
-                    className="md:w-85 w-52"
+                    className="w-full"
                   >
                     {isCurrentServer && item.sources.length > 0 && (
                       <motion.div
