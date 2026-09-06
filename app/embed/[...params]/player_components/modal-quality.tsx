@@ -36,7 +36,7 @@ export default function QualityModal({ canPlay, playerRef }: Props) {
               "cursor-pointer",
             )}
           >
-            <span className="text-sm font-medium tracking-wide text-white/90 hidden md:block">
+            <span className="text-sm font-medium tracking-wide text-white/90">
               {quality === "auto" ? "Auto" : `${quality}p`}
             </span>
           </button>
