@@ -181,7 +181,9 @@ export default function VideoControls({
               >
                 <ChevronLeft className="md:size-8 size-6" strokeWidth={3} />
                 <span className="text-left">
-                  <h1 className="tracking-wide font-medium">{title}</h1>
+                  <h1 className="tracking-wide md:font-medium text-sm line-clamp-1">
+                    {title}
+                  </h1>
                 </span>
               </button>
             )}
