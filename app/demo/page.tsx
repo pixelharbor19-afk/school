@@ -49,7 +49,7 @@ export default function PlayerPage() {
   const [subtitle, setSubtitle] = useState("");
   const [color, setColor] = useState("");
   const [progress, setProgress] = useState("");
-  const [back, setBack] = useState(false);
+  const [back, setBack] = useState(true);
 
   const [loadedUrl, setLoadedUrl] = useState("");
 
@@ -354,7 +354,7 @@ export default function PlayerPage() {
                           onChange={(event) =>
                             handleInputChange(setColor, event.target.value)
                           }
-                          placeholder="Hex"
+                          placeholder="e.g. FFFFFF"
                         />
                       </div>
 

@@ -104,7 +104,7 @@ export default function LoadingScreen({
 
               {/* Scan line */}
               <motion.div
-                className="pointer-events-none absolute top-0 h-full w-1"
+                className="pointer-events-none absolute top-0 h-full md:w-1 w-0.5"
                 style={{
                   backgroundColor: color,
                   boxShadow: `0 0 12px 4px ${color}e6`,

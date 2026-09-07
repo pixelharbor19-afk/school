@@ -171,7 +171,7 @@ export default function VideoControls({
             onMouseEnter={!isMobile ? lockTimer : undefined}
             // onMouseLeave={!isMobile ? resetTimer : undefined}
           >
-            {back && (
+            {!back && (
               <button
                 onClick={() => router.back()}
                 className={cn(

@@ -54,8 +54,8 @@ export default function Embed() {
     : "andromeda";
   const color = `#${searchParams.get("color") || "dc2626"}`;
   const language = searchParams.get("language") || "en-US";
-  const back = searchParams.get("back") === "true";
-  const branding = searchParams.get("branding") || "my player";
+  const back = searchParams.get("back") === "false";
+  const branding = searchParams.get("branding") || "DOMAIN";
   const dubLang =
     searchParams.get("dubLang") || searchParams.get("dublang") || "";
   const dubType =
