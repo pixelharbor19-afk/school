@@ -393,6 +393,10 @@ export default function Embed() {
     dubLang,
     dubType,
     progressParam,
+    tmdbId,
+    media_type,
+    season,
+    episode,
   });
 
   useEffect(() => {

@@ -13,6 +13,10 @@ type Props = {
   dubLang: string;
   dubType: string;
   progressParam: number;
+  tmdbId: string;
+  media_type: string;
+  season: number;
+  episode: number;
 };
 
 export function useVideoControls({
@@ -24,6 +28,10 @@ export function useVideoControls({
   dubLang,
   dubType,
   progressParam,
+  tmdbId,
+  media_type,
+  season,
+  episode,
 }: Props) {
   const [playing, setPlaying] = useState(false);
   const [canPlay, setCanplay] = useState(false);
@@ -104,6 +112,10 @@ export function useVideoControls({
               payload: {
                 currentTime: video.currentTime,
                 duration: video.duration,
+                tmdbId,
+                media_type,
+                season,
+                episode,
               },
             },
             "*",
@@ -166,6 +178,12 @@ export function useVideoControls({
       window.parent.postMessage(
         {
           type: "VIDEO_ENDED",
+          payload: {
+            tmdbId,
+            media_type,
+            season,
+            episode,
+          },
         },
         "*",
       );
