@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchWithTimeout } from "@/lib/fetch-timeout";
 import { encryptUrl } from "@/lib/aes-encryptor";
-import { encryptLink } from "@/lib/source-link-enc-dec";
 import { logRequest } from "@/lib/log-request";
 import { createClient } from "@supabase/supabase-js";
 
@@ -143,10 +142,7 @@ export async function GET(req: NextRequest) {
           resolution: Number(resolution) || 0,
         };
 
-        links.push({
-          ...link,
-          link: encryptLink(link.link),
-        });
+        links.push(link);
       }
     }
 
@@ -167,10 +163,7 @@ export async function GET(req: NextRequest) {
         resolution: Number(stream.playbackMetadata?.resolutions?.[0]) || 0,
       };
 
-      links.push({
-        ...link,
-        link: encryptLink(link.link),
-      });
+      links.push(link);
     }
 
     logRequest(req, "DULO_TEST", 200, "OK!!!!!!");
