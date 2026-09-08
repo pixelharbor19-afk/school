@@ -97,6 +97,17 @@ export function useVideoControls({
           useWatchProgress
             .getState()
             .saveProgress(progressKey, video.currentTime, video.duration);
+
+          window.parent.postMessage(
+            {
+              type: "VIDEO_PROGRESS",
+              payload: {
+                currentTime: video.currentTime,
+                duration: video.duration,
+              },
+            },
+            "*",
+          );
         }
       }
     };
@@ -151,6 +162,13 @@ export function useVideoControls({
       setEnded(true);
       setPlaying(false);
       useWatchProgress.getState().clearProgress(progressKey);
+
+      window.parent.postMessage(
+        {
+          type: "VIDEO_ENDED",
+        },
+        "*",
+      );
     };
     video.addEventListener("timeupdate", update);
     video.addEventListener("loadedmetadata", update);
