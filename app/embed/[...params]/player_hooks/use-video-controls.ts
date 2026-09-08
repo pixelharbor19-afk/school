@@ -160,6 +160,8 @@ export function useVideoControls({
     setWaiting(false);
     setBufferedProgress(0);
     setEnded(false);
+    setCurrentTime(0);
+    setDuration(0);
   }, [serverIndex, sourceIndex, progressKey, dubLang, dubType]);
 
   useEffect(() => {
