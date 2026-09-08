@@ -271,10 +271,11 @@ export async function GET(req: NextRequest) {
               "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
           }),
         );
-        //https://spring-wind-2fa5.gmail2.workers.dev/
-        //https://shy-rice-3f7d.gmail1.workers.dev/
-        const proxyUrl = `https://spring-wind-2fa5.gmail2.workers.dev/dash?url=${encodeURIComponent(url)}&header=${encodeURIComponent(header)}`;
 
+        //https://shy-rice-3f7d.gmail1.workers.dev/
+
+        //const proxyUrl = `https://spring-wind-2fa5.gmail2.workers.dev/dash?url=${encodeURIComponent(url)}&header=${encodeURIComponent(header)}`;
+        const proxyUrl = `https://tiny-night-3f17.gmail3.workers.dev/dash?url=${encodeURIComponent(url)}&header=${encodeURIComponent(header)}`;
         return {
           type: "dash",
           link: encryptLink(proxyUrl),

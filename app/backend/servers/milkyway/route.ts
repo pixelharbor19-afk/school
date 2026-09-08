@@ -633,10 +633,11 @@ export async function GET(req: NextRequest) {
         );
         //https://spring-wind-2fa5.gmail2.workers.dev/
         //https://shy-rice-3f7d.gmail1.workers.dev/
+        //https://tiny-night-3f17.gmail3.workers.dev/
         return {
           type: "hls" as const,
           link: encryptLink(
-            `https://spring-wind-2fa5.gmail2.workers.dev/hls?url=${encodeURIComponent(
+            `https://tiny-night-3f17.gmail3.workers.dev/hls?url=${encodeURIComponent(
               encrypted,
             )}&header=${encodeURIComponent(headers)}`,
           ),
