@@ -1,41 +1,45 @@
 "use client";
 
-import { useTmdbDetails } from "@/hooks/fetch-details";
-import { sourceQueryOptions, QualityTrack } from "@/hooks/source";
-import { useSandboxDetection } from "@/hooks/useSandboxDetection";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { toast } from "@/components/ui/toast";
 import { useEffect, useMemo, useRef, useState } from "react";
-import Hls from "hls.js";
+
 import * as dashjs from "dashjs";
+import Hls from "hls.js";
 import { useQueries } from "@tanstack/react-query";
+import { useDoubleTap } from "use-double-tap";
+import { AnimatePresence, motion } from "motion/react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+
+import { toast } from "@/components/ui/toast";
+import { useTmdbDetails } from "@/hooks/fetch-details";
+import { useIntro } from "@/hooks/intro";
+import { MediaOption, useOpenSubtitle } from "@/hooks/open-subtitle";
+import { useSandboxDetection } from "@/hooks/useSandboxDetection";
+import useSubtitle from "@/hooks/subs";
+import { sourceQueryOptions, QualityTrack, DubTypes } from "@/hooks/source";
+import { cn } from "@/hooks/utils";
+
 import LoadingScreen from "@/app/embed/[...params]/player_components/loading-screen";
+
 import VideoControls from "./player-controls";
+
 import { useVideoControls } from "./player_hooks/use-video-controls";
+import { useHiddenOverlay } from "./player_hooks/use-overlay";
+import { useKeyboardControls } from "./player_hooks/use-keyboard";
+import { useMobile } from "./player_hooks/use-mobile";
+
 import {
   SERVERS,
   ServerTypes,
   sourceKey,
   SourceStatus,
 } from "./player_types/server-types";
-import { useHiddenOverlay } from "./player_hooks/use-overlay";
-import { cn } from "@/hooks/utils";
-import useSubtitle from "@/hooks/subs";
+
 import SubtitleOverlay from "./player_components/overlay-subtitle";
-import { MediaOption, useOpenSubtitle } from "@/hooks/open-subtitle";
-import SubtitleModal from "./player_components/modal-subtitle";
 import Spinner from "./player_components/spinner";
-import ServerModal from "./player_components/modal-server";
-
-import { useDoubleTap } from "use-double-tap";
-import { useMobile } from "./player_hooks/use-mobile";
-import { AnimatePresence, motion } from "motion/react";
-import { useIntro } from "@/hooks/intro";
 import { SkipSegment } from "./player_components/skip-segment";
-import { useKeyboardControls } from "./player_hooks/use-keyboard";
 import Pause from "./player_components/overlay-pause";
-import { usePlayerSettings } from "./player_store/settings";
 
+import { usePlayerSettings } from "./player_store/settings";
 export default function Embed() {
   const { params } = useParams();
   const router = useRouter();
@@ -127,8 +131,6 @@ export default function Embed() {
     year,
     date: String(date),
     ...(latestDate && { latestDate }),
-    dubCode: dubLang,
-    dubType,
   };
 
   /*
@@ -141,6 +143,8 @@ export default function Embed() {
       sourceQueryOptions({
         ...commonParams,
         path: server.server,
+        dubCode: server.dubSupport ? dubLang : "",
+        dubType: server.dubSupport ? dubType : "",
         enable: metadataLoad && activatedServers.includes(server.server),
       }),
     ),
@@ -242,6 +246,7 @@ export default function Embed() {
       }),
     [results, activatedServers, failedSources],
   );
+
   const noWorkingServers = servers.every(
     (server) => server.status === "failed",
   );
@@ -249,7 +254,23 @@ export default function Embed() {
    * Current server.
    */
   const server = servers[serverIndex];
+  const dubs = results[serverIndex]?.data?.dubs ?? [];
 
+  const selectedDub =
+    dubs.find(
+      (dub) => dub.lanCode === dubLang && String(dub.type) === dubType,
+    ) ??
+    dubs.find((dub) => dub.original) ??
+    dubs[0];
+
+  const onDubChange = (dub: DubTypes) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    params.set("dubLang", dub.lanCode);
+    params.set("dubType", String(dub.type));
+
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
   /*
    * Sources belong to the current server.
    */
@@ -312,6 +333,13 @@ export default function Embed() {
 
     if (servers[index].status === "failed") {
       clearFailedSources(selectedServer.server);
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("dubLang");
+      params.delete("dubType");
+
+      router.replace(`?${params.toString()}`, { scroll: false });
+
       query.refetch();
     }
 
@@ -361,6 +389,8 @@ export default function Embed() {
     serverIndex,
     sourceIndex,
     progressKey,
+    dubLang,
+    dubType,
   });
 
   useEffect(() => {
@@ -833,6 +863,10 @@ export default function Embed() {
         setSourceStatus={setSourceStatus}
         back={back}
         seasons={seasons}
+        //
+        dubs={dubs}
+        onDubChange={onDubChange}
+        selectedDub={selectedDub}
       />
 
       <Spinner waiting={waiting} canPlay={canPlay} />

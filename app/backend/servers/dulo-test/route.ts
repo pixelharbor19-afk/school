@@ -20,13 +20,35 @@ export async function GET(req: NextRequest) {
   const mediaType = searchParams.get(FIELD_MAP.mediaType);
   const season = searchParams.get(FIELD_MAP.season) ?? "";
   const episode = searchParams.get(FIELD_MAP.episode) ?? "";
+  const token = searchParams.get(FIELD_MAP.token);
+  const ts = Number(searchParams.get(FIELD_MAP.ts));
   const path = pathname.split("/").pop()!;
 
-  if (!tmdbId || !mediaType) {
-    logRequest(req, "DULO_TEST", 400, "missing params");
+  if (!tmdbId || !mediaType || !token) {
+    logRequest(req, "VALSTRAX", 400, "missing params");
     return NextResponse.json(
       { success: false, error: "missing params", server: path },
       { status: 400 },
+    );
+  }
+
+  if (
+    !validateBackendToken(tmdbId, mediaType, season, episode, path, ts, token)
+  ) {
+    logRequest(req, "VALSTRAX", 401, "invalid token");
+    return NextResponse.json(
+      { success: false, error: "Invalid token", server: path },
+      { status: 401 },
+    );
+  }
+
+  const referer = req.headers.get("referer") || "";
+
+  if (!isValidReferer(referer)) {
+    logRequest(req, "VALSTRAX", 403, "invalid referrer");
+    return NextResponse.json(
+      { success: false, error: "Forbidden", server: path },
+      { status: 403 },
     );
   }
 
@@ -45,7 +67,7 @@ export async function GET(req: NextRequest) {
       .maybeSingle();
 
     if (cached) {
-      logRequest(req, "DULO_TEST", 200, "CACHE HIT");
+      logRequest(req, "VALSTRAX", 200, "CACHE HIT");
 
       stream = {
         type: "dash",
@@ -69,7 +91,7 @@ export async function GET(req: NextRequest) {
       );
 
       if (!response.ok) {
-        logRequest(req, "DULO_TEST", 404, "No stream found");
+        logRequest(req, "VALSTRAX", 404, "No stream found");
 
         return NextResponse.json(
           {
@@ -85,7 +107,7 @@ export async function GET(req: NextRequest) {
       stream = data.stream;
 
       if (!stream) {
-        logRequest(req, "DULO_TEST", 404, "No stream found");
+        logRequest(req, "VALSTRAX", 404, "No stream found");
 
         return NextResponse.json(
           {
@@ -119,7 +141,7 @@ export async function GET(req: NextRequest) {
         );
       }
 
-      logRequest(req, "DULO_TEST", 200, "CACHE MISS");
+      logRequest(req, "VALSTRAX", 200, "CACHE MISS");
     }
 
     const links = [];
@@ -176,7 +198,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    logRequest(req, "DULO_TEST", 200, "OK!!!!!!");
+    logRequest(req, "VALSTRAX", 200, "OK!!!!!!");
 
     return NextResponse.json({
       success: true,

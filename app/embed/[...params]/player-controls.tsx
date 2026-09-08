@@ -2,16 +2,11 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import {
-  Captions,
   ChevronLeft,
-  Cloud,
-  Gauge,
-  Hd,
   Maximize,
   Pause,
   Play,
   SkipForward,
-  SquareDimensions,
   Volume2,
   VolumeX,
 } from "lucide-react";
@@ -28,7 +23,9 @@ import { usePlayerSettings } from "./player_store/settings";
 import { useRouter } from "next/navigation";
 import QualityModal from "./player_components/modal-quality";
 import EpisodesModal from "./player_components/modal-episodes";
-import { SeasonsType, SeasonTypes } from "@/types/tmdb-types";
+import { SeasonsType } from "@/types/tmdb-types";
+import { DubTypes } from "@/hooks/source";
+import ModalDubs from "./player_components/modal-dubs";
 const font = Poppins({
   weight: "400",
   subsets: ["latin"],
@@ -84,6 +81,10 @@ type Props = {
   back: boolean;
   //
   seasons: SeasonsType[];
+
+  dubs: DubTypes[];
+  selectedDub?: DubTypes;
+  onDubChange: (dub: DubTypes) => void;
 };
 
 export default function VideoControls({
@@ -139,6 +140,10 @@ export default function VideoControls({
   back,
   //
   seasons,
+  //
+  dubs,
+  selectedDub,
+  onDubChange,
 }: Props) {
   const router = useRouter();
   const [hoverTime, setHoverTime] = useState<number | null>(null);
@@ -648,7 +653,13 @@ export default function VideoControls({
                   {playbackRate}x
                 </h1>
               </button> */}
-
+              <ModalDubs
+                playerRef={playerRef}
+                dubs={dubs ?? []}
+                selectedDub={selectedDub}
+                onDubChange={onDubChange}
+                canPlay={canPlay}
+              />
               <SubtitleModal
                 playerRef={playerRef}
                 subtitles={subtitles ?? []}

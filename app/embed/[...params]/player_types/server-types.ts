@@ -4,13 +4,15 @@ export const SERVERS: ServerTypes[] = [
     status: "queue",
     server: "andromeda",
     desc: "Smooth Playback & HD",
+    dubSupport: false,
     sources: [],
   },
   {
     name: "Centaurus",
     status: "queue",
     server: "centaurus",
-    desc: "Alternative",
+    desc: "Multi Audio Support",
+    dubSupport: true,
     sources: [],
   },
   {
@@ -18,6 +20,7 @@ export const SERVERS: ServerTypes[] = [
     status: "queue",
     server: "milkyway",
     desc: "Alternative",
+    dubSupport: false,
     sources: [],
   },
 ];
@@ -40,6 +43,7 @@ export type ServerTypes = {
   desc: string;
   message?: string;
   sources: SourceTypes[];
+  dubSupport: boolean;
 };
 
 export const sourceKey = (server: string, link: string) => `${server}:${link}`;

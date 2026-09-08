@@ -14,10 +14,10 @@ export interface QualityTrack {
 }
 
 export interface DubTypes {
-  lang: string;
-  name: string;
-  original: boolean;
   type: 0 | 1;
+  lanCode: string;
+  lanName: string;
+  original: boolean;
 }
 
 export interface ActiveTypes {
@@ -88,8 +88,7 @@ export function sourceQueryOptions(params: UseSourceParams) {
       year,
       date,
       quality,
-      dubCode,
-      dubType,
+      ...(dubCode && dubType ? [dubCode, dubType] : []),
     ],
 
     enabled: enable,

@@ -86,7 +86,7 @@ export default function SubtitleModal({
           >
             {/* <Captions className="md:size-7 size-6" /> */}
             <h1 className="text-sm font-medium tracking-wide text-white/90 hidden md:block">
-              {selectedSubtitle ? selectedSubtitle.display : "Language"}
+              {selectedSubtitle ? selectedSubtitle.display : "Subtitle"}
             </h1>
           </button>
         }

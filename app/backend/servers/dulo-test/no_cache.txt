@@ -13,6 +13,7 @@ const supabase = createClient(
   process.env.VIDLINK_SUPABASE_SERVICE_ROLE_KEY!,
 );
 
+
 export async function GET(req: NextRequest) {
   const { searchParams, pathname } = req.nextUrl;
 
@@ -20,106 +21,76 @@ export async function GET(req: NextRequest) {
   const mediaType = searchParams.get(FIELD_MAP.mediaType);
   const season = searchParams.get(FIELD_MAP.season) ?? "";
   const episode = searchParams.get(FIELD_MAP.episode) ?? "";
+  const token = searchParams.get(FIELD_MAP.token);
+  const ts = Number(searchParams.get(FIELD_MAP.ts));
   const path = pathname.split("/").pop()!;
 
-  if (!tmdbId || !mediaType) {
-    logRequest(req, "DULO_TEST", 400, "missing params");
+  if (!tmdbId || !mediaType || !token) {
+    logRequest(req, "VALSTRAX", 400, "missing params");
     return NextResponse.json(
       { success: false, error: "missing params", server: path },
       { status: 400 },
     );
   }
 
+  if (
+    !validateBackendToken(tmdbId, mediaType, season, episode, path, ts, token)
+  ) {
+    logRequest(req, "VALSTRAX", 401, "invalid token");
+    return NextResponse.json(
+      { success: false, error: "Invalid token", server: path },
+      { status: 401 },
+    );
+  }
+
+  const referer = req.headers.get("referer") || "";
+  if (!isValidReferer(referer)) {
+    logRequest(req, "VALSTRAX", 403, "invalid referrer");
+    return NextResponse.json(
+      { success: false, error: "Forbidden", server: path },
+      { status: 403 },
+    );
+  }
+
   try {
-    let stream: any;
+    const workerUrl = new URL("https://api1.zxcstream.xyz/vidlink");
 
-    // Check cache
-    const { data: cached } = await supabase
-      .from("vidlink_cache")
-      .select("playlist, cookie")
-      .eq("tmdb_id", tmdbId)
-      .eq("media_type", mediaType)
-      .eq("season", season)
-      .eq("episode", episode)
-      .gt("expires_at", new Date().toISOString())
-      .maybeSingle();
+    workerUrl.searchParams.set("tmdbId", tmdbId!);
+    workerUrl.searchParams.set("mediaType", mediaType!);
 
-    if (cached) {
-      logRequest(req, "DULO_TEST", 200, "CACHE HIT");
+    if (season) workerUrl.searchParams.set("season", season);
+    if (episode) workerUrl.searchParams.set("episode", episode);
 
-      stream = {
-        type: "dash",
-        playlist: cached.playlist,
-        playlistHeaders: cached.cookie ? { Cookie: cached.cookie } : {},
-      };
-    } else {
-      // Fetch fresh stream
-      const workerUrl = new URL("https://api1.zxcstream.xyz/vidlink");
+    const response = await fetchWithTimeout(
+      workerUrl.toString(),
+      { method: "GET" },
+      8000,
+    );
 
-      workerUrl.searchParams.set("tmdbId", tmdbId);
-      workerUrl.searchParams.set("mediaType", mediaType);
-
-      if (season) workerUrl.searchParams.set("season", season);
-      if (episode) workerUrl.searchParams.set("episode", episode);
-
-      const response = await fetchWithTimeout(
-        workerUrl.toString(),
-        { method: "GET" },
-        8000,
+    if (!response.ok) {
+      logRequest(req, "VALSTRAX", 404, "No stream found");
+      return NextResponse.json(
+        {
+          success: false,
+          error: "No streams found",
+          server: path,
+        },
+        { status: 404 },
       );
+    }
 
-      if (!response.ok) {
-        logRequest(req, "DULO_TEST", 404, "No stream found");
+    const { stream } = await response.json();
 
-        return NextResponse.json(
-          {
-            success: false,
-            error: "No streams found",
-            server: path,
-          },
-          { status: 404 },
-        );
-      }
-
-      const data = await response.json();
-      stream = data.stream;
-
-      if (!stream) {
-        logRequest(req, "DULO_TEST", 404, "No stream found");
-
-        return NextResponse.json(
-          {
-            success: false,
-            error: "No stream found",
-            server: path,
-          },
-          { status: 404 },
-        );
-      }
-
-      // Cache HLS / DASH
-      if (
-        (stream.type === "hls" || stream.type === "dash") &&
-        stream.playlist
-      ) {
-        await supabase.from("vidlink_cache").upsert(
-          {
-            tmdb_id: tmdbId,
-            media_type: mediaType,
-            season,
-            episode,
-            playlist: stream.playlist,
-            cookie: stream.playlistHeaders?.Cookie ?? null,
-            created_at: new Date().toISOString(),
-            expires_at: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            onConflict: "tmdb_id,media_type,season,episode",
-          },
-        );
-      }
-
-      logRequest(req, "DULO_TEST", 200, "CACHE MISS");
+    if (!stream) {
+      logRequest(req, "VALSTRAX", 404, "No stream found");
+      return NextResponse.json(
+        {
+          success: false,
+          error: "No stream found",
+          server: path,
+        },
+        { status: 404 },
+      );
     }
 
     const links = [];
@@ -159,7 +130,6 @@ export async function GET(req: NextRequest) {
       stream.playlist
     ) {
       const url = await encryptUrl(stream.playlist);
-
       const header = await encryptUrl(
         JSON.stringify(stream.playlistHeaders ?? {}),
       );
@@ -175,9 +145,7 @@ export async function GET(req: NextRequest) {
         link: encryptLink(link.link),
       });
     }
-
-    logRequest(req, "DULO_TEST", 200, "OK!!!!!!");
-
+    logRequest(req, "VALSTRAX", 200, "OK!!!!!!");
     return NextResponse.json({
       success: true,
       links,

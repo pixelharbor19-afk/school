@@ -25,6 +25,9 @@ export async function GET(req: NextRequest) {
     const token = searchParams.get(FIELD_MAP.token);
     const date = searchParams.get(FIELD_MAP.date);
     const latestDate = searchParams.get(FIELD_MAP.latestDate);
+    //
+    const dubCode = searchParams.get("dubCode");
+    const dubType = searchParams.get("dubType");
 
     // -----------------------------
     // Validate params
@@ -38,7 +41,7 @@ export async function GET(req: NextRequest) {
       !Number.isFinite(ts) ||
       !token
     ) {
-      logRequest(req, "AQUARIUS", 400, "missing params");
+      logRequest(req, "MILKY WAY", 400, "missing params");
 
       return NextResponse.json(
         {
@@ -57,7 +60,7 @@ export async function GET(req: NextRequest) {
     if (
       !validateBackendToken(tmdbId, mediaType, season, episode, path, ts, token)
     ) {
-      logRequest(req, "AQUARIUS", 401, "Invalid token");
+      logRequest(req, "MILKY WAY", 401, "Invalid token");
 
       return NextResponse.json(
         {
@@ -74,7 +77,7 @@ export async function GET(req: NextRequest) {
     // -----------------------------
 
     if (!isValidReferer(req.headers.get("referer") || "")) {
-      logRequest(req, "AQUARIUS", 403, "Forbidden");
+      logRequest(req, "MILKY WAY", 403, "Forbidden");
 
       return NextResponse.json(
         {
@@ -122,7 +125,7 @@ export async function GET(req: NextRequest) {
       );
 
       if (!searchRes.ok) {
-        logRequest(req, "AQUARIUS", 502, "ICARUS search failed");
+        logRequest(req, "MILKY WAY", 502, "ICARUS search failed");
 
         return NextResponse.json(
           {
@@ -137,7 +140,7 @@ export async function GET(req: NextRequest) {
       const searchData = await searchRes.json();
 
       if (!searchData?.success || !searchData?.dubs?.length) {
-        logRequest(req, "AQUARIUS", 404, "Unavailable");
+        logRequest(req, "MILKY WAY", 404, "Unavailable");
 
         return NextResponse.json(
           {
@@ -173,18 +176,28 @@ export async function GET(req: NextRequest) {
     }
 
     // -----------------------------
-    // Get original
+    // Get dub
     // -----------------------------
 
-    const original = dubs.find((d: any) => d.original === true);
+    const selectedDub =
+      dubs.find(
+        (dub: any) =>
+          dub.lanCode === dubCode && String(dub.type) === String(dubType),
+      ) ??
+      dubs.find((dub: any) => dub.original === true) ??
+      dubs[0];
 
-    if (!original?.subjectId || !original?.detailPath) {
-      logRequest(req, "AQUARIUS", 404, "Original source not found");
+    const publicDubs = dubs.map(
+      ({ subjectId, detailPath, ...dub }: any) => dub,
+    );
+
+    if (!selectedDub?.subjectId || !selectedDub?.detailPath) {
+      logRequest(req, "MILKY WAY", 404, "Dub source not found");
 
       return NextResponse.json(
         {
           success: false,
-          error: "Original source not found",
+          error: "Dub source not found",
           server: path,
         },
         { status: 404 },
@@ -197,8 +210,8 @@ export async function GET(req: NextRequest) {
 
     const params = new URLSearchParams({
       type: "dash",
-      subjectId: original.subjectId,
-      detailPath: original.detailPath,
+      subjectId: selectedDub.subjectId,
+      detailPath: selectedDub.detailPath,
     });
 
     if (mediaType === "tv") {
@@ -214,7 +227,7 @@ export async function GET(req: NextRequest) {
     );
 
     if (!res.ok) {
-      logRequest(req, "AQUARIUS", res.status, "Main request failed");
+      logRequest(req, "MILKY WAY", res.status, "Main request failed");
 
       return NextResponse.json(
         {
@@ -229,7 +242,7 @@ export async function GET(req: NextRequest) {
     const scraped = await res.json();
 
     if (!scraped?.data?.length) {
-      logRequest(req, "AQUARIUS", 404, "No sources found");
+      logRequest(req, "MILKY WAY", 404, "No sources found");
 
       return NextResponse.json(
         {
@@ -269,35 +282,14 @@ export async function GET(req: NextRequest) {
       }),
     );
 
-    // const links = await Promise.all(
-    //   scraped.data.map(async (source: any) => {
-    //     const url = source.url;
-
-    //     const header = await JSON.stringify({
-    //       Referer:
-    //         "https://movibox.net/movies/the-runner-McIeQZEGPQ?id=715214082269397240&type=/movie/detail&detailSe=&detailEp=&lang=en",
-    //       "X-MB-Token": source.signCookie,
-    //       "User-Agent":
-    //         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
-    //     });
-
-    //     const proxyUrl = `https://hakunaymatata.onion1-15b.workers.dev/dash?url=${encodeURIComponent(url)}&header=${encodeURIComponent(header)}`;
-
-    //     return {
-    //       type: "dash",
-    //       link: encryptLink(proxyUrl),
-    //       resolution: Number(source.resolutions?.split(",")[0]) || 0,
-    //     };
-    //   }),
-    // );
-
-    logRequest(req, "AQUARIUS", 200, "OK");
+    logRequest(req, "MILKY WAY", 200, "OK");
 
     return NextResponse.json({
       success: true,
       links,
+      dubs: publicDubs,
       cached: fromCache,
-      server: path, // "zinogre"
+      server: path,
     });
   } catch {
     return NextResponse.json(

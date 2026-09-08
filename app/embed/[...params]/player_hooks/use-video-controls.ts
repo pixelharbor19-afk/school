@@ -10,6 +10,8 @@ type Props = {
   serverIndex: number;
   sourceIndex: number;
   progressKey: string;
+  dubLang: string;
+  dubType: string;
 };
 
 export function useVideoControls({
@@ -18,6 +20,8 @@ export function useVideoControls({
   serverIndex,
   sourceIndex,
   progressKey,
+  dubLang,
+  dubType,
 }: Props) {
   const [playing, setPlaying] = useState(false);
   const [canPlay, setCanplay] = useState(false);
@@ -155,7 +159,7 @@ export function useVideoControls({
     setWaiting(false);
     setBufferedProgress(0);
     setEnded(false);
-  }, [serverIndex, sourceIndex, progressKey]);
+  }, [serverIndex, sourceIndex, progressKey, dubLang, dubType]);
 
   useEffect(() => {
     const video = videoRef.current;
