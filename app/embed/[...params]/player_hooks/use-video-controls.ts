@@ -125,6 +125,7 @@ export function useVideoControls({
     const handleEnded = () => {
       setEnded(true);
       setPlaying(false);
+      useWatchProgress.getState().clearProgress(progressKey);
     };
     video.addEventListener("timeupdate", update);
     video.addEventListener("loadedmetadata", update);
