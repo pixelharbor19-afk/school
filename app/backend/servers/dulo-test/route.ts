@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { fetchWithTimeout } from "@/lib/fetch-timeout";
 import { encryptUrl } from "@/lib/aes-encryptor";
 import { encryptLink } from "@/lib/source-link-enc-dec";
-import { FIELD_MAP } from "@/lib/field-map";
-import { validateBackendToken } from "@/lib/validate-token";
-import { isValidReferer } from "@/lib/allowed-referers";
 import { logRequest } from "@/lib/log-request";
 import { createClient } from "@supabase/supabase-js";
 
@@ -16,39 +13,17 @@ const supabase = createClient(
 export async function GET(req: NextRequest) {
   const { searchParams, pathname } = req.nextUrl;
 
-  const tmdbId = searchParams.get(FIELD_MAP.id);
-  const mediaType = searchParams.get(FIELD_MAP.mediaType);
-  const season = searchParams.get(FIELD_MAP.season) ?? "";
-  const episode = searchParams.get(FIELD_MAP.episode) ?? "";
-  const token = searchParams.get(FIELD_MAP.token);
-  const ts = Number(searchParams.get(FIELD_MAP.ts));
+  const tmdbId = searchParams.get("tmdbId");
+  const mediaType = searchParams.get("mediaType");
+  const season = searchParams.get("season") ?? "";
+  const episode = searchParams.get("episode") ?? "";
   const path = pathname.split("/").pop()!;
 
-  if (!tmdbId || !mediaType || !token) {
-    logRequest(req, "VALSTRAX", 400, "missing params");
+  if (!tmdbId || !mediaType) {
+    logRequest(req, "DULO_TEST", 400, "missing params");
     return NextResponse.json(
       { success: false, error: "missing params", server: path },
       { status: 400 },
-    );
-  }
-
-  if (
-    !validateBackendToken(tmdbId, mediaType, season, episode, path, ts, token)
-  ) {
-    logRequest(req, "VALSTRAX", 401, "invalid token");
-    return NextResponse.json(
-      { success: false, error: "Invalid token", server: path },
-      { status: 401 },
-    );
-  }
-
-  const referer = req.headers.get("referer") || "";
-
-  if (!isValidReferer(referer)) {
-    logRequest(req, "VALSTRAX", 403, "invalid referrer");
-    return NextResponse.json(
-      { success: false, error: "Forbidden", server: path },
-      { status: 403 },
     );
   }
 
@@ -67,7 +42,7 @@ export async function GET(req: NextRequest) {
       .maybeSingle();
 
     if (cached) {
-      logRequest(req, "VALSTRAX", 200, "CACHE HIT");
+      logRequest(req, "DULO_TEST", 200, "CACHE HIT");
 
       stream = {
         type: "dash",
@@ -91,7 +66,7 @@ export async function GET(req: NextRequest) {
       );
 
       if (!response.ok) {
-        logRequest(req, "VALSTRAX", 404, "No stream found");
+        logRequest(req, "DULO_TEST", 404, "No stream found");
 
         return NextResponse.json(
           {
@@ -107,7 +82,7 @@ export async function GET(req: NextRequest) {
       stream = data.stream;
 
       if (!stream) {
-        logRequest(req, "VALSTRAX", 404, "No stream found");
+        logRequest(req, "DULO_TEST", 404, "No stream found");
 
         return NextResponse.json(
           {
@@ -141,7 +116,7 @@ export async function GET(req: NextRequest) {
         );
       }
 
-      logRequest(req, "VALSTRAX", 200, "CACHE MISS");
+      logRequest(req, "DULO_TEST", 200, "CACHE MISS");
     }
 
     const links = [];
@@ -198,7 +173,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    logRequest(req, "VALSTRAX", 200, "OK!!!!!!");
+    logRequest(req, "DULO_TEST", 200, "OK!!!!!!");
 
     return NextResponse.json({
       success: true,
