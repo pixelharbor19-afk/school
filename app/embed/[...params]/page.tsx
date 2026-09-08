@@ -64,6 +64,7 @@ export default function Embed() {
     searchParams.get("dubLang") || searchParams.get("dublang") || "";
   const dubType =
     searchParams.get("dubType") || searchParams.get("dubtype") || "0";
+  const progressParam = Number(searchParams.get("progress")) || 0;
   const subtitle_param = searchParams.get("subtitle");
   const { isSandboxed, isLoading } = useSandboxDetection();
 
@@ -391,6 +392,7 @@ export default function Embed() {
     progressKey,
     dubLang,
     dubType,
+    progressParam,
   });
 
   useEffect(() => {

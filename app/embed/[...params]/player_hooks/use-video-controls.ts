@@ -12,6 +12,7 @@ type Props = {
   progressKey: string;
   dubLang: string;
   dubType: string;
+  progressParam: number;
 };
 
 export function useVideoControls({
@@ -22,6 +23,7 @@ export function useVideoControls({
   progressKey,
   dubLang,
   dubType,
+  progressParam,
 }: Props) {
   const [playing, setPlaying] = useState(false);
   const [canPlay, setCanplay] = useState(false);
@@ -98,6 +100,27 @@ export function useVideoControls({
         }
       }
     };
+    // const handleCanPlay = () => {
+    //   setCanplay(true);
+    //   setWaiting(false);
+
+    //   if (!hasRestoredRef.current) {
+    //     const saved = useWatchProgress.getState().getProgress(progressKey);
+
+    //     if (
+    //       saved &&
+    //       saved.currentTime > 5 &&
+    //       saved.currentTime < video.duration
+    //     ) {
+    //       video.currentTime = saved.currentTime;
+    //       setCurrentTime(saved.currentTime);
+    //     }
+
+    //     hasRestoredRef.current = true;
+    //   }
+    // };
+
+    //progress params
     const handleCanPlay = () => {
       setCanplay(true);
       setWaiting(false);
@@ -105,19 +128,21 @@ export function useVideoControls({
       if (!hasRestoredRef.current) {
         const saved = useWatchProgress.getState().getProgress(progressKey);
 
-        if (
-          saved &&
-          saved.currentTime > 5 &&
-          saved.currentTime < video.duration
-        ) {
-          video.currentTime = saved.currentTime;
-          setCurrentTime(saved.currentTime);
+        const startTime =
+          progressParam > 0
+            ? progressParam
+            : saved && saved.currentTime > 5
+              ? saved.currentTime
+              : 0;
+
+        if (startTime > 0 && startTime < video.duration) {
+          video.currentTime = startTime;
+          setCurrentTime(startTime);
         }
 
         hasRestoredRef.current = true;
       }
     };
-
     const handleWaiting = () => {
       setWaiting(true);
     };
