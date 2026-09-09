@@ -274,8 +274,8 @@ export async function GET(req: NextRequest) {
 
         //https://shy-rice-3f7d.gmail1.workers.dev/
 
-        //const proxyUrl = `https://spring-wind-2fa5.gmail2.workers.dev/dash?url=${encodeURIComponent(url)}&header=${encodeURIComponent(header)}`;
-        const proxyUrl = `https://tiny-night-3f17.gmail3.workers.dev/dash?url=${encodeURIComponent(url)}&header=${encodeURIComponent(header)}`;
+        const proxyUrl = `https://spring-wind-2fa5.gmail2.workers.dev/dash?url=${encodeURIComponent(url)}&header=${encodeURIComponent(header)}`;
+        // const proxyUrl = `https://tiny-night-3f17.gmail3.workers.dev/dash?url=${encodeURIComponent(url)}&header=${encodeURIComponent(header)}`;
         return {
           type: "dash",
           link: encryptLink(proxyUrl),
