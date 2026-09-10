@@ -637,7 +637,7 @@ export async function GET(req: NextRequest) {
         return {
           type: "hls" as const,
           link: encryptLink(
-            `https://shy-rice-3f7d.gmail1.workers.dev/hls?url=${encodeURIComponent(
+            `https://tiny-night-3f17.gmail3.workers.dev/hls?url=${encodeURIComponent(
               encrypted,
             )}&header=${encodeURIComponent(headers)}`,
           ),
