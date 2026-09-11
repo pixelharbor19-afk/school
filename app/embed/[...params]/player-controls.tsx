@@ -172,7 +172,7 @@ export default function VideoControls({
             animate={{ y: 0 }}
             exit={{ y: -30 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="md:px-6 px-4 md:py-8 py-6 pointer-events-auto flex items-center md:gap-8 gap-6"
+            className="md:px-6 px-4 md:py-8 py-6 landscape:py-2 landscape:px-2 pointer-events-auto flex items-center md:gap-8 gap-6"
             onMouseEnter={!isMobile ? lockTimer : undefined}
             // onMouseLeave={!isMobile ? resetTimer : undefined}
           >
@@ -242,7 +242,7 @@ export default function VideoControls({
             animate={{ y: 0 }}
             exit={{ y: 30 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="md:px-6 px-4 md:py-8 py-6 pointer-events-auto flex flex-col items-center md:gap-6 gap-3"
+            className="md:px-6 px-4 md:py-8 py-6 landscape:py-2 landscape:px-2 pointer-events-auto flex flex-col items-center md:gap-6 gap-3 landscape:gap-1.5"
             onMouseEnter={!isMobile ? lockTimer : undefined}
             onMouseLeave={!isMobile ? resetTimer : undefined}
           >
