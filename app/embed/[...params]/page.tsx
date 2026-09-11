@@ -924,12 +924,12 @@ export default function Embed() {
         outro={introData?.outro}
         onSkip={skipTo}
       />
-
+      {/* 
       <SubtitleOverlay
         subtitleUrl={selectedSubtitle?.file || null}
         currentTime={currentTime}
         isVisible={isVisible}
-      />
+      /> */}
 
       <AnimatePresence>
         {skipIndicator && canPlay && (
@@ -985,7 +985,18 @@ export default function Embed() {
         style={{
           filter: `brightness(${brightness}%)`,
         }}
-      />
+      >
+        {selectedSubtitle?.file && (
+          <track
+            key={selectedSubtitle.file}
+            kind="subtitles"
+            src={`/backend/subtitle/prox?url=${encodeURIComponent(selectedSubtitle.file)}&line=-2`}
+            srcLang={selectedSubtitle.display}
+            label={selectedSubtitle.display}
+            default
+          />
+        )}
+      </video>
       {canPlay && (
         <div
           className="absolute inset-0 "
