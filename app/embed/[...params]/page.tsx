@@ -58,6 +58,7 @@ export default function Embed() {
     ? requestedServer!
     : "andromeda";
   const color = `#${searchParams.get("color") || "dc2626"}`;
+  const autoplayParam = searchParams.get("autoplay") === "true";
   const language = searchParams.get("language") || "en-US";
   const back = searchParams.get("back") === "false";
   const branding = searchParams.get("branding") || "DOMAIN";
@@ -1033,8 +1034,9 @@ export default function Embed() {
         loop={loop}
         playsInline
         webkit-playsinline="true"
+        muted={autoplayParam}
         preload="metadata"
-        autoPlay={autoplay}
+        autoPlay={autoplay || autoplayParam}
         onCanPlay={() => setSourceStatus("ready")}
         onError={() => {
           if (srcType === "mp4") {
