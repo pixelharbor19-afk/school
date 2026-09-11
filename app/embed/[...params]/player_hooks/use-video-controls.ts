@@ -338,43 +338,26 @@ export function useVideoControls({
     setCurrentTime(seekTimeRef.current);
     isSeekingRef.current = false;
   };
-  const toggleFullscreen = async () => {
-    const player = playerRef.current;
-    const video = videoRef.current;
+ const toggleFullscreen = async () => {
+   const player = playerRef.current;
+   if (!player) return;
 
-    if (!player || !video) return;
+   try {
+     if (document.fullscreenElement) {
+       await document.exitFullscreen();
+       (screen.orientation as any).unlock?.();
+       return;
+     }
 
-    try {
-      // iPhone Safari
-      if (
-        "webkitEnterFullscreen" in video &&
-        /iPhone|iPod/i.test(navigator.userAgent)
-      ) {
-        const iosVideo = video as HTMLVideoElement & {
-          webkitEnterFullscreen?: () => void;
-          webkitExitFullscreen?: () => void;
-          webkitDisplayingFullscreen?: boolean;
-        };
+     if (/iPhone|iPod/i.test(navigator.userAgent)) {
+       player.classList.toggle("ios-fullscreen");
+       return;
+     }
 
-        if (iosVideo.webkitDisplayingFullscreen) {
-          iosVideo.webkitExitFullscreen?.();
-        } else {
-          iosVideo.webkitEnterFullscreen?.();
-        }
-
-        return;
-      }
-
-      // Desktop / Android / supported browsers
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
-        (screen.orientation as any).unlock?.();
-      } else {
-        await player.requestFullscreen();
-        await (screen.orientation as any).lock?.("landscape").catch(() => {});
-      }
-    } catch {}
-  };
+     await player.requestFullscreen();
+     await (screen.orientation as any).lock?.("landscape").catch(() => {});
+   } catch {}
+ };
   // const toggleFullscreen = async () => {
   //   const player = playerRef.current;
   //   if (!player) return;
