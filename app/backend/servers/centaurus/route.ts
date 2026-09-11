@@ -6,6 +6,8 @@ import { encryptLink } from "@/lib/source-link-enc-dec";
 import { FIELD_MAP } from "@/lib/field-map";
 import { logRequest } from "@/lib/log-request";
 import { encryptUrl } from "@/lib/aes-encryptor";
+import { fetchWithTimeout } from "@/lib/fetch-timeout";
+import { workerProxies, workerProxyHealth } from "@/lib/proxy-health-checker";
 
 const supabase = createClient(
   process.env.SUPABASE_URL_MOVIEBOX_WEB2!,
@@ -257,6 +259,20 @@ export async function GET(req: NextRequest) {
     // -----------------------------
     // Encrypt links
     // -----------------------------
+    const shuffledProxy = await workerProxyHealth(workerProxies);
+
+    if (!shuffledProxy) {
+      logRequest(req, "MILKY WAY", 502, "No proxy available");
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "No proxy available",
+          server: path,
+        },
+        { status: 502 },
+      );
+    }
 
     const links = await Promise.all(
       scraped.data.map(async (source: any) => {
@@ -272,10 +288,8 @@ export async function GET(req: NextRequest) {
           }),
         );
 
-        //https://shy-rice-3f7d.gmail1.workers.dev/
+        const proxyUrl = `${shuffledProxy}dash?url=${encodeURIComponent(url)}&header=${encodeURIComponent(header)}`;
 
-        const proxyUrl = `https://shy-rice-3f7d.gmail1.workers.dev/dash?url=${encodeURIComponent(url)}&header=${encodeURIComponent(header)}`;
-        // const proxyUrl = `https://tiny-night-3f17.gmail3.workers.dev/dash?url=${encodeURIComponent(url)}&header=${encodeURIComponent(header)}`;
         return {
           type: "dash",
           link: encryptLink(proxyUrl),
