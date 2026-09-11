@@ -368,10 +368,10 @@ export function useVideoControls({
       // Desktop / Android / supported browsers
       if (document.fullscreenElement) {
         await document.exitFullscreen();
-        screen.orientation?.unlock?.();
+        (screen.orientation as any).unlock?.();
       } else {
         await player.requestFullscreen();
-        await screen.orientation?.lock?.("landscape").catch(() => {});
+        await (screen.orientation as any).lock?.("landscape").catch(() => {});
       }
     } catch {}
   };
