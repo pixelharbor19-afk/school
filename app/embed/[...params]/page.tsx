@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-
+import { getDomain } from "tldts";
 import * as dashjs from "dashjs";
 import Hls from "hls.js";
 import { useQueries } from "@tanstack/react-query";
@@ -40,6 +40,7 @@ import { SkipSegment } from "./player_components/skip-segment";
 import Pause from "./player_components/overlay-pause";
 
 import { usePlayerSettings } from "./player_store/settings";
+import { useTrackEmbedder } from "@/hooks/useTrackEmbedder";
 export default function Embed() {
   const { params } = useParams();
   const router = useRouter();
@@ -66,8 +67,12 @@ export default function Embed() {
     searchParams.get("dubType") || searchParams.get("dubtype") || "0";
   const progressParam = Number(searchParams.get("progress")) || 0;
   const subtitle_param = searchParams.get("subtitle");
+  const { mutate: trackEmbedder } = useTrackEmbedder();
   const { isSandboxed, isLoading } = useSandboxDetection();
-
+  const [tracked, setTracked] = useState(false);
+  const isIPhone =
+    typeof navigator !== "undefined" &&
+    /iPhone|iPod/i.test(navigator.userAgent);
   const whitelistSites = ["zxcstream"];
 
   const isWhitelisted =
@@ -629,13 +634,15 @@ export default function Embed() {
   }, [subtitles, subtitlesLoading]);
   const selectedSubtitle =
     uploadedSubtitle ??
-    subtitles?.find(
-      (subtitle) =>
-        subtitle.display.toLowerCase() === subtitle_param?.toLowerCase(),
+    subtitles?.find((subtitle) =>
+      subtitle.display
+        .toLowerCase()
+        .includes(subtitle_param?.toLowerCase() ?? ""),
     ) ??
-    openSubtitleData?.find(
-      (subtitle) =>
-        subtitle.display.toLowerCase() === subtitle_param?.toLowerCase(),
+    openSubtitleData?.find((subtitle) =>
+      subtitle.display
+        .toLowerCase()
+        .includes(subtitle_param?.toLowerCase() ?? ""),
     );
 
   const onSubtitleChange = (subtitle: MediaOption | null) => {
@@ -749,6 +756,56 @@ export default function Embed() {
     resetTimer,
   });
 
+  useEffect(() => {
+    if (isLoading || isSandboxed || !playing || tracked) return;
+
+    let embedder = "Direct";
+
+    if (window.self !== window.top) {
+      const referrer = document.referrer;
+
+      if (referrer) {
+        const hostname = new URL(referrer).hostname;
+        embedder = getDomain(hostname) || hostname;
+      }
+    }
+
+    trackEmbedder({
+      embed: getDomain(window.location.hostname) || window.location.hostname,
+      embedder,
+      sandbox: false,
+    });
+
+    setTracked(true);
+  }, [isLoading, isSandboxed, playing, tracked]);
+
+  if (isSandboxed) {
+    return (
+      <div
+        className="relative flex h-dvh w-full items-center justify-center overflow-hidden bg-black"
+        style={{
+          backgroundImage:
+            "radial-gradient(ellipse at 60% 40%, var(--color-zinc-900), transparent 60%)",
+        }}
+      >
+        <div className="relative z-10 flex w-full max-w-lg flex-col items-center px-6 text-center">
+          <h1 className="text-3xl font-semibold tracking-tight text-white md:text-4xl text-shadow-lg">
+            Sandbox Detected
+          </h1>
+
+          <p className="mt-4 max-w-md text-sm leading-6 text-white/45 md:text-base text-shadow-md">
+            This player is running inside an unsupported sandbox environment.
+          </p>
+
+          <div className="my-8 h-px w-16 bg-white/10" />
+
+          <p className="text-sm text-white/25 text-shadow-sm">
+            Please contact the website owner to fix the embed configuration.
+          </p>
+        </div>
+      </div>
+    );
+  }
   if (isMetadataError) {
     return (
       <div
@@ -924,12 +981,14 @@ export default function Embed() {
         outro={introData?.outro}
         onSkip={skipTo}
       />
-      {/* 
-      <SubtitleOverlay
-        subtitleUrl={selectedSubtitle?.file || null}
-        currentTime={currentTime}
-        isVisible={isVisible}
-      /> */}
+
+      {!isIPhone && (
+        <SubtitleOverlay
+          subtitleUrl={selectedSubtitle?.file || null}
+          currentTime={currentTime}
+          isVisible={isVisible}
+        />
+      )}
 
       <AnimatePresence>
         {skipIndicator && canPlay && (
@@ -986,11 +1045,11 @@ export default function Embed() {
           filter: `brightness(${brightness}%)`,
         }}
       >
-        {selectedSubtitle?.file && (
+        {isIPhone && selectedSubtitle?.file && (
           <track
             key={selectedSubtitle.file}
             kind="subtitles"
-            src={`/backend/subtitle/prox?url=${encodeURIComponent(selectedSubtitle.file)}&line=-2`}
+            src={`/backend/subtitle/prox?url=${encodeURIComponent(selectedSubtitle.file)}`}
             srcLang={selectedSubtitle.display}
             label={selectedSubtitle.display}
             default

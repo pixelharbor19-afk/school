@@ -40,10 +40,10 @@ export default function SubtitleOverlay({
     >
       <div
         className={cn(
-          "text-yellow-300",
+          "text-white",
           "max-w-4xl",
           "p-3 rounded-md",
-          "lg:text-4xl md:text-3xl text-sm text-center",
+          "lg:text-4xl md:text-3xl sm:text-xl text-sm text-center",
           "[text-shadow:0_3px_8px_rgba(0,0,0,0.9)]",
         )}
       >
