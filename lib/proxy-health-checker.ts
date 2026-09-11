@@ -2,7 +2,15 @@ import { fetchWithTimeout } from "@/lib/fetch-timeout";
 
 export const workerProxies = [
   "https://shy-rice-3f7d.gmail1.workers.dev/",
-  " https://tiny-night-3f17.gmail3.workers.dev/",
+  "https://tiny-night-3f17.gmail3.workers.dev/",
+  "https://damp-resonance-edc1.facebook1.workers.dev/",
+  "https://round-term-b231.facebook2-891.workers.dev/",
+  "https://dry-morning-c50d.facebook3.workers.dev/",
+  "https://flat-resonance-2702.facebook4.workers.dev/",
+  "https://aged-thunder-925d.facebook5.workers.dev/",
+  "https://throbbing-thunder-2359.facebook6.workers.dev/",
+  "https://quiet-heart-aaca.facebook7.workers.dev/",
+  "https://fancy-math-b578.facebook8.workers.dev/",
 ];
 
 export function shuffle<T>(arr: T[]): T[] {
