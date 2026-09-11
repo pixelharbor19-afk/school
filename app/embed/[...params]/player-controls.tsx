@@ -548,7 +548,7 @@ export default function VideoControls({
               </div>
             </div>
 
-            <div className="flex items-center md:gap-8 gap-4 text-white w-full ">
+            <div className="flex items-center md:gap-8 gap-4 landscape:gap-2 text-white w-full ">
               {/* Play */}
               <button
                 onClick={togglePlay}
@@ -601,7 +601,7 @@ export default function VideoControls({
 
               <div
                 className={cn(
-                  " flex items-center gap-2 tabular-nums font-medium text-sm tracking-wide",
+                  " flex items-center gap-2 tabular-nums font-medium text-sm tracking-wide landscape:text-xs",
                 )}
               >
                 <span className="text-white/80">{formatTime(currentTime)}</span>
