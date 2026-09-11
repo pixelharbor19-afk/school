@@ -384,6 +384,7 @@ export default function Embed() {
     toggleFullscreen,
     formatTime,
     skipTo,
+    isFullscreen,
   } = useVideoControls({
     videoRef,
     playerRef,
@@ -816,6 +817,7 @@ export default function Embed() {
       className={cn(
         "relative h-dvh w-full overflow-hidden bg-black",
         !isVisible && canPlay && "cursor-none",
+        isFullscreen && "pseudo-fullscreen",
       )}
     >
       <VideoControls

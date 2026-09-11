@@ -45,6 +45,7 @@ export function useVideoControls({
   const isSeekingRef = useRef(false);
   const seekTimeRef = useRef(0);
   const progressRef = useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   //
   const hasRestoredRef = useRef(false);
   const lastSaveRef = useRef(0);
@@ -338,26 +339,31 @@ export function useVideoControls({
     setCurrentTime(seekTimeRef.current);
     isSeekingRef.current = false;
   };
- const toggleFullscreen = async () => {
-   const player = playerRef.current;
-   if (!player) return;
+  const toggleFullscreen = async () => {
+    const player = playerRef.current;
+    if (!player) return;
 
-   try {
-     if (document.fullscreenElement) {
-       await document.exitFullscreen();
-       (screen.orientation as any).unlock?.();
-       return;
-     }
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
-     if (/iPhone|iPod/i.test(navigator.userAgent)) {
-       player.classList.toggle("ios-fullscreen");
-       return;
-     }
+    if (isIOS) {
+      setIsFullscreen((prev) => !prev);
+      return;
+    }
 
-     await player.requestFullscreen();
-     await (screen.orientation as any).lock?.("landscape").catch(() => {});
-   } catch {}
- };
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+        (screen.orientation as any).unlock?.();
+        setIsFullscreen(false);
+      } else {
+        await player.requestFullscreen();
+        await (screen.orientation as any).lock?.("landscape").catch(() => {});
+        setIsFullscreen(true);
+      }
+    } catch {
+      // Fullscreen/orientation may not be supported
+    }
+  };
   // const toggleFullscreen = async () => {
   //   const player = playerRef.current;
   //   if (!player) return;
@@ -436,5 +442,7 @@ export function useVideoControls({
     toggleFullscreen,
     formatTime,
     skipTo,
+    isFullscreen,
+   
   };
 }

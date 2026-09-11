@@ -29,7 +29,7 @@ export default function SubtitleOverlay({
   return (
     <div
       className={cn(
-        "fixed inset-x-0 bottom-0 pointer-events-none z-30",
+        "absolute inset-x-0 bottom-0 pointer-events-none z-30",
         "flex justify-center items-center",
         "transition duration-150 ease-out",
         isVisible
