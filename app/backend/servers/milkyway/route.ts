@@ -637,7 +637,7 @@ export async function GET(req: NextRequest) {
         return {
           type: "hls" as const,
           link: encryptLink(
-            `https://tiny-night-3f17.gmail3.workers.dev/hls?url=${encodeURIComponent(
+            `https://spring-wind-2fa5.gmail2.workers.dev/hls?url=${encodeURIComponent(
               encrypted,
             )}&header=${encodeURIComponent(headers)}`,
           ),

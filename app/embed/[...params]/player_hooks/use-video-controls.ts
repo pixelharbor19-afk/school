@@ -340,19 +340,40 @@ export function useVideoControls({
   };
   const toggleFullscreen = async () => {
     const player = playerRef.current;
-    if (!player) return;
+    const video = videoRef.current;
+
+    if (!player || !video) return;
 
     try {
+      // iPhone Safari
+      if (
+        "webkitEnterFullscreen" in video &&
+        /iPhone|iPod/i.test(navigator.userAgent)
+      ) {
+        const iosVideo = video as HTMLVideoElement & {
+          webkitEnterFullscreen?: () => void;
+          webkitExitFullscreen?: () => void;
+          webkitDisplayingFullscreen?: boolean;
+        };
+
+        if (iosVideo.webkitDisplayingFullscreen) {
+          iosVideo.webkitExitFullscreen?.();
+        } else {
+          iosVideo.webkitEnterFullscreen?.();
+        }
+
+        return;
+      }
+
+      // Desktop / Android / supported browsers
       if (document.fullscreenElement) {
         await document.exitFullscreen();
-        (screen.orientation as any).unlock?.();
+        screen.orientation?.unlock?.();
       } else {
         await player.requestFullscreen();
-        await (screen.orientation as any).lock?.("landscape").catch(() => {});
+        await screen.orientation?.lock?.("landscape").catch(() => {});
       }
-    } catch {
-      // Fullscreen/orientation may not be supported
-    }
+    } catch {}
   };
   // const toggleFullscreen = async () => {
   //   const player = playerRef.current;
