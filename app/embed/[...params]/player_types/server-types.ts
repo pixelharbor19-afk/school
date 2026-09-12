@@ -16,6 +16,14 @@ export const SERVERS: ServerTypes[] = [
     sources: [],
   },
   {
+    name: "Atlas",
+    status: "queue",
+    server: "atlas",
+    desc: "Alternative",
+    dubSupport: false,
+    sources: [],
+  },
+  {
     name: "Milky Way",
     status: "queue",
     server: "milkyway",
