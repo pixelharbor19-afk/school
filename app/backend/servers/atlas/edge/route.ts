@@ -35,7 +35,23 @@ export async function GET(req: NextRequest) {
       `User-Agent: ${USER_AGENT}`,
     ]);
 
-    return new Response(stdout, {
+    const playlist = stdout
+      .split(/\r?\n/)
+      .map((line) => {
+        const value = line.trim();
+
+        if (
+          value.startsWith("https://goodstream.cc/pl/") ||
+          value.startsWith("https://www.goodstream.cc/pl/")
+        ) {
+          return `${req.nextUrl.origin}/backend/servers/atlas/edge?url=${encodeURIComponent(value)}`;
+        }
+
+        return line;
+      })
+      .join("\n");
+
+    return new Response(playlist, {
       status: 200,
       headers: {
         "Content-Type": "application/vnd.apple.mpegurl",
