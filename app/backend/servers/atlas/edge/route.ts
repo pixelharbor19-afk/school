@@ -82,9 +82,8 @@ export async function GET(req: NextRequest) {
         .map((line) => line.trim())
         .filter(
           (line) =>
-            (line.startsWith("https://goodstream.cc/") ||
-              line.startsWith("https://www.goodstream.cc/")) &&
-            line.includes(".m3u8"),
+            line.startsWith("https://goodstream.cc/") ||
+            line.startsWith("https://www.goodstream.cc/"),
         );
 
       for (const nestedUrl of nestedUrls) {
