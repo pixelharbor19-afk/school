@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
     try {
       const cached = await readFile(cacheFile, "utf8");
 
-      if (cached.includes("#EXTINF:")) {
+      if (cached.includes("#EXTM3U")) {
         originalPlaylist = cached;
       }
     } catch {}
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
 
       originalPlaylist = stdout;
 
-      if (stdout.includes("#EXTINF:")) {
+      if (stdout.includes("#EXTM3U")) {
         const cacheDir = path.dirname(cacheFile);
 
         await mkdir(cacheDir, { recursive: true });
@@ -76,33 +76,31 @@ export async function GET(req: NextRequest) {
 
     let playlist = originalPlaylist;
 
-    if (type === "pl") {
-      const nestedUrls = playlist
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter(
-          (line) =>
-            line.startsWith("https://goodstream.cc/") ||
-            line.startsWith("https://www.goodstream.cc/"),
-        );
+    const nestedUrls = playlist
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(
+        (line) =>
+          line.startsWith("https://goodstream.cc/") ||
+          line.startsWith("https://www.goodstream.cc/"),
+      );
 
-      for (const nestedUrl of nestedUrls) {
-        const { stdout } = await execFileAsync("curl", [
-          "-sS",
-          "--compressed",
-          nestedUrl,
-          "-H",
-          "Accept: */*",
-          "-H",
-          "Origin: https://goodstream.cc",
-          "-H",
-          `Referer: https://goodstream.cc/embed/${embedId}`,
-          "-H",
-          `User-Agent: ${USER_AGENT}`,
-        ]);
+    for (const nestedUrl of nestedUrls) {
+      const { stdout } = await execFileAsync("curl", [
+        "-sS",
+        "--compressed",
+        nestedUrl,
+        "-H",
+        "Accept: */*",
+        "-H",
+        "Origin: https://goodstream.cc",
+        "-H",
+        `Referer: https://goodstream.cc/embed/${embedId}`,
+        "-H",
+        `User-Agent: ${USER_AGENT}`,
+      ]);
 
-        playlist = playlist.replace(nestedUrl, stdout);
-      }
+      playlist = playlist.replace(nestedUrl, stdout);
     }
 
     playlist = (

@@ -51,6 +51,7 @@ export async function GET(req: NextRequest) {
           seasonParam,
         )}&episode=${encodeURIComponent(episodeParam)}`,
       }));
+
     if (!links.length) {
       return NextResponse.json(
         { success: false, error: "No /pl/ sources found" },
