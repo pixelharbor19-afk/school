@@ -34,7 +34,6 @@ export async function GET(req: NextRequest) {
       : `tv-${tmdbId}-s${season}-e${episode}-${type}`;
 
   const cacheFile = path.join("/apps/cache", cacheKey, "playlist.m3u8");
-  const domain = "https://vidstuck.xyz";
 
   try {
     let originalPlaylist: string | null = null;
@@ -42,7 +41,7 @@ export async function GET(req: NextRequest) {
     try {
       const cached = await readFile(cacheFile, "utf8");
 
-      if (cached.includes("#EXTM3U")) {
+      if (cached.includes("#EXTM3U") && !cached.includes("#EXT-X-STREAM-INF")) {
         originalPlaylist = cached;
       }
     } catch {}
@@ -63,6 +62,13 @@ export async function GET(req: NextRequest) {
       ]);
 
       originalPlaylist = stdout;
+
+      if (stdout.includes("#EXTM3U") && !stdout.includes("#EXT-X-STREAM-INF")) {
+        const cacheDir = path.dirname(cacheFile);
+
+        await mkdir(cacheDir, { recursive: true });
+        await writeFile(cacheFile, stdout);
+      }
     }
 
     const segmentWorkerProxy = await workerProxyHealth(workerProxies);
@@ -127,13 +133,6 @@ export async function GET(req: NextRequest) {
         }),
       )
     ).join("\n");
-
-    if (playlist.includes("#EXTM3U")) {
-      const cacheDir = path.dirname(cacheFile);
-
-      await mkdir(cacheDir, { recursive: true });
-      await writeFile(cacheFile, playlist);
-    }
 
     return new Response(playlist, {
       status: 200,
