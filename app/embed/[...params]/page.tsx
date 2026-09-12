@@ -504,6 +504,11 @@ export default function Embed() {
       dash.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
         const representations = dash.getRepresentationsByType("video");
 
+        if (!representations.length) {
+          handleSourceFailed();
+          return;
+        }
+
         const qualities = representations
           .map((representation) => representation.height)
           .filter((height): height is number => !!height);
