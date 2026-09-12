@@ -45,9 +45,12 @@ export async function GET(req: NextRequest) {
       .map((source: any) => ({
         source: source.label,
         type: source.type,
-        link: `${domain}/backend/servers/atlas/edge?url=${encodeURIComponent(source.file)}`,
+        link: `${domain}/backend/servers/atlas/edge?url=${encodeURIComponent(
+          source.file,
+        )}&id=${tmdbId}&mediaType=${mediaType}&season=${encodeURIComponent(
+          seasonParam,
+        )}&episode=${encodeURIComponent(episodeParam)}`,
       }));
-
     if (!links.length) {
       return NextResponse.json(
         { success: false, error: "No /pl/ sources found" },
