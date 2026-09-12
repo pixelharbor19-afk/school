@@ -101,6 +101,14 @@ export async function GET(req: NextRequest) {
 
       if (stdout.includes("#EXTM3U")) {
         playlist = stdout;
+
+        if (!stdout.includes("#EXT-X-STREAM-INF")) {
+          const cacheDir = path.dirname(cacheFile);
+
+          await mkdir(cacheDir, { recursive: true });
+          await writeFile(cacheFile, stdout);
+        }
+
         break;
       }
     }
