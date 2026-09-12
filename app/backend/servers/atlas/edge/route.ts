@@ -100,7 +100,10 @@ export async function GET(req: NextRequest) {
         `User-Agent: ${USER_AGENT}`,
       ]);
 
-      playlist = playlist.replace(nestedUrl, stdout);
+      if (stdout.includes("#EXTM3U")) {
+        playlist = stdout;
+        break;
+      }
     }
 
     playlist = (
