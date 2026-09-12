@@ -68,6 +68,10 @@ export async function GET(req: NextRequest) {
 
     const links = cached.sources
       .filter((s: any) => s.type !== "mp4")
+      .sort(
+        (a: any, b: any) =>
+          Number(b.file.includes("/pl/")) - Number(a.file.includes("/pl/")),
+      )
       .map((source: any) => ({
         type: source.type,
         resolution: null,
@@ -79,7 +83,6 @@ export async function GET(req: NextRequest) {
           )}&episode=${encodeURIComponent(episode)}`,
         ),
       }));
-
     if (!links.length) {
       return NextResponse.json(
         { success: false, error: "No /pl/ sources found", server: path },
