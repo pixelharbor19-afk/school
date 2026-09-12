@@ -1,10 +1,11 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { execFile } from "child_process";
 import { promisify } from "util";
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import { workerProxies, workerProxyHealth } from "@/lib/proxy-health-checker";
 import { encryptUrl } from "@/lib/aes-encryptor";
+import { logRequest } from "@/lib/log-request";
 
 export const runtime = "nodejs";
 
@@ -72,6 +73,19 @@ export async function GET(req: NextRequest) {
     }
 
     const segmentWorkerProxy = await workerProxyHealth(workerProxies);
+
+    if (!segmentWorkerProxy) {
+      logRequest(req, "ATLAS EDGE", 502, "No proxy available");
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "No proxy available",
+          server: "atlas",
+        },
+        { status: 502 },
+      );
+    }
 
     let playlist = originalPlaylist;
 
