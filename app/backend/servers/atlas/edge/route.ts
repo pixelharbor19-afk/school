@@ -1,5 +1,14 @@
-// /backend/atlas/edge
+// /backend/atlas/edge/route.ts
 import { NextRequest } from "next/server";
+import { execFile } from "child_process";
+import { promisify } from "util";
+
+export const runtime = "nodejs";
+
+const execFileAsync = promisify(execFile);
+
+const USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36";
 
 export async function GET(req: NextRequest) {
   const target = req.nextUrl.searchParams.get("url");
@@ -9,20 +18,30 @@ export async function GET(req: NextRequest) {
   }
 
   const url = new URL(target);
+  const embedId = url.pathname.split("/")[2];
 
-  const response = await fetch(url, {
-    headers: {
-      Referer: `https://goodstream.cc/embed/${url.pathname.split("/")[2]}`,
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/150 Safari/537.36",
-    },
-  });
+  try {
+    const { stdout } = await execFileAsync("curl", [
+      "-sS",
+      "--compressed",
+      url.toString(),
+      "-H",
+      "Accept: */*",
+      "-H",
+      "Origin: https://goodstream.cc",
+      "-H",
+      `Referer: https://goodstream.cc/embed/${embedId}`,
+      "-H",
+      `User-Agent: ${USER_AGENT}`,
+    ]);
 
-  return new Response(response.body, {
-    status: response.status,
-    headers: {
-      "Content-Type":
-        response.headers.get("Content-Type") || "application/vnd.apple.mpegurl",
-    },
-  });
+    return new Response(stdout, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/vnd.apple.mpegurl",
+      },
+    });
+  } catch {
+    return new Response("Upstream error", { status: 502 });
+  }
 }
