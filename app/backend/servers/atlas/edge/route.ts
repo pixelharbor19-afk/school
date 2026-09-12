@@ -1,4 +1,3 @@
-// /backend/atlas/edge/route.ts
 import { NextRequest } from "next/server";
 import { execFile } from "child_process";
 import { promisify } from "util";
@@ -6,6 +5,7 @@ import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import { workerProxies, workerProxyHealth } from "@/lib/proxy-health-checker";
 import { encryptUrl } from "@/lib/aes-encryptor";
+
 export const runtime = "nodejs";
 
 const execFileAsync = promisify(execFile);
@@ -23,9 +23,9 @@ export async function GET(req: NextRequest) {
   if (!target || !tmdbId || !mediaType) {
     return new Response("Missing parameters", { status: 400 });
   }
+
   const url = new URL(target);
   const embedId = url.pathname.split("/")[2];
-
   const type = url.pathname.startsWith("/pl/") ? "pl" : "streamsvr";
 
   const cacheKey =
@@ -34,7 +34,6 @@ export async function GET(req: NextRequest) {
       : `tv-${tmdbId}-s${season}-e${episode}-${type}`;
 
   const cacheFile = path.join("/apps/cache", cacheKey, "playlist.m3u8");
-
   const domain = "https://vidstuck.xyz";
 
   try {
@@ -75,20 +74,42 @@ export async function GET(req: NextRequest) {
 
     const segmentWorkerProxy = await workerProxyHealth(workerProxies);
 
-    const playlist = (
-      await Promise.all(
-        originalPlaylist.split(/\r?\n/).map(async (line) => {
-          const value = line.trim();
+    let playlist = originalPlaylist;
 
-          if (
-            (value.startsWith("https://goodstream.cc/") ||
-              value.startsWith("https://www.goodstream.cc/")) &&
-            value.includes(".m3u8")
-          ) {
-            return `${domain}/backend/servers/atlas/edge?url=${encodeURIComponent(
-              value,
-            )}&id=${tmdbId}&mediaType=${mediaType}&season=${season}&episode=${episode}`;
-          }
+    if (type === "pl") {
+      const nestedUrls = playlist
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(
+          (line) =>
+            (line.startsWith("https://goodstream.cc/") ||
+              line.startsWith("https://www.goodstream.cc/")) &&
+            line.includes(".m3u8"),
+        );
+
+      for (const nestedUrl of nestedUrls) {
+        const { stdout } = await execFileAsync("curl", [
+          "-sS",
+          "--compressed",
+          nestedUrl,
+          "-H",
+          "Accept: */*",
+          "-H",
+          "Origin: https://goodstream.cc",
+          "-H",
+          `Referer: https://goodstream.cc/embed/${embedId}`,
+          "-H",
+          `User-Agent: ${USER_AGENT}`,
+        ]);
+
+        playlist = playlist.replace(nestedUrl, stdout);
+      }
+    }
+
+    playlist = (
+      await Promise.all(
+        playlist.split(/\r?\n/).map(async (line) => {
+          const value = line.trim();
 
           if (
             segmentWorkerProxy &&
