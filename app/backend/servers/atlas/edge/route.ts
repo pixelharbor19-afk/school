@@ -19,10 +19,16 @@ export async function GET(req: NextRequest) {
   const season = req.nextUrl.searchParams.get("season");
   const episode = req.nextUrl.searchParams.get("episode");
 
+  if (!target) {
+    return new Response("Missing url", { status: 400 });
+  }
+
+  const type = new URL(target).pathname.startsWith("/pl/") ? "pl" : "streamsvr";
+
   const cacheKey =
     mediaType === "movie"
-      ? `movie-${tmdbId}`
-      : `tv-${tmdbId}-s${season}-e${episode}`;
+      ? `movie-${tmdbId}-${type}`
+      : `tv-${tmdbId}-s${season}-e${episode}-${type}`;
 
   const cacheFile = path.join("/apps/cache", cacheKey, "playlist.m3u8");
 
