@@ -93,7 +93,7 @@ export async function GET(req: NextRequest) {
 
           if (
             segmentWorkerProxy &&
-            (value.startsWith("https://gs-") || value.includes(".letsgocdn"))
+            (value.includes(".goodcdn") || value.includes(".letsgocdn"))
           ) {
             const encrypted = await encryptUrl(value);
 
