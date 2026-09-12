@@ -12,7 +12,7 @@ const USER_AGENT =
 
 export async function GET(req: NextRequest) {
   const target = req.nextUrl.searchParams.get("url");
-
+  const domain = `${req.nextUrl.protocol}//${req.nextUrl.host}`;
   if (!target) {
     return new Response("Missing url", { status: 400 });
   }
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
           value.startsWith("https://goodstream.cc/pl/") ||
           value.startsWith("https://www.goodstream.cc/pl/")
         ) {
-          return `${req.nextUrl.origin}/backend/servers/atlas/edge?url=${encodeURIComponent(value)}`;
+          return `${domain}/backend/servers/atlas/edge?url=${encodeURIComponent(value)}`;
         }
 
         return line;
