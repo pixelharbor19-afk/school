@@ -603,12 +603,13 @@ export default function Embed() {
     null,
   );
 
-  const { data: openSubtitleData } = useOpenSubtitle({
-    imdbId,
-    season: media_type === "tv" ? season : undefined,
-    episode: media_type === "tv" ? episode : undefined,
-    enabled: metadataLoad && canPlay,
-  });
+  const { data: openSubtitleData, isLoading: openSubtitleLoading } =
+    useOpenSubtitle({
+      imdbId,
+      season: media_type === "tv" ? season : undefined,
+      episode: media_type === "tv" ? episode : undefined,
+      enabled: metadataLoad && canPlay,
+    });
   const { data: subtitles, isLoading: subtitlesLoading } = useSubtitle({
     tmdbId,
     media_type,
@@ -633,18 +634,17 @@ export default function Embed() {
       });
     }
   }, [subtitles, subtitlesLoading]);
+
   const selectedSubtitle =
     uploadedSubtitle ??
-    subtitles?.find((subtitle) =>
-      subtitle.display
-        .toLowerCase()
-        .includes(subtitle_param?.toLowerCase() ?? ""),
-    ) ??
-    openSubtitleData?.find((subtitle) =>
-      subtitle.display
-        .toLowerCase()
-        .includes(subtitle_param?.toLowerCase() ?? ""),
-    );
+    (subtitle_param
+      ? (subtitles?.find((subtitle) =>
+          subtitle.display.toLowerCase().includes(subtitle_param.toLowerCase()),
+        ) ??
+        openSubtitleData?.find((subtitle) =>
+          subtitle.display.toLowerCase().includes(subtitle_param.toLowerCase()),
+        ))
+      : undefined);
 
   const onSubtitleChange = (subtitle: MediaOption | null) => {
     const params = new URLSearchParams(searchParams.toString());
