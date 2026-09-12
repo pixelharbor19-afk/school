@@ -4,7 +4,8 @@ import { execFile } from "child_process";
 import { promisify } from "util";
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
-
+import { workerProxies, workerProxyHealth } from "@/lib/proxy-health-checker";
+import { encryptUrl } from "@/lib/aes-encryptor";
 export const runtime = "nodejs";
 
 const execFileAsync = promisify(execFile);
@@ -23,7 +24,10 @@ export async function GET(req: NextRequest) {
     return new Response("Missing url", { status: 400 });
   }
 
-  const type = new URL(target).pathname.startsWith("/pl/") ? "pl" : "streamsvr";
+  const url = new URL(target);
+  const embedId = url.pathname.split("/")[2];
+
+  const type = url.pathname.startsWith("/pl/") ? "pl" : "streamsvr";
 
   const cacheKey =
     mediaType === "movie"
@@ -35,64 +39,81 @@ export async function GET(req: NextRequest) {
   const domain = "https://vidstuck.xyz";
 
   try {
+    let originalPlaylist: string | null = null;
+
     try {
       const cached = await readFile(cacheFile, "utf8");
 
       if (cached.includes("#EXTINF:")) {
-        return new Response(cached, {
-          status: 200,
-          headers: {
-            "Content-Type": "application/vnd.apple.mpegurl",
-          },
-        });
+        originalPlaylist = cached;
       }
     } catch {}
 
-    if (!target) {
-      return new Response("Missing url", { status: 400 });
+    if (!originalPlaylist) {
+      const { stdout } = await execFileAsync("curl", [
+        "-sS",
+        "--compressed",
+        url.toString(),
+        "-H",
+        "Accept: */*",
+        "-H",
+        "Origin: https://goodstream.cc",
+        "-H",
+        `Referer: https://goodstream.cc/embed/${embedId}`,
+        "-H",
+        `User-Agent: ${USER_AGENT}`,
+      ]);
+
+      originalPlaylist = stdout;
+
+      if (stdout.includes("#EXTINF:")) {
+        const cacheDir = path.dirname(cacheFile);
+
+        await mkdir(cacheDir, { recursive: true });
+        await writeFile(cacheFile, stdout);
+      }
     }
 
-    const url = new URL(target);
-    const embedId = url.pathname.split("/")[2];
+    const segmentWorkerProxy = await workerProxyHealth(workerProxies);
 
-    const { stdout } = await execFileAsync("curl", [
-      "-sS",
-      "--compressed",
-      url.toString(),
-      "-H",
-      "Accept: */*",
-      "-H",
-      "Origin: https://goodstream.cc",
-      "-H",
-      `Referer: https://goodstream.cc/embed/${embedId}`,
-      "-H",
-      `User-Agent: ${USER_AGENT}`,
-    ]);
+    const playlist = (
+      await Promise.all(
+        originalPlaylist.split(/\r?\n/).map(async (line) => {
+          const value = line.trim();
 
-    const playlist = stdout
-      .split(/\r?\n/)
-      .map((line) => {
-        const value = line.trim();
+          if (
+            (value.startsWith("https://goodstream.cc/") ||
+              value.startsWith("https://www.goodstream.cc/")) &&
+            value.includes(".m3u8")
+          ) {
+            return `${domain}/backend/servers/atlas/edge?url=${encodeURIComponent(
+              value,
+            )}&id=${tmdbId}&mediaType=${mediaType}&season=${season}&episode=${episode}`;
+          }
 
-        if (
-          value.startsWith("https://goodstream.cc/pl/") ||
-          value.startsWith("https://www.goodstream.cc/pl/")
-        ) {
-          return `${domain}/backend/servers/atlas/edge?url=${encodeURIComponent(
-            value,
-          )}&id=${tmdbId}&mediaType=${mediaType}&season=${season}&episode=${episode}`;
-        }
+          if (
+            segmentWorkerProxy &&
+            (value.startsWith("https://gs-") || value.includes(".letsgocdn"))
+          ) {
+            const encrypted = await encryptUrl(value);
 
-        return line;
-      })
-      .join("\n");
+            const headers = await encryptUrl(
+              JSON.stringify({
+                Referer: `https://goodstream.cc/embed/${embedId}`,
+                "User-Agent": USER_AGENT,
+                Accept: "*/*",
+              }),
+            );
 
-    if (playlist.includes("#EXTINF:")) {
-      const cacheDir = path.dirname(cacheFile);
+            return `${segmentWorkerProxy}hls?segment=${encodeURIComponent(
+              encrypted,
+            )}&header=${encodeURIComponent(headers)}`;
+          }
 
-      await mkdir(cacheDir, { recursive: true });
-      await writeFile(cacheFile, playlist);
-    }
+          return line;
+        }),
+      )
+    ).join("\n");
 
     return new Response(playlist, {
       status: 200,
