@@ -17,13 +17,12 @@ export async function GET(req: NextRequest) {
   const target = req.nextUrl.searchParams.get("url");
   const tmdbId = req.nextUrl.searchParams.get("id");
   const mediaType = req.nextUrl.searchParams.get("mediaType");
-  const season = req.nextUrl.searchParams.get("season");
-  const episode = req.nextUrl.searchParams.get("episode");
+  const season = req.nextUrl.searchParams.get("season") || "1";
+  const episode = req.nextUrl.searchParams.get("episode") || "1";
 
-  if (!target) {
-    return new Response("Missing url", { status: 400 });
+  if (!target || !tmdbId || !mediaType) {
+    return new Response("Missing parameters", { status: 400 });
   }
-
   const url = new URL(target);
   const embedId = url.pathname.split("/")[2];
 
