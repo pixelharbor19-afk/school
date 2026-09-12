@@ -7,7 +7,7 @@ const supabase = createClient(
 );
 
 export async function GET(req: NextRequest) {
-  const domain = `${req.nextUrl.protocol}//${req.nextUrl.host}`;
+  const domain = "https://vidstuck.xyz";
   const tmdbId = req.nextUrl.searchParams.get("id");
   const mediaType = req.nextUrl.searchParams.get("mediaType");
   const season = req.nextUrl.searchParams.get("season");

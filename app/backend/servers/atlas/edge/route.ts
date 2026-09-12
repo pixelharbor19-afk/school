@@ -12,7 +12,7 @@ const USER_AGENT =
 
 export async function GET(req: NextRequest) {
   const target = req.nextUrl.searchParams.get("url");
-  const domain = `${req.nextUrl.protocol}//${req.nextUrl.host}`;
+  const domain = "https://vidstuck.xyz";
   if (!target) {
     return new Response("Missing url", { status: 400 });
   }
