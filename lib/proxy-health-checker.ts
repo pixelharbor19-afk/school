@@ -11,6 +11,13 @@ export const workerProxies = [
   "https://throbbing-thunder-2359.facebook6.workers.dev/",
   "https://quiet-heart-aaca.facebook7.workers.dev/",
   "https://fancy-math-b578.facebook8.workers.dev/",
+  "https://square-fog-9d75.facebook9.workers.dev/",
+  "https://steep-fog-c825.facebook10.workers.dev/",
+  "https://crimson-sky-185f.facebook11.workers.dev/",
+  "https://winter-wind-3b69.facebook12.workers.dev/",
+  "https://hidden-breeze-2e88.facebook13.workers.dev/",
+  "https://plain-waterfall-fe4e.facebook14.workers.dev/",
+  "https://tight-king-45e5.facebook15.workers.dev/",
 ];
 
 export function shuffle<T>(arr: T[]): T[] {
