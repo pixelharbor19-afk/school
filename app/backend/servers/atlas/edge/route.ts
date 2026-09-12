@@ -63,13 +63,6 @@ export async function GET(req: NextRequest) {
       ]);
 
       originalPlaylist = stdout;
-
-      if (stdout.includes("#EXTM3U")) {
-        const cacheDir = path.dirname(cacheFile);
-
-        await mkdir(cacheDir, { recursive: true });
-        await writeFile(cacheFile, stdout);
-      }
     }
 
     const segmentWorkerProxy = await workerProxyHealth(workerProxies);
@@ -134,6 +127,13 @@ export async function GET(req: NextRequest) {
         }),
       )
     ).join("\n");
+
+    if (playlist.includes("#EXTM3U")) {
+      const cacheDir = path.dirname(cacheFile);
+
+      await mkdir(cacheDir, { recursive: true });
+      await writeFile(cacheFile, playlist);
+    }
 
     return new Response(playlist, {
       status: 200,
