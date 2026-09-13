@@ -16,7 +16,6 @@ const supabase = createClient(
 export async function GET(req: NextRequest) {
   const { searchParams, pathname } = req.nextUrl;
   const path = pathname.split("/").pop()!;
-
   try {
     const tmdbId = searchParams.get(FIELD_MAP.id);
     const mediaType = searchParams.get(FIELD_MAP.mediaType);
@@ -27,8 +26,13 @@ export async function GET(req: NextRequest) {
     const token = searchParams.get(FIELD_MAP.token);
     const date = searchParams.get(FIELD_MAP.date);
     const latestDate = searchParams.get(FIELD_MAP.latestDate);
+    //
     const dubCode = searchParams.get("dubCode");
     const dubType = searchParams.get("dubType");
+
+    // -----------------------------
+    // Validate params
+    // -----------------------------
 
     if (
       !tmdbId ||
@@ -38,7 +42,7 @@ export async function GET(req: NextRequest) {
       !Number.isFinite(ts) ||
       !token
     ) {
-      logRequest(req, "CENTAURUS", 400, "missing params");
+      logRequest(req, "MILKY WAY", 400, "missing params");
 
       return NextResponse.json(
         {
@@ -50,10 +54,14 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // -----------------------------
+    // Validate token
+    // -----------------------------
+
     if (
       !validateBackendToken(tmdbId, mediaType, season, episode, path, ts, token)
     ) {
-      logRequest(req, "CENTAURUS", 401, "Invalid token");
+      logRequest(req, "MILKY WAY", 401, "Invalid token");
 
       return NextResponse.json(
         {
@@ -65,8 +73,12 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // -----------------------------
+    // Validate referer
+    // -----------------------------
+
     if (!isValidReferer(req.headers.get("referer") || "")) {
-      logRequest(req, "CENTAURUS", 403, "Forbidden");
+      logRequest(req, "MILKY WAY", 403, "Forbidden");
 
       return NextResponse.json(
         {
@@ -78,6 +90,10 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // -----------------------------
+    // Cache lookup
+    // -----------------------------
+
     const { data: cached } = await supabase
       .from("moviebox_cache")
       .select("dubs")
@@ -87,6 +103,9 @@ export async function GET(req: NextRequest) {
 
     let dubs = cached?.dubs ?? [];
     let fromCache = dubs.length > 0;
+    // -----------------------------
+    // Cache missing → ICARUS search
+    // -----------------------------
 
     if (!dubs.length) {
       const searchParams = new URLSearchParams({
@@ -95,7 +114,6 @@ export async function GET(req: NextRequest) {
         title,
         date,
       });
-
       if (latestDate && mediaType === "tv") {
         searchParams.set("latestDate", latestDate);
       }
@@ -108,7 +126,7 @@ export async function GET(req: NextRequest) {
       );
 
       if (!searchRes.ok) {
-        logRequest(req, "CENTAURUS", 502, "ICARUS search failed");
+        logRequest(req, "MILKY WAY", 502, "ICARUS search failed");
 
         return NextResponse.json(
           {
@@ -123,7 +141,7 @@ export async function GET(req: NextRequest) {
       const searchData = await searchRes.json();
 
       if (!searchData?.success || !searchData?.dubs?.length) {
-        logRequest(req, "CENTAURUS", 404, "Unavailable");
+        logRequest(req, "MILKY WAY", 404, "Unavailable");
 
         return NextResponse.json(
           {
@@ -135,8 +153,13 @@ export async function GET(req: NextRequest) {
         );
       }
 
+      // ICARUS found the dubs.
       dubs = searchData.dubs;
       fromCache = false;
+
+      // -----------------------------
+      // Save cache
+      // -----------------------------
 
       await supabase.from("moviebox_cache").upsert(
         {
@@ -153,6 +176,10 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // -----------------------------
+    // Get dub
+    // -----------------------------
+
     const selectedDub =
       dubs.find(
         (dub: any) =>
@@ -166,7 +193,7 @@ export async function GET(req: NextRequest) {
     );
 
     if (!selectedDub?.subjectId || !selectedDub?.detailPath) {
-      logRequest(req, "CENTAURUS", 404, "Dub source not found");
+      logRequest(req, "MILKY WAY", 404, "Dub source not found");
 
       return NextResponse.json(
         {
@@ -178,73 +205,9 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const dub = selectedDub.lanCode;
-    const type = Number(selectedDub.type) || 0;
-    const original = selectedDub.original === true;
-
-    const { data: cachedSources } = await supabase
-      .from("moviebox_sources_cache")
-      .select("sources")
-      .eq("tmdb_id", tmdbId)
-      .eq("media_type", mediaType)
-      .eq("season", season)
-      .eq("episode", episode)
-      .eq("dub", dub)
-      .eq("type", type)
-      .eq("original", original)
-      .gt("expires_at", new Date().toISOString())
-      .maybeSingle();
-
-    const shuffledProxy = await workerProxyHealth(workerProxies);
-
-    if (!shuffledProxy) {
-      logRequest(req, "CENTAURUS", 502, "No proxy available");
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: "No proxy available",
-          server: path,
-        },
-        { status: 502 },
-      );
-    }
-
-    if (cachedSources?.sources?.length) {
-      const links = await Promise.all(
-        cachedSources.sources.map(async (source: any) => {
-          const url = await encryptUrl(source.url);
-
-          const header = await encryptUrl(
-            JSON.stringify({
-              Referer:
-                "https://movibox.net/movies/the-runner-McIeQZEGPQ?id=715214082269397240&type=/movie/detail&detailSe=&detailEp=&lang=en",
-              "X-MB-Token": source.signCookie,
-              "User-Agent":
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
-            }),
-          );
-
-          const proxyUrl = `${shuffledProxy}b?u=${encodeURIComponent(url)}&h=${encodeURIComponent(header)}`;
-
-          return {
-            type: source.type,
-            link: encryptLink(proxyUrl),
-            resolution: source.resolution,
-          };
-        }),
-      );
-
-      logRequest(req, "CENTAURUS", 200, "Cache hit");
-
-      return NextResponse.json({
-        success: true,
-        links,
-        dubs: publicDubs,
-        meow: true,
-        server: path,
-      });
-    }
+    // -----------------------------
+    // Scraper
+    // -----------------------------
 
     const params = new URLSearchParams({
       type: "dash",
@@ -256,9 +219,7 @@ export async function GET(req: NextRequest) {
       params.set("se", season || "0");
       params.set("ep", episode || "0");
     }
-
     params.set("streamSignType", "1");
-
     const res = await fetch(
       `https://api1.zxcstream.xyz/moviebox?${params.toString()}`,
       {
@@ -267,7 +228,7 @@ export async function GET(req: NextRequest) {
     );
 
     if (!res.ok) {
-      logRequest(req, "CENTAURUS", res.status, "Main request failed");
+      logRequest(req, "MILKY WAY", res.status, "Main request failed");
 
       return NextResponse.json(
         {
@@ -282,7 +243,7 @@ export async function GET(req: NextRequest) {
     const scraped = await res.json();
 
     if (!scraped?.data?.length) {
-      logRequest(req, "CENTAURUS", 404, "No sources found");
+      logRequest(req, "MILKY WAY", 404, "No sources found");
 
       return NextResponse.json(
         {
@@ -294,32 +255,26 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const sources = scraped.data.map((source: any) => ({
-      url: source.url,
-      signCookie: source.signCookie,
-      type: "dash",
-      resolution: Number(source.resolutions?.split(",")[0]) || 0,
-    }));
+    // -----------------------------
+    // Encrypt links
+    // -----------------------------
+    const shuffledProxy = await workerProxyHealth(workerProxies);
 
-    await supabase.from("moviebox_sources_cache").upsert(
-      {
-        tmdb_id: tmdbId,
-        media_type: mediaType,
-        season,
-        episode,
-        dub,
-        type,
-        original,
-        sources,
-        expires_at: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        onConflict: "tmdb_id,media_type,season,episode,dub,type,original",
-      },
-    );
+    if (!shuffledProxy) {
+      logRequest(req, "MILKY WAY", 502, "No proxy available");
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "No proxy available",
+          server: path,
+        },
+        { status: 502 },
+      );
+    }
 
     const links = await Promise.all(
-      sources.map(async (source: any) => {
+      scraped.data.map(async (source: any) => {
         const url = await encryptUrl(source.url);
 
         const header = await encryptUrl(
@@ -335,20 +290,20 @@ export async function GET(req: NextRequest) {
         const proxyUrl = `${shuffledProxy}b?u=${encodeURIComponent(url)}&h=${encodeURIComponent(header)}`;
 
         return {
-          type: source.type,
+          type: "dash",
           link: encryptLink(proxyUrl),
-          resolution: source.resolution,
+          resolution: Number(source.resolutions?.split(",")[0]) || 0,
         };
       }),
     );
 
-    logRequest(req, "CENTAURUS", 200, "OK");
+    logRequest(req, "MILKY WAY", 200, "OK");
 
     return NextResponse.json({
       success: true,
       links,
       dubs: publicDubs,
-      meow: fromCache,
+      cached: fromCache,
       server: path,
     });
   } catch {
