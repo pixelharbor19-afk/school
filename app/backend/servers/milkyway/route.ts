@@ -165,9 +165,9 @@ export async function GET(req: NextRequest) {
         return {
           type: "hls" as const,
           link: encryptLink(
-            `${shuffledProxy}hls?url=${encodeURIComponent(
+            `${shuffledProxy}a?u=${encodeURIComponent(
               encrypted,
-            )}&header=${encodeURIComponent(headers)}`,
+            )}&h=${encodeURIComponent(headers)}`,
           ),
           resolution: null,
         };

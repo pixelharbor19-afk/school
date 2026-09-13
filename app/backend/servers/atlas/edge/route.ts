@@ -146,9 +146,9 @@ export async function GET(req: NextRequest) {
               }),
             );
 
-            return `${segmentWorkerProxy}hls?segment=${encodeURIComponent(
+            return `${segmentWorkerProxy}a?y=${encodeURIComponent(
               encrypted,
-            )}&header=${encodeURIComponent(headers)}`;
+            )}&h=${encodeURIComponent(headers)}`;
           }
 
           return line;

@@ -288,7 +288,7 @@ export async function GET(req: NextRequest) {
           }),
         );
 
-        const proxyUrl = `${shuffledProxy}dash?url=${encodeURIComponent(url)}&header=${encodeURIComponent(header)}`;
+        const proxyUrl = `${shuffledProxy}b?u=${encodeURIComponent(url)}&h=${encodeURIComponent(header)}`;
 
         return {
           type: "dash",
