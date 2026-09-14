@@ -566,7 +566,7 @@ export default function VideoControls({
               </div>
             </div>
 
-            <div className="flex items-center justify-center sm:justify-start md:gap-8 gap-6 landscape:gap-2 w-full ">
+            <div className="flex items-center justify-center sm:justify-start gap-8 landscape:gap-4 w-full ">
               {/* Play */}
               <button
                 onClick={togglePlay}
