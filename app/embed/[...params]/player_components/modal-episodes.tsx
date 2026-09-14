@@ -36,11 +36,13 @@ export default function EpisodesModal({
   color,
   playerRef,
   canPlay,
+  resetTimer,
 }: {
   seasons: SeasonsType[];
   color: string;
   playerRef: React.RefObject<HTMLDivElement | null>;
   canPlay: boolean;
+  resetTimer: () => void;
 }) {
   const { params } = useParams();
   const tmdbId = String(params?.[1]);
@@ -104,12 +106,21 @@ export default function EpisodesModal({
         }
       }}
       swipeDirection="down"
+      onOpenChangeComplete={(value) => {
+        if (!value) {
+          resetTimer();
+        }
+      }}
     >
       <DrawerTrigger
         render={
-          <button type="button" className="cursor-pointer">
+          <button
+            type="button"
+            className={cn(
+              "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
+            )}
+          >
             <ListVideo className="md:size-7 size-6 " strokeWidth={2.5} />
-            <span className="sr-only">Episodes</span>
           </button>
         }
       />

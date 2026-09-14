@@ -16,9 +16,14 @@ import { usePlayerSettings } from "../player_store/settings";
 interface Props {
   canPlay: boolean;
   playerRef: React.RefObject<HTMLDivElement | null>;
+  resetTimer: () => void;
 }
 
-export default function QualityModal({ canPlay, playerRef }: Props) {
+export default function QualityModal({
+  canPlay,
+  playerRef,
+  resetTimer,
+}: Props) {
   const [open, setOpen] = useState(false);
 
   const { quality, qualities, setQuality } = usePlayerSettings();
@@ -26,19 +31,21 @@ export default function QualityModal({ canPlay, playerRef }: Props) {
   if (!canPlay) return null;
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={setOpen}
+      onOpenChangeComplete={(open) => {
+        if (!open) {
+          resetTimer();
+        }
+      }}
+    >
       <PopoverTrigger
         render={
-          <button
-            className={cn(
-              "flex items-center gap-2",
-              "transition-opacity hover:opacity-70",
-              "cursor-pointer",
-            )}
-          >
-            <span className="text-sm font-medium tracking-wide text-white/90 hidden md:block">
+          <button className={cn("cursor-pointer hidden md:block")}>
+            <h1 className="text-sm landscape:text-xs font-medium  text-foreground/90 hover:text-foreground">
               {quality === "auto" ? "Auto" : `${quality}p`}
-            </span>
+            </h1>
           </button>
         }
       />

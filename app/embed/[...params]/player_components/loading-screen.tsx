@@ -6,7 +6,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { Anton, Audiowide } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { ServerTypes, SourceStatus } from "../player_types/server-types";
-import { Check, LoaderCircle, Minus, X } from "lucide-react";
+import { Check, ChevronLeft, LoaderCircle, Minus, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const SWEEP_DURATION = 3.8;
 
@@ -26,10 +27,9 @@ type Props = {
   sourceIndex: number;
   sourceStatus: SourceStatus;
   //
-  setServerIndex: React.Dispatch<React.SetStateAction<number>>;
-  setSourceIndex: React.Dispatch<React.SetStateAction<number>>;
-  setSourceStatus: React.Dispatch<React.SetStateAction<SourceStatus>>;
+  handleSourceSelect: (index: number) => void;
   handleServerSelect: (index: number) => void;
+
   //
   color: string;
   canPlay: boolean;
@@ -42,10 +42,9 @@ export default function LoadingScreen({
   sourceIndex,
   sourceStatus,
   //
-  setServerIndex,
-  setSourceIndex,
-  setSourceStatus,
+  handleSourceSelect,
   handleServerSelect,
+
   //
   color,
   canPlay,
@@ -56,6 +55,8 @@ export default function LoadingScreen({
   //
   const server = servers[serverIndex];
   const text = getLoadingText(server, sourceStatus);
+
+  const router = useRouter();
   return (
     <AnimatePresence>
       {!canPlay && (
@@ -70,6 +71,17 @@ export default function LoadingScreen({
               "radial-gradient(ellipse at 60% 40%, var(--color-zinc-900), transparent 60%)",
           }}
         >
+          <button
+            onClick={() => router.back()}
+            className={cn(
+              "absolute top-0 left-0 md:px-6 px-4 md:py-8 py-6 landscape:py-2 landscape:px-2",
+            )}
+          >
+            <ChevronLeft
+              className="md:size-8 size-6 text-foreground/80 hover:text-foreground cursor-pointer"
+              strokeWidth={3}
+            />
+          </button>
           {/* Ambient glow */}
 
           <div className="relative flex flex-col items-center uppercase">
@@ -182,7 +194,7 @@ export default function LoadingScreen({
               "absolute md:p-5 p-3 bottom-0  hidden md:block w-full",
             )}
           >
-            <div className="flex items-end gap-3  w-full max-w-4xl mx-auto">
+            <div className="flex items-end gap-3  w-full max-w-5xl mx-auto">
               {servers.map((item, index) => {
                 const isCurrentServer = serverIndex === index;
 
@@ -225,8 +237,12 @@ export default function LoadingScreen({
                                 ease: "easeOut",
                               }}
                               onClick={() => {
-                                setServerIndex(index);
-                                setSourceIndex(sourceIdx);
+                                if (index !== serverIndex) {
+                                  handleServerSelect(index);
+                                  return;
+                                }
+
+                                handleSourceSelect(sourceIdx);
                               }}
                               disabled={source.status === "failed"}
                               style={

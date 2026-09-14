@@ -29,6 +29,7 @@ interface Props {
   onSubtitleChange: (subtitle: MediaOption | null) => void;
   canPlay: boolean;
   playerRef: React.RefObject<HTMLDivElement | null>;
+  resetTimer: () => void;
 }
 
 const TAB_TITLES = {
@@ -45,6 +46,7 @@ export default function SubtitleModal({
 
   canPlay,
   playerRef,
+  resetTimer,
 }: Props) {
   const [tab, setTab] = useState<"main" | "style" | "delay">("main");
   const [subtitlesModal, setSubtitlesModal] = useState(false);
@@ -54,6 +56,7 @@ export default function SubtitleModal({
 
     if (!open) {
       setTab("main");
+      resetTimer();
     }
   };
 
@@ -74,18 +77,19 @@ export default function SubtitleModal({
   };
 
   return (
-    <Popover open={subtitlesModal} onOpenChange={handleOpenChange}>
+    <Popover
+      onOpenChangeComplete={(open) => {
+        if (!open) {
+          resetTimer();
+        }
+      }}
+      open={subtitlesModal}
+      onOpenChange={handleOpenChange}
+    >
       <PopoverTrigger
         render={
-          <button
-            className={cn(
-              "flex items-center gap-2",
-              "transition-opacity hover:opacity-70",
-              "cursor-pointer",
-            )}
-          >
-            {/* <Captions className="md:size-7 size-6" /> */}
-            <h1 className="sm:text-sm text-sm landscape:text-xs font-medium tracking-wide text-white/90 ">
+          <button className={cn("cursor-pointer hidden md:block")}>
+            <h1 className="text-sm landscape:text-xs font-medium  text-foreground/90 hover:text-foreground">
               {selectedSubtitle ? selectedSubtitle.display : "Subtitle"}
             </h1>
           </button>

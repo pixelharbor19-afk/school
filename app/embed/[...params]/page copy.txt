@@ -30,6 +30,7 @@ import { useMobile } from "./player_hooks/use-mobile";
 import {
   SERVERS,
   ServerTypes,
+  sourceKey,
   SourceStatus,
 } from "./player_types/server-types";
 
@@ -124,14 +125,9 @@ export default function Embed() {
     SERVERS.findIndex((server) => server.server === FIRST_SERVER),
   );
   const [sourceIndex, setSourceIndex] = useState(0);
+  const [sourceStatus, setSourceStatus] = useState<SourceStatus>("queue");
+  const [failedSources, setFailedSources] = useState<Set<string>>(new Set());
 
-  const [sourceStatuses, setSourceStatuses] = useState<
-    Record<number, Record<number, SourceStatus>>
-  >({});
-  const [playingSource, setPlayingSource] = useState<{
-    serverIndex: number;
-    sourceIndex: number;
-  } | null>(null);
   const commonParams = {
     media_type,
     tmdbId,
@@ -173,19 +169,27 @@ export default function Embed() {
       SERVERS.map((server, index) => {
         const query = results[index];
 
-        if (!metadataLoad || !activatedServers.includes(server.server)) {
+        /*
+         * Server has not been activated yet.
+         */
+        if (!activatedServers.includes(server.server)) {
           return server;
         }
 
+        /*
+         * Its own query is fetching.
+         */
         if (query.isFetching) {
           return {
             ...server,
             status: "checking",
             message: undefined,
-            sources: [],
           };
         }
 
+        /*
+         * Its own query failed.
+         */
         if (query.isError) {
           return {
             ...server,
@@ -194,38 +198,60 @@ export default function Embed() {
               query.error instanceof Error
                 ? query.error.message
                 : "Server failed",
-            sources: [],
           };
         }
 
+        /*
+         * Its own query succeeded.
+         */
         if (query.isSuccess) {
-          const links = query.data?.links ?? [];
+          const response = query.data;
 
-          if (!links.length) {
-            return {
-              ...server,
-              status: "failed",
-              message: "No sources available",
-              sources: [],
-            };
+          const links = response?.links ?? [];
+
+          /*
+           * Backend tells us which server
+           * produced this response.
+           */
+          if (response?.server !== server.server) {
+            return server;
           }
+
+          /*
+           * Build sources and include
+           * sources that previously failed.
+           */
+          const sources = links.map((source: QualityTrack) => ({
+            type: source.type,
+            link: source.link,
+            resolution: source.resolution,
+            status: failedSources.has(sourceKey(server.server, source.link))
+              ? ("failed" as SourceStatus)
+              : ("queue" as SourceStatus),
+          }));
+
+          /*
+           * Server is available if it still
+           * has at least one usable source.
+           */
+          const hasUsableSources = sources.some(
+            (source) => source.status !== "failed",
+          );
 
           return {
             ...server,
-            status: "available",
-            message: undefined,
-            sources: links.map((source: QualityTrack, sourceIndex) => ({
-              type: source.type,
-              link: source.link,
-              resolution: source.resolution,
-              status: sourceStatuses[index]?.[sourceIndex] ?? "queue",
-            })),
+
+            status: hasUsableSources ? "available" : "failed",
+
+            message: hasUsableSources ? undefined : "No usable sources found",
+
+            sources,
           };
         }
 
         return server;
       }),
-    [results, metadataLoad, activatedServers, sourceStatuses],
+    [results, activatedServers, failedSources],
   );
 
   const noWorkingServers = servers.every(
@@ -263,130 +289,72 @@ export default function Embed() {
 
   const srcType = currentSource?.type;
 
-  const setSourceStatus = (status: SourceStatus) => {
-    setSourceStatuses((prev) => ({
-      ...prev,
-      [serverIndex]: {
-        ...prev[serverIndex],
-        [sourceIndex]: status,
-      },
-    }));
-  };
+  useEffect(() => {
+    if (server?.status !== "failed") return;
 
-  const handleSourceSelect = (index: number) => {
-    if (index === sourceIndex) return;
+    // Try an already available server first
+    const availableIndex = servers.findIndex(
+      (item, index) => index !== serverIndex && item.status === "available",
+    );
 
-    setSourceStatuses((prev) => {
-      const status = prev[serverIndex]?.[sourceIndex];
+    if (availableIndex !== -1) {
+      setServerIndex(availableIndex);
+      setSourceIndex(0);
+      return;
+    }
 
-      if (status !== "connecting") return prev;
+    // Otherwise activate the next queued server
+    const queuedIndex = servers.findIndex((item) => item.status === "queue");
 
-      return {
-        ...prev,
-        [serverIndex]: {
-          ...prev[serverIndex],
-          [sourceIndex]: "queue",
-        },
-      };
+    if (queuedIndex !== -1) {
+      setServerIndex(queuedIndex);
+      setSourceIndex(0);
+
+      setActivatedServers((prev) => [...prev, SERVERS[queuedIndex].server]);
+    }
+  }, [server?.status, servers, serverIndex]);
+
+  const clearFailedSources = (server: string) => {
+    setFailedSources((prev) => {
+      const next = new Set(prev);
+
+      for (const key of next) {
+        if (key.startsWith(`${server}:`)) {
+          next.delete(key);
+        }
+      }
+
+      return next;
     });
-
-    setSourceIndex(index);
   };
+  /*
+   * Selecting a server activates its query.
+   */
   const handleServerSelect = (index: number) => {
-    if (index === serverIndex) return;
-
     const selectedServer = SERVERS[index];
+    const query = results[index];
 
     setServerIndex(index);
     setSourceIndex(0);
+    setSourceStatus("queue");
+
+    if (servers[index].status === "failed") {
+      clearFailedSources(selectedServer.server);
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("dubLang");
+      params.delete("dubType");
+
+      router.replace(`?${params.toString()}`, { scroll: false });
+
+      query.refetch();
+    }
 
     setActivatedServers((prev) =>
       prev.includes(selectedServer.server)
         ? prev
         : [...prev, selectedServer.server],
     );
-
-    if (servers[index]?.status === "failed") {
-      results[index].refetch();
-    }
-  };
-  useEffect(() => {
-    if (!server) return;
-
-    if (server.status === "failed") {
-      if (server.dubSupport && dubLang) {
-        const params = new URLSearchParams(searchParams.toString());
-
-        params.delete("dubLang");
-        params.delete("dubType");
-
-        router.replace(`?${params.toString()}`, { scroll: false });
-        return;
-      }
-
-      const availableIndex = servers.findIndex(
-        (item, index) => index !== serverIndex && item.status === "available",
-      );
-
-      if (availableIndex !== -1) {
-        handleServerSelect(availableIndex);
-        return;
-      }
-
-      const queueIndex = servers.findIndex(
-        (item, index) => index !== serverIndex && item.status === "queue",
-      );
-
-      if (queueIndex !== -1) {
-        handleServerSelect(queueIndex);
-      }
-
-      return;
-    }
-
-    if (currentSource?.status === "failed") {
-      const nextSourceIndex = sourceIndex + 1;
-
-      if (nextSourceIndex < sources.length) {
-        setSourceIndex(nextSourceIndex);
-        return;
-      }
-
-      const availableIndex = servers.findIndex(
-        (item, index) => index !== serverIndex && item.status === "available",
-      );
-
-      if (availableIndex !== -1) {
-        handleServerSelect(availableIndex);
-        return;
-      }
-
-      const queueIndex = servers.findIndex(
-        (item, index) => index !== serverIndex && item.status === "queue",
-      );
-
-      if (queueIndex !== -1) {
-        handleServerSelect(queueIndex);
-      }
-    }
-  }, [
-    server,
-    currentSource,
-    sources.length,
-    serverIndex,
-    sourceIndex,
-    servers,
-    dubLang,
-    searchParams,
-    router,
-  ]);
-
-  /*
-   * Selecting a server activates its query.
-   */
-
-  const handleSourceFailed = () => {
-    setSourceStatus("failed");
   };
   /*
    * Video player.
@@ -442,14 +410,42 @@ export default function Embed() {
       resetTimer();
     }
   }, [canPlay]);
+  const handleSourceFailed = () => {
+    if (!server || !srcLink) return;
 
+    const currentKey = sourceKey(server.server, srcLink);
+
+    setFailedSources((prev) => {
+      const next = new Set(prev);
+      next.add(currentKey);
+
+      const nextIndex = sources.findIndex(
+        (source, index) =>
+          index > sourceIndex &&
+          !next.has(sourceKey(server.server, source.link)),
+      );
+
+      if (nextIndex !== -1) {
+        setSourceIndex(nextIndex);
+        setSourceStatus("queue");
+      } else {
+        setSourceStatus("failed");
+      }
+
+      return next;
+    });
+  };
   useEffect(() => {
     const video = videoRef.current;
 
-    if (!video || !srcLink) return;
+    if (!video || !srcLink) {
+      return;
+    }
 
     setSourceStatus("connecting");
-
+    /*
+     * HLS
+     */
     if (srcType === "hls") {
       const hls = new Hls();
 
@@ -495,6 +491,9 @@ export default function Embed() {
       };
     }
 
+    /*
+     * DASH
+     */
     if (srcType === "dash") {
       const dash = dashjs.MediaPlayer().create();
 
@@ -529,6 +528,9 @@ export default function Embed() {
       };
     }
 
+    /*
+     * MP4
+     */
     video.src = srcLink;
 
     return () => {
@@ -923,9 +925,10 @@ export default function Embed() {
         servers={servers}
         serverIndex={serverIndex}
         sourceIndex={sourceIndex}
-        sourceStatus={currentSource?.status ?? "queue"}
+        sourceStatus={sourceStatus}
         handleServerSelect={handleServerSelect}
-        handleSourceSelect={handleSourceSelect}
+        setServerIndex={setServerIndex}
+        setSourceIndex={setSourceIndex}
         setSourceStatus={setSourceStatus}
         back={back}
         seasons={seasons}
@@ -968,8 +971,11 @@ export default function Embed() {
         servers={servers}
         serverIndex={serverIndex}
         sourceIndex={sourceIndex}
-        sourceStatus={currentSource?.status ?? "queue"}
-        handleSourceSelect={handleSourceSelect}
+        sourceStatus={sourceStatus}
+        //
+        setServerIndex={setServerIndex}
+        setSourceIndex={setSourceIndex}
+        setSourceStatus={setSourceStatus}
         handleServerSelect={handleServerSelect}
       />
 
@@ -1036,13 +1042,7 @@ export default function Embed() {
         muted={autoplayParam}
         preload="metadata"
         autoPlay={autoplay || autoplayParam}
-        onCanPlay={() => {
-          setSourceStatus("ready");
-          setPlayingSource({
-            serverIndex,
-            sourceIndex,
-          });
-        }}
+        onCanPlay={() => setSourceStatus("ready")}
         onError={() => {
           if (srcType === "mp4") {
             handleSourceFailed();

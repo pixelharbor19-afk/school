@@ -75,9 +75,8 @@ type Props = {
   sourceIndex: number;
   sourceStatus: SourceStatus;
   handleServerSelect: (index: number) => void;
-  setServerIndex: React.Dispatch<React.SetStateAction<number>>;
-  setSourceIndex: React.Dispatch<React.SetStateAction<number>>;
-  setSourceStatus: React.Dispatch<React.SetStateAction<SourceStatus>>;
+  handleSourceSelect: (index: number) => void;
+  setSourceStatus: (status: SourceStatus) => void;
   back: boolean;
   //
   seasons: SeasonsType[];
@@ -133,8 +132,7 @@ export default function VideoControls({
   sourceStatus,
 
   handleServerSelect,
-  setServerIndex,
-  setSourceIndex,
+  handleSourceSelect,
   setSourceStatus,
   //
   back,
@@ -173,7 +171,8 @@ export default function VideoControls({
             exit={{ y: -30 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="md:px-6 px-4 md:py-8 py-6 landscape:py-2 landscape:px-2 pointer-events-auto flex items-center md:gap-8 gap-6"
-            onMouseEnter={!isMobile ? lockTimer : undefined}
+            onPointerMove={lockTimer}
+            onPointerDown={lockTimer}
             // onMouseLeave={!isMobile ? resetTimer : undefined}
           >
             {!back && (
@@ -184,7 +183,10 @@ export default function VideoControls({
                   "text-shadow-lg transition-opacity hover:opacity-70",
                 )}
               >
-                <ChevronLeft className="md:size-8 size-6" strokeWidth={3} />
+                <ChevronLeft
+                  className="md:size-8 size-6 text-foreground/80 hover:text-foreground cursor-pointer"
+                  strokeWidth={3}
+                />
                 <span className="text-left">
                   <h1 className="tracking-wide font-medium md:text-base text-sm line-clamp-1">
                     {title}
@@ -210,20 +212,20 @@ export default function VideoControls({
                 seasons={seasons}
                 playerRef={playerRef}
                 canPlay={canPlay}
+                resetTimer={resetTimer}
               />
             )}
-            <ModalSettings playerRef={playerRef} canPlay={canPlay} />
+
             <ServerModal
               servers={servers}
               serverIndex={serverIndex}
               sourceIndex={sourceIndex}
               sourceStatus={sourceStatus}
               handleServerSelect={handleServerSelect}
-              setServerIndex={setServerIndex}
-              setSourceIndex={setSourceIndex}
-              setSourceStatus={setSourceStatus}
+              handleSourceSelect={handleSourceSelect}
               canPlay={canPlay}
               playerRef={playerRef}
+              resetTimer={resetTimer}
             />
           </motion.div>
 
@@ -243,226 +245,170 @@ export default function VideoControls({
             exit={{ y: 30 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="md:px-6 px-4 md:py-8 py-6 landscape:py-2 landscape:px-2 pointer-events-auto flex flex-col items-center md:gap-6 gap-3 landscape:gap-1.5"
-            onMouseEnter={!isMobile ? lockTimer : undefined}
-            onMouseLeave={!isMobile ? resetTimer : undefined}
+            onPointerMove={lockTimer}
+            onPointerDown={lockTimer}
           >
             {/* Progress */}
-            <div className="group flex items-center gap-3 px-1 w-full">
-              <div
-                ref={progressRef}
-                className="relative h-6 flex-1 cursor-pointer touch-none "
-                onPointerDown={handleSeekStart}
-                onPointerMove={handleSeekMove}
-                onPointerUp={commitSeek}
-                onPointerCancel={commitSeek}
-                onMouseMove={(e) => {
-                  if (!duration) return;
+            <div className="w-full">
+              <div className="group flex items-center gap-3 px-1 w-full">
+                <div
+                  ref={progressRef}
+                  className="relative h-6 flex-1 cursor-pointer touch-none "
+                  onPointerDown={handleSeekStart}
+                  onPointerMove={handleSeekMove}
+                  onPointerUp={commitSeek}
+                  onPointerCancel={commitSeek}
+                  onMouseMove={(e) => {
+                    if (!duration) return;
 
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const x = Math.max(
-                    0,
-                    Math.min(e.clientX - rect.left, rect.width),
-                  );
-                  const time = (x / rect.width) * duration;
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = Math.max(
+                      0,
+                      Math.min(e.clientX - rect.left, rect.width),
+                    );
+                    const time = (x / rect.width) * duration;
 
-                  setHoverX(x);
-                  setHoverTime(time);
-                }}
-                onMouseLeave={() => {
-                  setHoverTime(null);
-                }}
-              >
-                <AnimatePresence>
-                  {hoverTime !== null && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 4, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                      transition={{ duration: 0.15, ease: "easeOut" }}
-                      className="pointer-events-none absolute bottom-full z-50 mb-2 -translate-x-1/2"
-                      style={{ left: hoverX }}
-                    >
-                      <div className="rounded-sm bg-black/50 px-2 py-1 text-sm tabular-nums text-white shadow-lg">
-                        {formatTime(hoverTime)}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                {duration > 0 && (
-                  <div className="absolute inset-x-0 top-1/2 flex h-1.5 -translate-y-1/2 gap-0.5 md:gap-1 group-hover:scale-y-150 transition-transform duration-150">
-                    {/* Before intro */}
-                    {intro && intro.start_sec > 0 && (
-                      <div
-                        className="relative h-full rounded-l-full rounded-r-[1px] bg-white/20"
-                        style={{
-                          width: `${(intro.start_sec / duration) * 100}%`,
-                        }}
+                    setHoverX(x);
+                    setHoverTime(time);
+                  }}
+                  onMouseLeave={() => {
+                    setHoverTime(null);
+                  }}
+                >
+                  <AnimatePresence>
+                    {hoverTime !== null && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                        transition={{ duration: 0.15, ease: "easeOut" }}
+                        className="pointer-events-none absolute bottom-full z-50 mb-2 -translate-x-1/2"
+                        style={{ left: hoverX }}
                       >
-                        {/* Buffered */}
-                        <div
-                          className="absolute inset-y-0 left-0 rounded-full bg-white/30"
-                          style={{
-                            width: `${Math.min(
-                              100,
-                              (bufferedProgress / 100) *
-                                (duration / intro.start_sec) *
-                                100,
-                            )}%`,
-                          }}
-                        />
-
-                        {/* Played */}
-                        <div
-                          className="absolute inset-y-0 left-0 rounded-l-full rounded-r-[1px]"
-                          style={{
-                            width: `${Math.min(
-                              100,
-                              (currentTime / intro.start_sec) * 100,
-                            )}%`,
-                            backgroundColor: color,
-                          }}
-                        />
-                      </div>
+                        <div className="rounded-sm bg-black/50 px-2 py-1 text-sm tabular-nums text-white shadow-lg">
+                          {formatTime(hoverTime)}
+                        </div>
+                      </motion.div>
                     )}
-
-                    {/* Intro */}
-                    {intro && (
-                      <div
-                        className={cn(
-                          "relative h-full bg-white/20",
-                          intro && intro.start_sec > 0
-                            ? "rounded-r-[1px]"
-                            : "rounded-l-full rounded-r-[1px]",
-                        )}
-                        style={{
-                          width: `${((intro.end_sec - intro.start_sec) / duration) * 100}%`,
-                        }}
-                      >
-                        {/* Buffered */}
+                  </AnimatePresence>
+                  {duration > 0 && (
+                    <div className="absolute inset-x-0 top-1/2 flex h-1.5 -translate-y-1/2 gap-0.5 md:gap-1 group-hover:scale-y-150 transition-transform duration-150">
+                      {/* Before intro */}
+                      {intro && intro.start_sec > 0 && (
                         <div
-                          className="absolute inset-y-0 left-0 rounded-full bg-white/30"
+                          className="relative h-full rounded-l-full rounded-r-[1px] bg-white/20"
                           style={{
-                            width: `${Math.min(
-                              100,
-                              Math.max(
-                                0,
-                                (((bufferedProgress / 100) * duration -
-                                  intro.start_sec) /
-                                  (intro.end_sec - intro.start_sec)) *
-                                  100,
-                              ),
-                            )}%`,
+                            width: `${(intro.start_sec / duration) * 100}%`,
                           }}
-                        />
+                        >
+                          {/* Buffered */}
+                          <div
+                            className="absolute inset-y-0 left-0 rounded-full bg-white/30"
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                (bufferedProgress / 100) *
+                                  (duration / intro.start_sec) *
+                                  100,
+                              )}%`,
+                            }}
+                          />
 
-                        {/* Played */}
+                          {/* Played */}
+                          <div
+                            className="absolute inset-y-0 left-0 rounded-l-full rounded-r-[1px]"
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                (currentTime / intro.start_sec) * 100,
+                              )}%`,
+                              backgroundColor: color,
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      {/* Intro */}
+                      {intro && (
                         <div
                           className={cn(
-                            "absolute inset-y-0 left-0",
+                            "relative h-full bg-white/20",
                             intro && intro.start_sec > 0
                               ? "rounded-r-[1px]"
                               : "rounded-l-full rounded-r-[1px]",
                           )}
                           style={{
-                            width: `${Math.min(
-                              100,
-                              Math.max(
-                                0,
-                                ((currentTime - intro.start_sec) /
-                                  (intro.end_sec - intro.start_sec)) *
-                                  100,
-                              ),
-                            )}%`,
-                            backgroundColor: "#facc15",
+                            width: `${((intro.end_sec - intro.start_sec) / duration) * 100}%`,
                           }}
-                        />
-                      </div>
-                    )}
-
-                    {/* Main */}
-                    <div
-                      className={cn(
-                        "relative h-full  bg-white/20",
-                        !intro ? "rounded-full" : "rounded-[1px]",
-                      )}
-                      style={{
-                        width: `${
-                          (((outro?.start_sec ?? duration) -
-                            (intro?.end_sec ?? 0)) /
-                            duration) *
-                          100
-                        }%`,
-                      }}
-                    >
-                      {/* Buffered */}
-                      <div
-                        className="absolute inset-y-0 left-0 rounded-full bg-white/30"
-                        style={{
-                          width: `${Math.min(
-                            100,
-                            Math.max(
-                              0,
-                              (((bufferedProgress / 100) * duration -
-                                (intro?.end_sec ?? 0)) /
-                                ((outro?.start_sec ?? duration) -
-                                  (intro?.end_sec ?? 0))) *
+                        >
+                          {/* Buffered */}
+                          <div
+                            className="absolute inset-y-0 left-0 rounded-full bg-white/30"
+                            style={{
+                              width: `${Math.min(
                                 100,
-                            ),
-                          )}%`,
-                        }}
-                      />
+                                Math.max(
+                                  0,
+                                  (((bufferedProgress / 100) * duration -
+                                    intro.start_sec) /
+                                    (intro.end_sec - intro.start_sec)) *
+                                    100,
+                                ),
+                              )}%`,
+                            }}
+                          />
 
-                      {/* Played */}
+                          {/* Played */}
+                          <div
+                            className={cn(
+                              "absolute inset-y-0 left-0",
+                              intro && intro.start_sec > 0
+                                ? "rounded-r-[1px]"
+                                : "rounded-l-full rounded-r-[1px]",
+                            )}
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                Math.max(
+                                  0,
+                                  ((currentTime - intro.start_sec) /
+                                    (intro.end_sec - intro.start_sec)) *
+                                    100,
+                                ),
+                              )}%`,
+                              backgroundColor: "#facc15",
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      {/* Main */}
                       <div
                         className={cn(
-                          "absolute inset-y-0 left-0 rounded-[1px]",
+                          "relative h-full  bg-white/20",
                           !intro ? "rounded-full" : "rounded-[1px]",
                         )}
                         style={{
-                          width: `${Math.min(
-                            100,
-                            Math.max(
-                              0,
-                              ((currentTime - (intro?.end_sec ?? 0)) /
-                                ((outro?.start_sec ?? duration) -
-                                  (intro?.end_sec ?? 0))) *
-                                100,
-                            ),
-                          )}%`,
-                          backgroundColor: color,
-                        }}
-                      />
-                    </div>
-
-                    {/* Outro */}
-                    {outro && (
-                      <div
-                        className={cn(
-                          "relative h-full bg-white/20",
-                          outro.end_sec < duration
-                            ? "rounded-[1px]"
-                            : "rounded-l-[1px] rounded-r-full",
-                        )}
-                        style={{
-                          width: `${((outro.end_sec - outro.start_sec) / duration) * 100}%`,
+                          width: `${
+                            (((outro?.start_sec ?? duration) -
+                              (intro?.end_sec ?? 0)) /
+                              duration) *
+                            100
+                          }%`,
                         }}
                       >
                         {/* Buffered */}
                         <div
-                          className={cn(
-                            "absolute inset-y-0 left-0 rounded-full bg-white/30",
-                            outro.end_sec < duration
-                              ? "rounded-full"
-                              : "rounded-l-full rounded-r-full",
-                          )}
+                          className="absolute inset-y-0 left-0 rounded-full bg-white/30"
                           style={{
                             width: `${Math.min(
                               100,
                               Math.max(
                                 0,
                                 (((bufferedProgress / 100) * duration -
-                                  outro.start_sec) /
-                                  (outro.end_sec - outro.start_sec)) *
+                                  (intro?.end_sec ?? 0)) /
+                                  ((outro?.start_sec ?? duration) -
+                                    (intro?.end_sec ?? 0))) *
                                   100,
                               ),
                             )}%`,
@@ -472,62 +418,17 @@ export default function VideoControls({
                         {/* Played */}
                         <div
                           className={cn(
-                            "absolute inset-y-0 left-0",
-                            outro.end_sec < duration
-                              ? "rounded-[1px]"
-                              : "rounded-l-[1px] rounded-r-full",
+                            "absolute inset-y-0 left-0 rounded-[1px]",
+                            !intro ? "rounded-full" : "rounded-[1px]",
                           )}
                           style={{
                             width: `${Math.min(
                               100,
                               Math.max(
                                 0,
-                                ((currentTime - outro.start_sec) /
-                                  (outro.end_sec - outro.start_sec)) *
-                                  100,
-                              ),
-                            )}%`,
-                            backgroundColor: "#f97316",
-                          }}
-                        />
-                      </div>
-                    )}
-
-                    {/* After outro */}
-                    {outro && outro.end_sec < duration && (
-                      <div
-                        className="relative h-full rounded-l-[1px] rounded-r-full bg-white/20"
-                        style={{
-                          width: `${((duration - outro.end_sec) / duration) * 100}%`,
-                        }}
-                      >
-                        {/* Buffered */}
-                        <div
-                          className="absolute inset-y-0 left-0  rounded-full rounded-r-full bg-white/30"
-                          style={{
-                            width: `${Math.min(
-                              100,
-                              Math.max(
-                                0,
-                                (((bufferedProgress / 100) * duration -
-                                  outro.end_sec) /
-                                  (duration - outro.end_sec)) *
-                                  100,
-                              ),
-                            )}%`,
-                          }}
-                        />
-
-                        {/* Played */}
-                        <div
-                          className="absolute inset-y-0 left-0  rounded-l-[1px] rounded-r-full"
-                          style={{
-                            width: `${Math.min(
-                              100,
-                              Math.max(
-                                0,
-                                ((currentTime - outro.end_sec) /
-                                  (duration - outro.end_sec)) *
+                                ((currentTime - (intro?.end_sec ?? 0)) /
+                                  ((outro?.start_sec ?? duration) -
+                                    (intro?.end_sec ?? 0))) *
                                   100,
                               ),
                             )}%`,
@@ -535,24 +436,143 @@ export default function VideoControls({
                           }}
                         />
                       </div>
-                    )}
-                  </div>
-                )}
 
-                {/* Thumb */}
-                <motion.div
-                  className="group-hover:scale-130 transition-transform duration-150 absolute top-1/2 z-10 h-3.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-xs bg-white shadow-md"
-                  animate={{ left: `${progress}%` }}
-                  transition={{ duration: 0.05, ease: "easeOut" }}
-                />
+                      {/* Outro */}
+                      {outro && (
+                        <div
+                          className={cn(
+                            "relative h-full bg-white/20",
+                            outro.end_sec < duration
+                              ? "rounded-[1px]"
+                              : "rounded-l-[1px] rounded-r-full",
+                          )}
+                          style={{
+                            width: `${((outro.end_sec - outro.start_sec) / duration) * 100}%`,
+                          }}
+                        >
+                          {/* Buffered */}
+                          <div
+                            className={cn(
+                              "absolute inset-y-0 left-0 rounded-full bg-white/30",
+                              outro.end_sec < duration
+                                ? "rounded-full"
+                                : "rounded-l-full rounded-r-full",
+                            )}
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                Math.max(
+                                  0,
+                                  (((bufferedProgress / 100) * duration -
+                                    outro.start_sec) /
+                                    (outro.end_sec - outro.start_sec)) *
+                                    100,
+                                ),
+                              )}%`,
+                            }}
+                          />
+
+                          {/* Played */}
+                          <div
+                            className={cn(
+                              "absolute inset-y-0 left-0",
+                              outro.end_sec < duration
+                                ? "rounded-[1px]"
+                                : "rounded-l-[1px] rounded-r-full",
+                            )}
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                Math.max(
+                                  0,
+                                  ((currentTime - outro.start_sec) /
+                                    (outro.end_sec - outro.start_sec)) *
+                                    100,
+                                ),
+                              )}%`,
+                              backgroundColor: "#f97316",
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      {/* After outro */}
+                      {outro && outro.end_sec < duration && (
+                        <div
+                          className="relative h-full rounded-l-[1px] rounded-r-full bg-white/20"
+                          style={{
+                            width: `${((duration - outro.end_sec) / duration) * 100}%`,
+                          }}
+                        >
+                          {/* Buffered */}
+                          <div
+                            className="absolute inset-y-0 left-0  rounded-full rounded-r-full bg-white/30"
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                Math.max(
+                                  0,
+                                  (((bufferedProgress / 100) * duration -
+                                    outro.end_sec) /
+                                    (duration - outro.end_sec)) *
+                                    100,
+                                ),
+                              )}%`,
+                            }}
+                          />
+
+                          {/* Played */}
+                          <div
+                            className="absolute inset-y-0 left-0  rounded-l-[1px] rounded-r-full"
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                Math.max(
+                                  0,
+                                  ((currentTime - outro.end_sec) /
+                                    (duration - outro.end_sec)) *
+                                    100,
+                                ),
+                              )}%`,
+                              backgroundColor: color,
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Thumb */}
+                  <motion.div
+                    className="group-hover:scale-130 transition-transform duration-150 absolute top-1/2 z-10 h-3.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-xs bg-white shadow-md"
+                    animate={{ left: `${progress}%` }}
+                    transition={{ duration: 0.05, ease: "easeOut" }}
+                  />
+                </div>
+              </div>
+
+              <div
+                className={cn(
+                  "sm:hidden flex items-center gap-2 w-full justify-between tabular-nums font-medium text-xs tracking-wide p-1",
+                )}
+              >
+                <span className="text-foreground/80">
+                  {formatTime(currentTime)}
+                </span>
+
+                <span className="text-foreground/80">
+                  {formatTime(duration)}
+                </span>
               </div>
             </div>
 
-            <div className="flex items-center md:gap-8 gap-4 landscape:gap-2 text-white w-full ">
+            <div className="flex items-center justify-center sm:justify-start md:gap-8 gap-6 landscape:gap-2 w-full ">
               {/* Play */}
               <button
                 onClick={togglePlay}
-                className="transition-opacity hover:opacity-70"
+                className={cn(
+                  "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
+                )}
               >
                 {playing ? (
                   <Pause
@@ -570,7 +590,9 @@ export default function VideoControls({
                 <button
                   onClick={onNext}
                   disabled={!canNext}
-                  className="hidden md:block transition-opacity hover:opacity-70 disabled:opacity-30"
+                  className={cn(
+                    "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
+                  )}
                 >
                   <SkipForward className="md:size-7 size-6 fill-current" />
                 </button>
@@ -579,7 +601,9 @@ export default function VideoControls({
               <div className="flex items-center gap-2">
                 <button
                   onClick={toggleMute}
-                  className="transition-opacity hover:opacity-70"
+                  className={cn(
+                    "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
+                  )}
                 >
                   {muted || volume === 0 ? (
                     <VolumeX className="md:size-8 size-6" strokeWidth={2.5} />
@@ -601,18 +625,22 @@ export default function VideoControls({
 
               <div
                 className={cn(
-                  " flex items-center gap-2 tabular-nums font-medium text-sm tracking-wide landscape:text-xs",
+                  "sm:flex hidden items-center gap-2 tabular-nums font-medium text-sm tracking-wide landscape:text-xs",
                 )}
               >
-                <span className="text-white/80">{formatTime(currentTime)}</span>
-                <span className="text-white/50">/</span>
-                <span className="text-white/80">{formatTime(duration)}</span>
+                <span className="text-foreground/90">
+                  {formatTime(currentTime)}
+                </span>
+                <span className="text-foreground/60">/</span>
+                <span className="text-foreground/90">
+                  {formatTime(duration)}
+                </span>
               </div>
 
               {/* Time */}
-              <div className="flex-1" />
+              <div className="flex-1 sm:block hidden" />
 
-              <button
+              {/* <button
                 onClick={() => {
                   const values = ["contain", "cover", "fill"] as const;
                   const index = values.indexOf(aspectRatio);
@@ -625,7 +653,7 @@ export default function VideoControls({
                   "cursor-pointer",
                 )}
               >
-                {/* <SquareDimensions className="md:size-7 size-6" /> */}
+              
                 <h1 className="text-sm font-medium tracking-wide text-white/90 hidden md:block">
                   {aspectRatio === "contain"
                     ? "Fit"
@@ -633,7 +661,7 @@ export default function VideoControls({
                       ? "Crop"
                       : "Fill"}
                 </h1>
-              </button>
+              </button> */}
 
               {/* Quality */}
 
@@ -659,6 +687,7 @@ export default function VideoControls({
                 selectedDub={selectedDub}
                 onDubChange={onDubChange}
                 canPlay={canPlay}
+                resetTimer={resetTimer}
               />
               <SubtitleModal
                 playerRef={playerRef}
@@ -667,6 +696,7 @@ export default function VideoControls({
                 selectedSubtitle={selectedSubtitle}
                 onSubtitleChange={onSubtitleChange}
                 canPlay={canPlay}
+                resetTimer={resetTimer}
               />
               {/* <button
                 onClick={() => {
@@ -685,11 +715,30 @@ export default function VideoControls({
                 </h1>
               </button> */}
 
-              <QualityModal canPlay={canPlay} playerRef={playerRef} />
+              <QualityModal
+                canPlay={canPlay}
+                playerRef={playerRef}
+                resetTimer={resetTimer}
+              />
               {/* Fullscreen */}
+              <ModalSettings
+                canPlay={canPlay}
+                playerRef={playerRef}
+                subtitles={subtitles}
+                openSubtitleData={openSubtitleData}
+                selectedSubtitle={selectedSubtitle}
+                onSubtitleChange={onSubtitleChange}
+                dubs={dubs}
+                selectedDub={selectedDub}
+                onDubChange={onDubChange}
+              />
+
               <button
                 onClick={toggleFullscreen}
-                className="transition-opacity hover:opacity-70"
+                type="button"
+                className={cn(
+                  "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
+                )}
               >
                 <Maximize className="md:size-7 size-6" strokeWidth={3} />
               </button>

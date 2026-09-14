@@ -16,12 +16,14 @@ import { cn } from "@/hooks/utils";
 import {
   ArrowLeft,
   AudioLines,
+  Captions,
   Check,
   ChevronRight,
   Download,
   Gauge,
   Hd,
   Image,
+  Languages,
   Maximize,
   PictureInPicture,
   Play,
@@ -35,10 +37,20 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { usePlayerSettings } from "../player_store/settings";
+import { MediaOption } from "@/hooks/open-subtitle";
+import { DubTypes } from "@/hooks/source";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Props {
   canPlay: boolean;
   playerRef: React.RefObject<HTMLDivElement | null>;
+  subtitles: MediaOption[];
+  openSubtitleData: MediaOption[];
+  selectedSubtitle?: MediaOption;
+  onSubtitleChange: (subtitle: MediaOption | null) => void;
+  dubs: DubTypes[];
+  selectedDub?: DubTypes;
+  onDubChange: (dub: DubTypes) => void;
 }
 
 const TAB_TITLES = {
@@ -46,6 +58,8 @@ const TAB_TITLES = {
   "source-quality": "Source Quality",
   download: "Download",
   quality: "Video Quality",
+  subtitles: "Subtitles",
+  audio: "Audio",
   "aspect-ratio": "Aspect Ratio",
   brightness: "Brightness",
   mirror: "Mirror",
@@ -56,7 +70,18 @@ const TAB_TITLES = {
   autoplay: "Autoplay",
 } as const;
 
-export default function ModalSettings({ canPlay, playerRef }: Props) {
+export default function ModalSettings({
+  canPlay,
+  playerRef,
+  subtitles,
+  openSubtitleData,
+  selectedSubtitle,
+  onSubtitleChange,
+  dubs,
+  selectedDub,
+  onDubChange,
+}: Props) {
+  const isMobile = useIsMobile();
   const [tab, setTab] = useState<
     | "main"
     | "source-quality"
@@ -70,6 +95,8 @@ export default function ModalSettings({ canPlay, playerRef }: Props) {
     | "playback-speed"
     | "loop"
     | "autoplay"
+    | "subtitles"
+    | "audio"
   >("main");
 
   const {
@@ -96,7 +123,7 @@ export default function ModalSettings({ canPlay, playerRef }: Props) {
 
   return (
     <Drawer
-      swipeDirection="down"
+      swipeDirection={isMobile ? "down" : "right"}
       showSwipeHandle={true}
       onOpenChange={(open) => {
         if (!open) setTab("main");
@@ -107,11 +134,10 @@ export default function ModalSettings({ canPlay, playerRef }: Props) {
           <button
             type="button"
             className={cn(
-              "flex flex-col items-center gap-1.5",
-              "text-shadow-lg transition-opacity hover:opacity-70",
+              "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
             )}
           >
-            <Settings className="md:size-7 size-6" />{" "}
+            <Settings className="md:size-7 size-6" />
           </button>
         }
       >
@@ -154,6 +180,18 @@ export default function ModalSettings({ canPlay, playerRef }: Props) {
                   icon={<Hd className="size-5" />}
                   value={quality === "auto" ? "Auto" : `${quality}p`}
                   onClick={() => setTab("quality")}
+                />
+                <SettingsItem
+                  label="Audio"
+                  icon={<Languages className="size-5" />}
+                  value={selectedDub?.lanName ?? "Original"}
+                  onClick={() => setTab("audio")}
+                />
+                <SettingsItem
+                  label="Subtitles"
+                  icon={<Captions className="size-5" />}
+                  value={selectedSubtitle?.display ?? "Off"}
+                  onClick={() => setTab("subtitles")}
                 />
               </SettingsCategory>
 
@@ -272,7 +310,86 @@ export default function ModalSettings({ canPlay, playerRef }: Props) {
               ))}
             </div>
           )}
+          {tab === "audio" && (
+            <div className="space-y-0.5">
+              {dubs.map((dub) => (
+                <button
+                  key={`${dub.lanCode}-${dub.type}`}
+                  type="button"
+                  onClick={() => {
+                    onDubChange(dub);
+                    setTab("main");
+                  }}
+                  className={cn(
+                    "flex w-full items-center justify-between rounded-lg px-3 py-2.5",
+                    "text-left md:text-base text-sm transition-colors",
+                    selectedDub?.lanCode === dub.lanCode &&
+                      selectedDub?.type === dub.type
+                      ? "bg-accent text-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                  )}
+                >
+                  <span>{dub.lanName}</span>
 
+                  {selectedDub?.lanCode === dub.lanCode &&
+                    selectedDub?.type === dub.type && (
+                      <Check
+                        className="size-4 text-primary"
+                        strokeWidth={2.5}
+                      />
+                    )}
+                </button>
+              ))}
+
+              {!dubs.length && (
+                <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+                  No audio languages available
+                </p>
+              )}
+            </div>
+          )}
+          {tab === "subtitles" && (
+            <div className="space-y-0.5">
+              <SubtitleItem
+                label="Off"
+                selected={!selectedSubtitle}
+                onClick={() => {
+                  onSubtitleChange(null);
+                  setTab("main");
+                }}
+              />
+
+              {subtitles.map((subtitle) => (
+                <SubtitleItem
+                  key={subtitle.id}
+                  label={subtitle.display}
+                  selected={selectedSubtitle?.id === subtitle.id}
+                  onClick={() => {
+                    onSubtitleChange(subtitle);
+                    setTab("main");
+                  }}
+                />
+              ))}
+
+              {openSubtitleData.map((subtitle) => (
+                <SubtitleItem
+                  key={subtitle.id}
+                  label={subtitle.display}
+                  selected={selectedSubtitle?.id === subtitle.id}
+                  onClick={() => {
+                    onSubtitleChange(subtitle);
+                    setTab("main");
+                  }}
+                />
+              ))}
+
+              {!subtitles.length && !openSubtitleData.length && (
+                <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+                  No subtitles available
+                </p>
+              )}
+            </div>
+          )}
           {tab === "aspect-ratio" && (
             <div className="space-y-1">
               {(["contain", "cover", "fill"] as const).map((value) => (
@@ -302,30 +419,40 @@ export default function ModalSettings({ canPlay, playerRef }: Props) {
           )}
 
           {tab === "brightness" && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span>Brightness</span>
-                <span className="text-sm text-muted-foreground">
-                  {brightness}%
-                </span>
-              </div>
+            <div className="space-y-1">
+              {[50, 75, 100, 125, 150].map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => {
+                    setBrightness(value);
+                    setTab("main");
+                  }}
+                  className={cn(
+                    "flex w-full items-center justify-between rounded-lg px-3 py-2.5",
+                    "text-left md:text-base text-sm transition-colors",
+                    brightness === value
+                      ? "bg-accent text-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                  )}
+                >
+                  <span>{value}%</span>
 
-              <input
-                type="range"
-                min="0"
-                max="200"
-                value={brightness}
-                onChange={(e) => setBrightness(Number(e.target.value))}
-                className="w-full"
-              />
+                  {brightness === value && (
+                    <Check className="size-4 text-primary" strokeWidth={2.5} />
+                  )}
+                </button>
+              ))}
             </div>
           )}
-
           {tab === "mirror" && (
             <SwitchSettings
               label="Mirror"
               value={mirror}
-              onChange={setMirror}
+              onChange={(value) => {
+                setMirror(value);
+                setTab("main");
+              }}
             />
           )}
 
@@ -333,7 +460,10 @@ export default function ModalSettings({ canPlay, playerRef }: Props) {
             <SwitchSettings
               label="Picture-in-Picture"
               value={pictureInPicture}
-              onChange={setPictureInPicture}
+              onChange={(value) => {
+                setPictureInPicture(value);
+                setTab("main");
+              }}
             />
           )}
 
@@ -344,19 +474,32 @@ export default function ModalSettings({ canPlay, playerRef }: Props) {
           {tab === "playback-speed" && (
             <PlaybackSpeedSettings
               value={playbackSpeed}
-              onChange={setPlaybackSpeed}
+              onChange={(value) => {
+                setPlaybackSpeed(value);
+                setTab("main");
+              }}
             />
           )}
 
           {tab === "loop" && (
-            <SwitchSettings label="Loop" value={loop} onChange={setLoop} />
+            <SwitchSettings
+              label="Loop"
+              value={loop}
+              onChange={(value) => {
+                setLoop(value);
+                setTab("main");
+              }}
+            />
           )}
 
           {tab === "autoplay" && (
             <SwitchSettings
               label="Autoplay"
               value={autoplay}
-              onChange={setAutoplay}
+              onChange={(value) => {
+                setAutoplay(value);
+                setTab("main");
+              }}
             />
           )}
         </div>
@@ -488,6 +631,35 @@ function SwitchSettings({
       <span className="text-sm text-muted-foreground">
         {value ? "On" : "Off"}
       </span>
+    </button>
+  );
+}
+function SubtitleItem({
+  label,
+  selected,
+  onClick,
+}: {
+  label: string;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex w-full items-center justify-between rounded-lg px-3 py-2.5",
+        "text-left md:text-base text-sm transition-colors",
+        selected
+          ? "bg-accent text-foreground"
+          : "text-muted-foreground hover:bg-accent hover:text-foreground",
+      )}
+    >
+      <span className="truncate">{label}</span>
+
+      {selected && (
+        <Check className="size-4 shrink-0 text-primary" strokeWidth={2.5} />
+      )}
     </button>
   );
 }

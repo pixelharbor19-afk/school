@@ -31,13 +31,11 @@ interface Props {
   serverIndex: number;
   sourceIndex: number;
   sourceStatus: SourceStatus;
-
   handleServerSelect: (index: number) => void;
-  setServerIndex: React.Dispatch<React.SetStateAction<number>>;
-  setSourceIndex: React.Dispatch<React.SetStateAction<number>>;
-  setSourceStatus: React.Dispatch<React.SetStateAction<SourceStatus>>;
+  handleSourceSelect: (index: number) => void;
   canPlay: boolean;
   playerRef: React.RefObject<HTMLDivElement | null>;
+  resetTimer: () => void;
 }
 
 export default function ServerModal({
@@ -46,24 +44,30 @@ export default function ServerModal({
   sourceIndex,
   sourceStatus,
   handleServerSelect,
-  setServerIndex,
-  setSourceIndex,
-  setSourceStatus,
+  handleSourceSelect,
   canPlay,
   playerRef,
+  resetTimer,
 }: Props) {
   const [showServer, setShowServer] = useState(false);
   if (!canPlay) return null;
 
   return (
-    <Popover open={showServer} onOpenChange={setShowServer}>
+    <Popover
+      open={showServer}
+      onOpenChange={setShowServer}
+      onOpenChangeComplete={(open) => {
+        if (!open) {
+          resetTimer();
+        }
+      }}
+    >
       <PopoverTrigger
         render={
           <button
             type="button"
             className={cn(
-              "flex flex-col items-center gap-1.5",
-              "text-shadow-lg transition-opacity hover:opacity-70",
+              "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
             )}
           >
             <Airplay
@@ -117,8 +121,12 @@ export default function ServerModal({
                             current={current}
                             status={status}
                             onClick={() => {
-                              setServerIndex(index);
-                              setSourceIndex(sourceIdx);
+                              if (serverIndex !== index) {
+                                handleServerSelect(index);
+                              } else {
+                                handleSourceSelect(sourceIdx);
+                              }
+
                               setShowServer(false);
                             }}
                           />

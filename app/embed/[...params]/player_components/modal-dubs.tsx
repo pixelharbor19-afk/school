@@ -19,6 +19,7 @@ interface Props {
   onDubChange: (dub: DubTypes) => void;
   canPlay: boolean;
   playerRef: React.RefObject<HTMLDivElement | null>;
+  resetTimer: () => void;
 }
 
 export default function ModalDubs({
@@ -27,22 +28,24 @@ export default function ModalDubs({
   onDubChange,
   canPlay,
   playerRef,
+  resetTimer,
 }: Props) {
   const [open, setOpen] = useState(false);
 
   if (!canPlay || !dubs.length) return null;
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      onOpenChangeComplete={(open) => {
+        if (!open) resetTimer();
+      }}
+      open={open}
+      onOpenChange={setOpen}
+    >
       <PopoverTrigger
         render={
-          <button
-            className={cn(
-              "flex items-center gap-2",
-              "cursor-pointer transition-opacity hover:opacity-70",
-            )}
-          >
-            <h1 className="hidden text-sm font-medium tracking-wide text-white/90 md:block">
+          <button className={cn("cursor-pointer hidden md:block")}>
+            <h1 className="text-sm landscape:text-xs font-medium  text-foreground/90 hover:text-foreground">
               {selectedDub?.lanName ?? "Audio"}
             </h1>
           </button>
