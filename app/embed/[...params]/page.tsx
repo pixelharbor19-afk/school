@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getDomain } from "tldts";
+import { getDomain, getDomainWithoutSuffix } from "tldts";
 import * as dashjs from "dashjs";
 import Hls from "hls.js";
 import { useQueries } from "@tanstack/react-query";
@@ -63,8 +63,8 @@ export default function Embed() {
   const brandingParam = searchParams.get("branding");
   const branding =
     brandingParam ||
-    getDomain(window.location.hostname) ||
-    window.location.hostname;
+    getDomainWithoutSuffix(window.location.hostname) ||
+    "DOMAIN";
   const dubLang =
     searchParams.get("dubLang") || searchParams.get("dublang") || "";
   const dubType =
@@ -313,6 +313,12 @@ export default function Embed() {
     );
 
     if (servers[index]?.status === "failed") {
+      setSourceStatuses((prev) => {
+        const next = { ...prev };
+        delete next[index];
+        return next;
+      });
+
       results[index].refetch();
     }
   };
