@@ -5,6 +5,7 @@ import { logRequest } from "@/lib/log-request";
 import { validateBackendToken } from "@/lib/validate-token";
 import { isValidReferer } from "@/lib/allowed-referers";
 import { encryptLink } from "@/lib/source-link-enc-dec";
+import { encryptUrl } from "@/lib/aes-encryptor";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_HOLLY_SUPABASE_URL_HOLLY!,
@@ -66,23 +67,29 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const links = cached.sources
-      .filter((s: any) => s.type !== "mp4")
-      .sort(
-        (a: any, b: any) =>
-          Number(b.file.includes("/pl/")) - Number(a.file.includes("/pl/")),
-      )
-      .map((source: any) => ({
-        type: source.type,
-        resolution: null,
-        link: encryptLink(
-          `${domain}/backend/servers/atlas/edge?url=${encodeURIComponent(
-            source.file,
-          )}&id=${tmdbId}&mediaType=${mediaType}&season=${encodeURIComponent(
-            season,
-          )}&episode=${encodeURIComponent(episode)}`,
-        ),
-      }));
+    const links = await Promise.all(
+      cached.sources
+        .filter((s: any) => s.type !== "mp4")
+        .sort(
+          (a: any, b: any) =>
+            Number(b.file.includes("/pl/")) - Number(a.file.includes("/pl/")),
+        )
+        .map(async (source: any) => {
+          const url = await encryptUrl(source.file);
+
+          return {
+            type: source.type,
+            resolution: null,
+            link: encryptLink(
+              `${domain}/backend/servers/atlas/edge?url=${encodeURIComponent(
+                url,
+              )}&id=${tmdbId}&mediaType=${mediaType}&season=${encodeURIComponent(
+                season,
+              )}&episode=${encodeURIComponent(episode)}`,
+            ),
+          };
+        }),
+    );
     if (!links.length) {
       return NextResponse.json(
         { success: false, error: "No /pl/ sources found", server: path },

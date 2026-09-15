@@ -4,7 +4,7 @@ import { promisify } from "util";
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import { workerProxies, workerProxyHealth } from "@/lib/proxy-health-checker";
-import { encryptUrl } from "@/lib/aes-encryptor";
+import { decryptUrl, encryptUrl } from "@/lib/aes-encryptor";
 import { logRequest } from "@/lib/log-request";
 
 export const runtime = "nodejs";
@@ -25,7 +25,15 @@ export async function GET(req: NextRequest) {
     return new Response("Missing parameters", { status: 400 });
   }
 
-  const url = new URL(target);
+  let targetUrl: string;
+
+  try {
+    targetUrl = await decryptUrl(target);
+  } catch {
+    return new Response("Invalid URL", { status: 400 });
+  }
+
+  const url = new URL(targetUrl);
   const embedId = url.pathname.split("/")[2];
   const type = url.pathname.startsWith("/pl/") ? "pl" : "streamsvr";
 
