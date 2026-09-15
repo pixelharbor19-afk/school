@@ -219,13 +219,18 @@ export async function GET(req: NextRequest) {
             JSON.stringify({
               Referer:
                 "https://movibox.net/movies/the-runner-McIeQZEGPQ?id=715214082269397240&type=/movie/detail&detailSe=&detailEp=&lang=en",
-              "X-MB-Token": source.signCookie,
+              ...(source.signHeaderKey
+                ? { [source.signHeaderKey]: source.signCookie }
+                : {}),
               "User-Agent":
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
             }),
           );
 
-          const proxyUrl = `${shuffledProxy}b?u=${encodeURIComponent(url)}&h=${encodeURIComponent(header)}`;
+          const proxyType =
+            source.type === "hls" ? "a" : source.type === "dash" ? "b" : "c";
+
+          const proxyUrl = `${shuffledProxy}${proxyType}?u=${encodeURIComponent(url)}&h=${encodeURIComponent(header)}`;
 
           return {
             type: source.type,
@@ -247,7 +252,6 @@ export async function GET(req: NextRequest) {
     }
 
     const params = new URLSearchParams({
-      type: "dash",
       subjectId: selectedDub.subjectId,
       detailPath: selectedDub.detailPath,
     });
@@ -281,9 +285,25 @@ export async function GET(req: NextRequest) {
 
     const scraped = await res.json();
 
-    if (!scraped?.data?.length) {
-      logRequest(req, "CENTAURUS", 404, "No sources found");
+    const dashSources = scraped?.data?.dash ?? [];
+    const hlsSources = scraped?.data?.hls ?? [];
+    const mp4Sources = scraped?.data?.streams ?? [];
 
+    let rawSources: any[];
+    let sourceType: "dash" | "hls" | "mp4";
+
+    if (dashSources.length) {
+      rawSources = dashSources;
+      sourceType = "dash";
+    } else if (hlsSources.length) {
+      rawSources = hlsSources;
+      sourceType = "hls";
+    } else if (mp4Sources.length) {
+      rawSources = mp4Sources;
+      sourceType = "mp4";
+    } else {
+      logRequest(req, "CENTAURUS", 404, "No sources found");
+      console.log(scraped);
       return NextResponse.json(
         {
           success: false,
@@ -294,10 +314,11 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const sources = scraped.data.map((source: any) => ({
+    const sources = rawSources.map((source: any) => ({
       url: source.url,
       signCookie: source.signCookie,
-      type: "dash",
+      signHeaderKey: source.signHeaderKey,
+      type: sourceType,
       resolution: Number(source.resolutions?.split(",")[0]) || 0,
     }));
 
@@ -326,13 +347,17 @@ export async function GET(req: NextRequest) {
           JSON.stringify({
             Referer:
               "https://movibox.net/movies/the-runner-McIeQZEGPQ?id=715214082269397240&type=/movie/detail&detailSe=&detailEp=&lang=en",
-            "X-MB-Token": source.signCookie,
+            ...(source.signHeaderKey
+              ? { [source.signHeaderKey]: source.signCookie }
+              : {}),
             "User-Agent":
               "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
           }),
         );
+        const proxyType =
+          source.type === "hls" ? "a" : source.type === "dash" ? "b" : "c";
 
-        const proxyUrl = `${shuffledProxy}b?u=${encodeURIComponent(url)}&h=${encodeURIComponent(header)}`;
+        const proxyUrl = `${shuffledProxy}${proxyType}?u=${encodeURIComponent(url)}&h=${encodeURIComponent(header)}`;
 
         return {
           type: source.type,

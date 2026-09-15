@@ -194,11 +194,9 @@ export default function LoadingScreen({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 30 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className={cn(
-              "absolute md:p-5 p-3 bottom-0  hidden md:block w-full",
-            )}
+            className={cn("absolute bottom-0 w-full p-3 md:p-5")}
           >
-            <div className="flex items-end gap-3  w-full max-w-5xl mx-auto">
+            <div className="mx-auto grid w-full max-w-5xl grid-cols-2 items-end gap-1.5 sm:grid-cols-4 md:gap-3">
               {servers.map((item, index) => {
                 const isCurrentServer = serverIndex === index;
 
@@ -220,7 +218,7 @@ export default function LoadingScreen({
                         animate={{ opacity: 1, height: "auto", y: 0 }}
                         exit={{ opacity: 0, height: 0, y: -10 }}
                         transition={{ duration: 0.25, ease: "easeOut" }}
-                        className="mb-2 md:ml-4 ml-2 flex flex-col md:gap-2 gap-1 overflow-hidden"
+                        className="mb-1 ml-1 flex flex-col gap-0.5 overflow-hidden md:mb-2 md:ml-4 md:gap-2"
                       >
                         {item.sources.map((source, sourceIdx) => {
                           const isCurrentSource =
@@ -254,18 +252,17 @@ export default function LoadingScreen({
                                   ? {
                                       borderColor: color,
                                       background: `linear-gradient(to right, ${color}20, transparent)`,
-                                      // boxShadow: `inset 4px 0 12px -8px ${color}`,
                                     }
                                   : undefined
                               }
                               className={cn(
-                                "w-full border-l md:p-3 px-2 py-1 text-left transition",
+                                "w-full border-l px-2 py-1 text-left transition md:p-3",
                                 !isCurrentSource && "border-white/10",
                                 source.status === "failed" &&
                                   "cursor-not-allowed opacity-50",
                               )}
                             >
-                              <div className="flex items-center justify-between gap-3">
+                              <div className="flex items-center justify-between gap-2">
                                 <span
                                   style={
                                     isCurrentSource
@@ -276,7 +273,7 @@ export default function LoadingScreen({
                                       : undefined
                                   }
                                   className={cn(
-                                    "md:text-base text-sm font-semibold",
+                                    "text-xs font-semibold md:text-base",
                                     source.status === "failed" &&
                                       "line-through",
                                   )}
@@ -286,9 +283,10 @@ export default function LoadingScreen({
                                     : source.type.toUpperCase()}
                                 </span>
 
+                                {/* Hide source status on mobile */}
                                 <span
                                   className={cn(
-                                    "md:text-sm text-xs font-medium capitalize",
+                                    "hidden text-xs font-medium capitalize md:block md:text-sm",
                                     status === "ready" && "text-green-400",
                                     status === "connecting" &&
                                       "animate-pulse text-white/80",
@@ -313,18 +311,17 @@ export default function LoadingScreen({
                           ? {
                               borderColor: color,
                               background: `linear-gradient(to right, ${color}20, transparent)`,
-                              // boxShadow: `inset 4px 0 16px -10px ${color}`,
                             }
                           : undefined
                       }
                       className={cn(
-                        "flex w-full justify-between border-l-2 md:p-4 px-4 py-1 text-left transition",
+                        "flex w-full justify-between border-l-2 px-3 py-1.5 text-left transition md:p-4",
                         isCurrentServer
                           ? "opacity-100"
                           : "border-white/20 opacity-50",
                       )}
                     >
-                      <div className="space-y-1">
+                      <div className="space-y-0.5 md:space-y-1">
                         <span
                           style={
                             isCurrentServer
@@ -335,7 +332,7 @@ export default function LoadingScreen({
                               : undefined
                           }
                           className={cn(
-                            "md:text-base text-sm font-semibold",
+                            "text-xs font-semibold md:text-base",
                             item.status === "failed" &&
                               "line-through opacity-50",
                             audiowide.className,
@@ -344,7 +341,8 @@ export default function LoadingScreen({
                           {item.name}
                         </span>
 
-                        <div className="md:mt-1 md:text-sm text-xs text-white/50">
+                        {/* Hide description on mobile */}
+                        <div className="hidden text-sm text-white/50 md:mt-1 md:block">
                           {item.message || item.desc}
                         </div>
                       </div>
@@ -373,22 +371,28 @@ export default function LoadingScreen({
                         )}
                       >
                         {item.status === "available" && (
-                          <Check className="size-4.5" strokeWidth={3} />
+                          <Check
+                            className="size-4 md:size-4.5"
+                            strokeWidth={3}
+                          />
                         )}
 
                         {item.status === "checking" && (
                           <LoaderCircle
-                            className="size-4.5 animate-spin"
+                            className="size-4 animate-spin md:size-4.5"
                             strokeWidth={3}
                           />
                         )}
 
                         {item.status === "failed" && (
-                          <X className="size-4.5" strokeWidth={3} />
+                          <X className="size-4 md:size-4.5" strokeWidth={3} />
                         )}
 
                         {item.status === "queue" && (
-                          <Minus className="size-4.5" strokeWidth={3} />
+                          <Minus
+                            className="size-4 md:size-4.5"
+                            strokeWidth={3}
+                          />
                         )}
                       </span>
                     </button>
