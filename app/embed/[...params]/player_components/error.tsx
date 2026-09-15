@@ -4,6 +4,8 @@ interface PlayerErrorProps {
   hint: string;
 }
 
+const DISCORD_URL = "https://discord.gg/bgVHdHgHCe";
+
 export function PlayerError({ title, description, hint }: PlayerErrorProps) {
   return (
     <div
@@ -25,6 +27,15 @@ export function PlayerError({ title, description, hint }: PlayerErrorProps) {
         <div className="my-8 h-px w-16 bg-white/10" />
 
         <p className="text-sm text-white/25 text-shadow-sm">{hint}</p>
+
+        <a
+          href={DISCORD_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-6 text-sm font-medium text-[#5865F2] transition-colors hover:text-[#7289DA]"
+        >
+          Join our Discord
+        </a>
       </div>
     </div>
   );

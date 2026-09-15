@@ -868,16 +868,16 @@ export default function Embed() {
       <PlayerError
         title="Too Many Requests"
         description="Too many requests have been made. Please try again later."
-        hint="Please refresh the page and try again later."
+        hint="Wait a moment, then refresh the page to try again."
       />
     );
   }
   if (isMetadataForbidden || isSourceForbidden) {
     return (
       <PlayerError
-        title="Access Forbidden"
-        description="This request was blocked by the server."
-        hint="Please refresh the page and try again."
+        title="VPN Detected"
+        description="Please disable your VPN or proxy connection to continue watching."
+        hint="Turn off your VPN and refresh the page to try again."
       />
     );
   }
@@ -886,7 +886,7 @@ export default function Embed() {
       <PlayerError
         title="We couldn't find this title"
         description="The movie or show may have been removed, or the link may no longer be valid."
-        hint="Check the refresh and try again."
+        hint="This title may no longer be available."
       />
     );
   }
@@ -896,7 +896,7 @@ export default function Embed() {
       <PlayerError
         title="Unable to play this title"
         description="None of the available servers are currently working. Please try again later."
-        hint="Refresh the page to try again."
+        hint="Please try again later or refresh the page."
       />
     );
   }
