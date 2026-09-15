@@ -863,7 +863,7 @@ export default function Embed() {
     );
   }
 
-  if (isSourceRateLimited) {
+  if (isRateLimited || isSourceRateLimited) {
     return (
       <PlayerError
         title="Too Many Requests"
@@ -872,7 +872,7 @@ export default function Embed() {
       />
     );
   }
-  if (isSourceForbidden) {
+  if (isMetadataForbidden || isSourceForbidden) {
     return (
       <PlayerError
         title="Access Forbidden"
