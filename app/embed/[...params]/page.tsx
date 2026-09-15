@@ -40,6 +40,7 @@ import Pause from "./player_components/overlay-pause";
 
 import { usePlayerSettings } from "./player_store/settings";
 import { useTrackEmbedder } from "@/hooks/useTrackEmbedder";
+import { PlayerError } from "./player_components/error";
 export default function Embed() {
   const { params } = useParams();
   const router = useRouter();
@@ -83,12 +84,19 @@ export default function Embed() {
     window.self === window.top ||
     whitelistSites.some((site) => document.referrer.includes(site));
 
-  const { data: metadata, isError: isMetadataError } = useTmdbDetails(
+  const {
+    data: metadata,
+    isError: isMetadataError,
+    error: metadataError,
+  } = useTmdbDetails(
     media_type,
     tmdbId,
     language,
     !isLoading && !(!isWhitelisted && isSandboxed),
   );
+
+  const isRateLimited = metadataError?.response?.status === 429;
+  const isMetadataForbidden = metadataError?.response?.status === 403;
 
   const title = metadata?.title || "";
   const date = metadata?.release_date;
@@ -159,6 +167,13 @@ export default function Embed() {
       }),
     ),
   });
+
+  const isSourceRateLimited =
+    results.length > 0 &&
+    results.every((result) => result.error?.response?.status === 429);
+  const isSourceForbidden =
+    results.length > 0 &&
+    results.every((result) => result.error?.response?.status === 403);
 
   /*
    * Build the server list from each server's
@@ -840,90 +855,49 @@ export default function Embed() {
 
   if (isSandboxed) {
     return (
-      <div
-        className="relative flex h-dvh w-full items-center justify-center overflow-hidden bg-black"
-        style={{
-          backgroundImage:
-            "radial-gradient(ellipse at 60% 40%, var(--color-zinc-900), transparent 60%)",
-        }}
-      >
-        <div className="relative z-10 flex w-full max-w-lg flex-col items-center px-6 text-center">
-          <h1 className="text-3xl font-semibold tracking-tight text-white md:text-4xl text-shadow-lg">
-            Sandbox Detected
-          </h1>
+      <PlayerError
+        title="Sandbox Detected"
+        description="This player is running inside an unsupported sandbox environment."
+        hint="Please contact the website owner to fix the embed configuration."
+      />
+    );
+  }
 
-          <p className="mt-4 max-w-md text-sm leading-6 text-white/45 md:text-base text-shadow-md">
-            This player is running inside an unsupported sandbox environment.
-          </p>
-
-          <div className="my-8 h-px w-16 bg-white/10" />
-
-          <p className="text-sm text-white/25 text-shadow-sm">
-            Please contact the website owner to fix the embed configuration.
-          </p>
-        </div>
-      </div>
+  if (isRateLimited || isSourceRateLimited) {
+    return (
+      <PlayerError
+        title="Too Many Requests"
+        description="Too many requests have been made. Please try again later."
+        hint="Please refresh the page and try again later."
+      />
+    );
+  }
+  if (isMetadataForbidden || isSourceForbidden) {
+    return (
+      <PlayerError
+        title="Access Forbidden"
+        description="This request was blocked by the server."
+        hint="Please refresh the page and try again."
+      />
     );
   }
   if (isMetadataError) {
     return (
-      <div
-        className="relative flex h-dvh w-full items-center justify-center overflow-hidden bg-black"
-        style={{
-          backgroundImage:
-            "radial-gradient(ellipse at 60% 40%, var(--color-zinc-900), transparent 60%)",
-        }}
-      >
-        {/* Ambient background */}
-
-        <div className="relative z-10 flex w-full max-w-lg flex-col items-center px-6 text-center">
-          {/* Main message */}
-          <h1 className="text-3xl font-semibold tracking-tight text-white md:text-4xl text-shadow-lg">
-            We couldn&apos;t find this title
-          </h1>
-
-          <p className="mt-4 max-w-md text-sm leading-6 text-white/45 md:text-base text-shadow-md">
-            The movie or show may have been removed, or the link may no longer
-            be valid.
-          </p>
-
-          {/* Divider */}
-          <div className="my-8 h-px w-16 bg-white/10" />
-
-          {/* Small hint */}
-          <p className="text-sm text-white/25 text-shadow-sm">
-            Check the refresh and try again.
-          </p>
-        </div>
-      </div>
+      <PlayerError
+        title="We couldn't find this title"
+        description="The movie or show may have been removed, or the link may no longer be valid."
+        hint="Check the refresh and try again."
+      />
     );
   }
+
   if (noWorkingServers) {
     return (
-      <div
-        className="relative flex h-dvh w-full items-center justify-center overflow-hidden bg-black"
-        style={{
-          backgroundImage:
-            "radial-gradient(ellipse at 60% 40%, var(--color-zinc-900), transparent 60%)",
-        }}
-      >
-        <div className="relative z-10 flex w-full max-w-lg flex-col items-center px-6 text-center">
-          <h1 className="text-3xl font-semibold tracking-tight text-white md:text-4xl text-shadow-lg">
-            Unable to play this title
-          </h1>
-
-          <p className="mt-4 max-w-md text-sm leading-6 text-white/45 md:text-base text-shadow-md">
-            None of the available servers are currently working. Please try
-            again later.
-          </p>
-
-          <div className="my-8 h-px w-16 bg-white/10" />
-
-          <p className="text-sm text-white/25 text-shadow-sm">
-            Refresh the page to try again.
-          </p>
-        </div>
-      </div>
+      <PlayerError
+        title="Unable to play this title"
+        description="None of the available servers are currently working. Please try again later."
+        hint="Refresh the page to try again."
+      />
     );
   }
   return (
@@ -991,30 +965,6 @@ export default function Embed() {
       />
 
       <Spinner waiting={waiting} canPlay={canPlay} />
-
-      {/* <ServerModal
-        servers={servers}
-        serverIndex={serverIndex}
-        sourceIndex={sourceIndex}
-        sourceStatus={sourceStatus}
-        showServer={showServer}
-        setShowServer={setShowServer}
-        handleServerSelect={handleServerSelect}
-        setServerIndex={setServerIndex}
-        setSourceIndex={setSourceIndex}
-        setSourceStatus={setSourceStatus}
-        canPlay={canPlay}
-        playerRef={playerRef}
-      /> */}
-      {/* 
-      <SubtitleModal
-        subtitles={subtitles ?? []}
-        selectedSubtitle={selectedSubtitle}
-        onSubtitleChange={handleSubtitleChange}
-        setSubtitlesModal={setSubtitlesModal}
-        subtitlesModal={subtitlesModal}
-        canPlay={canPlay}
-      /> */}
 
       <LoadingScreen
         color={color}

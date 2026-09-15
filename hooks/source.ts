@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { MediaOption } from "./open-subtitle";
 import { AxiosError } from "axios";
 import { decryptLink } from "@/lib/source-link-enc-dec";
@@ -57,7 +57,9 @@ interface UseSourceParams {
   enable: boolean;
 }
 
-export function sourceQueryOptions(params: UseSourceParams) {
+export function sourceQueryOptions(
+  params: UseSourceParams,
+): UseQueryOptions<SourceTypes, AxiosError<SourceError>> {
   const {
     media_type,
     tmdbId,
