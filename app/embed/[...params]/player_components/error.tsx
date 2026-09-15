@@ -1,12 +1,23 @@
+import { cn } from "@/hooks/utils";
+import { ChevronLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+
 interface PlayerErrorProps {
   title: string;
   description: string;
   hint: string;
+  back: boolean;
 }
 
 const DISCORD_URL = "https://discord.gg/bgVHdHgHCe";
 
-export function PlayerError({ title, description, hint }: PlayerErrorProps) {
+export function PlayerError({
+  title,
+  description,
+  hint,
+  back,
+}: PlayerErrorProps) {
+  const router = useRouter();
   return (
     <div
       className="relative flex h-dvh w-full items-center justify-center overflow-hidden bg-black"
@@ -15,6 +26,19 @@ export function PlayerError({ title, description, hint }: PlayerErrorProps) {
           "radial-gradient(ellipse at 60% 40%, var(--color-zinc-900), transparent 60%)",
       }}
     >
+      {!back && (
+        <button
+          onClick={() => router.back()}
+          className={cn(
+            "absolute top-0 left-0 md:px-6 px-4 md:py-8 py-6 landscape:py-2 landscape:px-2",
+          )}
+        >
+          <ChevronLeft
+            className="md:size-8 size-6 text-foreground/80 hover:text-foreground cursor-pointer"
+            strokeWidth={3}
+          />
+        </button>
+      )}
       <div className="relative z-10 flex w-full max-w-lg flex-col items-center px-6 text-center">
         <h1 className="text-3xl font-semibold tracking-tight text-white text-shadow-lg md:text-4xl">
           {title}

@@ -78,6 +78,23 @@ export const workerProxies = [
   "https://nameless-paper-1bf8.orion0008.workers.dev/",
   "https://super-hat-bcbd.orion0009.workers.dev/",
   "https://old-fog-35b0.orion00010.workers.dev/",
+
+  ///////////////////////////////////////////////////
+  "https://dry-moon-e266.test66-8cc.workers.dev/",
+  "https://fragrant-rice-8998.test65-8de.workers.dev/",
+  "https://restless-resonance-a8a8.test63-bfc.workers.dev/",
+  "https://nameless-tooth-8cbb.test64-0d5.workers.dev/",
+
+  "https://spring-darkness-8beb.test61-86c.workers.dev/",
+  "https://odd-river-ed9f.test29-be6.workers.dev/",
+  "https://soft-shadow-1443.expired8.workers.dev/",
+  "https://floral-limit-aeb0.expired9.workers.dev/",
+  "https://still-mode-5f32.expired6.workers.dev/",
+  "https://cool-wave-a9c1.expired7.workers.dev/",
+  "https://shrill-smoke-e6eb.test60-598.workers.dev/",
+  "https://twilight-resonance-eb4d.test28-f24.workers.dev/",
+
+  // "https://billowing-rain-7239.test27-15e.workers.dev/",
 ];
 
 export function shuffle<T>(arr: T[]): T[] {

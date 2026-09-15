@@ -34,6 +34,7 @@ type Props = {
   color: string;
   canPlay: boolean;
   branding: string;
+  back: boolean;
 };
 
 export default function LoadingScreen({
@@ -49,6 +50,7 @@ export default function LoadingScreen({
   color,
   canPlay,
   branding,
+  back,
 }: Props) {
   const BASE_GLOW = `0 0 6px ${color}99, 0 0 16px ${color}59`;
   const FLASH_GLOW = `0 0 8px ${color}cc, 0 0 20px ${color}66, 0 0 36px ${color}33`;
@@ -71,17 +73,19 @@ export default function LoadingScreen({
               "radial-gradient(ellipse at 60% 40%, var(--color-zinc-900), transparent 60%)",
           }}
         >
-          <button
-            onClick={() => router.back()}
-            className={cn(
-              "absolute top-0 left-0 md:px-6 px-4 md:py-8 py-6 landscape:py-2 landscape:px-2",
-            )}
-          >
-            <ChevronLeft
-              className="md:size-8 size-6 text-foreground/80 hover:text-foreground cursor-pointer"
-              strokeWidth={3}
-            />
-          </button>
+          {!back && (
+            <button
+              onClick={() => router.back()}
+              className={cn(
+                "absolute top-0 left-0 md:px-6 px-4 md:py-8 py-6 landscape:py-2 landscape:px-2",
+              )}
+            >
+              <ChevronLeft
+                className="md:size-8 size-6 text-foreground/80 hover:text-foreground cursor-pointer"
+                strokeWidth={3}
+              />
+            </button>
+          )}
           {/* Ambient glow */}
 
           <div className="relative flex flex-col items-center uppercase">

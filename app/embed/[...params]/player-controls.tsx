@@ -26,6 +26,7 @@ import EpisodesModal from "./player_components/modal-episodes";
 import { SeasonsType } from "@/types/tmdb-types";
 import { DubTypes } from "@/hooks/source";
 import ModalDubs from "./player_components/modal-dubs";
+import { Separator } from "@/components/ui/separator";
 const font = Poppins({
   weight: "400",
   subsets: ["latin"],
@@ -175,26 +176,35 @@ export default function VideoControls({
             onPointerDown={lockTimer}
             // onMouseLeave={!isMobile ? resetTimer : undefined}
           >
-            {!back && (
-              <button
-                onClick={() => router.back()}
-                className={cn(
-                  "flex items-center md:gap-6 gap-3",
-                  "text-shadow-lg transition-opacity hover:opacity-70",
-                )}
-              >
-                <ChevronLeft
-                  className="md:size-8 size-6 text-foreground/80 hover:text-foreground cursor-pointer"
-                  strokeWidth={3}
-                />
-                <span className="text-left">
-                  <h1 className="tracking-wide font-medium md:text-base text-sm line-clamp-1">
-                    {title}
-                  </h1>
-                </span>
-              </button>
-            )}
+            <div className="flex gap-4">
+              {!back && (
+                <button
+                  onClick={() => router.back()}
+                  className={cn(
+                    "flex items-center md:gap-6 gap-3",
+                    "text-shadow-lg transition-opacity hover:opacity-70",
+                  )}
+                >
+                  <ChevronLeft
+                    className="md:size-8 size-6 text-foreground/80 hover:text-foreground cursor-pointer"
+                    strokeWidth={3}
+                  />
+                </button>
+              )}
 
+              <Separator
+                orientation="vertical"
+                style={{ backgroundColor: color }}
+              />
+              <span className="text-left text-shadow-2xl">
+                <p className="md:text-sm text-xs text-muted-foreground">
+                  You're Watching
+                </p>
+                <h1 className="tracking-wide font-bold md:text-xl text-sm line-clamp-1">
+                  {title}
+                </h1>
+              </span>
+            </div>
             <div className="flex-1" />
 
             {/* <button
@@ -285,7 +295,7 @@ export default function VideoControls({
                         className="pointer-events-none absolute bottom-full z-50 mb-2 -translate-x-1/2"
                         style={{ left: hoverX }}
                       >
-                        <div className="rounded-sm bg-black/50 px-2 py-1 text-sm tabular-nums text-white shadow-lg">
+                        <div className="rounded-sm bg-black/50 px-2 py-1 text-sm tabular-nums text-white shadow-lg font-sans">
                           {formatTime(hoverTime)}
                         </div>
                       </motion.div>
@@ -553,7 +563,7 @@ export default function VideoControls({
 
               <div
                 className={cn(
-                  "sm:hidden flex items-center gap-2 w-full justify-between tabular-nums font-medium text-xs tracking-wide p-1",
+                  "sm:hidden flex items-center gap-2 w-full justify-between tabular-nums font-medium text-xs tracking-wide p-1 font-sans",
                 )}
               >
                 <span className="text-foreground/80">
@@ -566,7 +576,7 @@ export default function VideoControls({
               </div>
             </div>
 
-            <div className="flex items-center justify-center sm:justify-start gap-8 landscape:gap-4 w-full ">
+            <div className="flex items-center justify-center sm:justify-start gap-6 md:gap-8 landscape:gap-4 w-full ">
               {/* Play */}
               <button
                 onClick={togglePlay}
@@ -625,7 +635,7 @@ export default function VideoControls({
 
               <div
                 className={cn(
-                  "sm:flex hidden items-center gap-2 tabular-nums font-medium text-sm tracking-wide landscape:text-xs",
+                  "sm:flex hidden items-center gap-2 tabular-nums font-medium text-sm tracking-wide landscape:text-xs font-sans",
                 )}
               >
                 <span className="text-foreground/90">

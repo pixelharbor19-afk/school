@@ -549,6 +549,14 @@ export default function Embed() {
       });
 
       hls.on(Hls.Events.ERROR, (_, data) => {
+        if (data.response?.code === 429) {
+          console.log("[PLAYER] Playback rate limited", {
+            server: servers[serverIndex]?.server,
+            source: sourceIndex,
+            url: data.url,
+          });
+        }
+
         if (!data.fatal) return;
 
         if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
@@ -590,6 +598,7 @@ export default function Embed() {
       });
 
       dash.on(dashjs.MediaPlayer.events.ERROR, () => {
+        console.log("[DASH ERROR]", event);
         handleSourceFailed();
       });
 
@@ -861,6 +870,7 @@ export default function Embed() {
         title="Sandbox Detected"
         description="This player is running inside an unsupported sandbox environment."
         hint="Please contact the website owner to fix the embed configuration."
+        back={back}
       />
     );
   }
@@ -871,6 +881,7 @@ export default function Embed() {
         title="Too Many Requests"
         description="Too many requests have been made. Please try again later."
         hint="Wait a moment, then refresh the page to try again."
+        back={back}
       />
     );
   }
@@ -880,6 +891,7 @@ export default function Embed() {
         title="VPN Detected"
         description="Please disable your VPN or proxy connection to continue watching."
         hint="Turn off your VPN and refresh the page to try again."
+        back={back}
       />
     );
   }
@@ -889,16 +901,17 @@ export default function Embed() {
         title="We couldn't find this title"
         description="The movie or show may have been removed, or the link may no longer be valid."
         hint="This title may no longer be available."
+        back={back}
       />
     );
   }
-
   if (noWorkingServers) {
     return (
       <PlayerError
         title="Unable to play this title"
         description="None of the available servers are currently working. Please try again later."
         hint="Please try again later or refresh the page."
+        back={back}
       />
     );
   }
@@ -978,6 +991,7 @@ export default function Embed() {
         sourceStatus={currentSource?.status ?? "queue"}
         handleSourceSelect={handleSourceSelect}
         handleServerSelect={handleServerSelect}
+        back={back}
       />
 
       <SkipSegment

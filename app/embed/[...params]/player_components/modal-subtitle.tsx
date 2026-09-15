@@ -89,7 +89,7 @@ export default function SubtitleModal({
       <PopoverTrigger
         render={
           <button className={cn("cursor-pointer hidden md:block")}>
-            <h1 className="text-sm landscape:text-xs font-medium  text-foreground/90 hover:text-foreground">
+            <h1 className="text-sm landscape:text-xs font-medium  text-foreground/90 hover:text-foreground tracking-wide">
               {selectedSubtitle ? selectedSubtitle.display : "Subtitle"}
             </h1>
           </button>
