@@ -168,7 +168,7 @@ export default function EpisodesModal({
         <ScrollArea className="max-h-[80vh] flex-1 pr-2">
           <div className="px-4 pb-6 pt-4">
             {isLoading ? (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 ">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="space-y-3">
                     <Skeleton className="aspect-video w-full rounded" />
@@ -191,7 +191,7 @@ export default function EpisodesModal({
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 ">
                   {visibleEpisodes.map((e) => {
                     const isActive =
                       selectedSeason === season && e.episode_number === episode;

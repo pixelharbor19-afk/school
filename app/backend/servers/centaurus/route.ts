@@ -219,9 +219,7 @@ export async function GET(req: NextRequest) {
             JSON.stringify({
               Referer:
                 "https://movibox.net/movies/the-runner-McIeQZEGPQ?id=715214082269397240&type=/movie/detail&detailSe=&detailEp=&lang=en",
-              ...(source.signHeaderKey
-                ? { [source.signHeaderKey]: source.signCookie }
-                : {}),
+              "X-MB-Token": source.signCookie,
               "User-Agent":
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
             }),
@@ -347,9 +345,7 @@ export async function GET(req: NextRequest) {
           JSON.stringify({
             Referer:
               "https://movibox.net/movies/the-runner-McIeQZEGPQ?id=715214082269397240&type=/movie/detail&detailSe=&detailEp=&lang=en",
-            ...(source.signHeaderKey
-              ? { [source.signHeaderKey]: source.signCookie }
-              : {}),
+            "X-MB-Token": source.signCookie,
             "User-Agent":
               "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
           }),
