@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
   const path = pathname.split("/").pop()!;
 
   if (!tmdbId || !mediaType || !token) {
-    logRequest(req, "VALSTRAX", 400, "missing params");
+    logRequest(req, "ANDROMEDA", 400, "missing params");
     return NextResponse.json(
       { success: false, error: "missing params", server: path },
       { status: 400 },
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
   if (
     !validateBackendToken(tmdbId, mediaType, season, episode, path, ts, token)
   ) {
-    logRequest(req, "VALSTRAX", 401, "invalid token");
+    logRequest(req, "ANDROMEDA", 401, "invalid token");
     return NextResponse.json(
       { success: false, error: "Invalid token", server: path },
       { status: 401 },
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
   const referer = req.headers.get("referer") || "";
 
   if (!isValidReferer(referer)) {
-    logRequest(req, "VALSTRAX", 403, "invalid referrer");
+    logRequest(req, "ANDROMEDA", 403, "invalid referrer");
     return NextResponse.json(
       { success: false, error: "Forbidden", server: path },
       { status: 403 },
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
       .maybeSingle();
 
     if (cached) {
-      logRequest(req, "VALSTRAX", 200, "CACHE HIT");
+      logRequest(req, "ANDROMEDA", 200, "CACHE HIT");
 
       stream = {
         type: "dash",
@@ -91,7 +91,7 @@ export async function GET(req: NextRequest) {
       );
 
       if (!response.ok) {
-        logRequest(req, "VALSTRAX", 404, "No stream found");
+        logRequest(req, "ANDROMEDA", 404, "No stream found");
 
         return NextResponse.json(
           {
@@ -107,7 +107,7 @@ export async function GET(req: NextRequest) {
       stream = data.stream;
 
       if (!stream) {
-        logRequest(req, "VALSTRAX", 404, "No stream found");
+        logRequest(req, "ANDROMEDA", 404, "No stream found");
 
         return NextResponse.json(
           {
@@ -141,7 +141,7 @@ export async function GET(req: NextRequest) {
         );
       }
 
-      logRequest(req, "VALSTRAX", 200, "CACHE MISS");
+      logRequest(req, "ANDROMEDA", 200, "CACHE MISS");
     }
 
     const links = [];
@@ -198,7 +198,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    logRequest(req, "VALSTRAX", 200, "OK!!!!!!");
+    logRequest(req, "ANDROMEDA", 200, "OK");
 
     return NextResponse.json({
       success: true,

@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
   const date = req.nextUrl.searchParams.get(FIELD_MAP.date);
 
   if (!tmdbId || !mediaType || !title || !year || !ts || !token || !date) {
-    logRequest(req, "MILKY WAY", 400, "missing params");
+    logRequest(req, "ATLAS", 400, "missing params");
     return NextResponse.json(
       { success: false, error: "missing params", server: path },
       { status: 400 },
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
   if (
     !validateBackendToken(tmdbId, mediaType, season, episode, path, ts, token)
   ) {
-    logRequest(req, "MILKY WAY", 401, "invalid token");
+    logRequest(req, "ATLAS", 401, "invalid token");
     return NextResponse.json(
       { success: false, error: "Invalid token", server: path },
       { status: 401 },
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
   }
   const referer = req.headers.get("referer") || "";
   if (!isValidReferer(referer)) {
-    logRequest(req, "MILKY WAY", 401, "invalid referrer");
+    logRequest(req, "ATLAS", 401, "invalid referrer");
     return NextResponse.json(
       { success: false, error: "Forbidden", server: path },
       { status: 403 },
@@ -61,6 +61,7 @@ export async function GET(req: NextRequest) {
       .single();
 
     if (!cached?.sources?.length) {
+      logRequest(req, "ATLAS", 404, "No cached sources");
       return NextResponse.json(
         { success: false, error: "No cached sources", server: path },
         { status: 404 },
@@ -91,12 +92,13 @@ export async function GET(req: NextRequest) {
         }),
     );
     if (!links.length) {
+      logRequest(req, "ATLAS", 404, "No /pl/ sources found");
       return NextResponse.json(
         { success: false, error: "No /pl/ sources found", server: path },
         { status: 404 },
       );
     }
-
+    logRequest(req, "ATLAS", 200, "OK");
     return NextResponse.json({
       success: true,
       links,
