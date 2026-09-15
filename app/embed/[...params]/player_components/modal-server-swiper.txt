@@ -1,0 +1,235 @@
+"use client";
+
+import "ldrs/react/Tailspin.css";
+import { AnimatePresence, motion } from "motion/react";
+
+import { cn } from "@/lib/utils";
+
+import { Check, LoaderCircle, Minus, X } from "lucide-react";
+
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Mousewheel, Keyboard } from "swiper/modules";
+import type { Swiper as SwiperInstance } from "swiper";
+import "swiper/css";
+
+import type {
+  ServerTypes,
+  SourceStatus,
+} from "@/app/embed/[...params]/player_types/server-types";
+import { useEffect, useRef, useState } from "react";
+import { Anton, Audiowide } from "next/font/google";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+
+interface Props {
+  servers: ServerTypes[];
+  serverIndex: number;
+  sourceIndex: number;
+  sourceStatus: SourceStatus;
+  handleServerSelect: (index: number) => void;
+  handleSourceSelect: (index: number) => void;
+  canPlay: boolean;
+  playerRef: React.RefObject<HTMLDivElement | null>;
+  color: string;
+  resetTimer: () => void;
+}
+const audiowide = Audiowide({
+  weight: "400",
+  subsets: ["latin"],
+});
+
+export default function ServerModal({
+  servers,
+  serverIndex,
+  sourceIndex,
+  sourceStatus,
+  handleServerSelect,
+  handleSourceSelect,
+  canPlay,
+  playerRef,
+  resetTimer,
+  color,
+}: Props) {
+  const swiperRef = useRef<SwiperInstance | null>(null);
+  const [visualIndex, setVisualIndex] = useState(serverIndex);
+
+  useEffect(() => {
+    if (!swiperRef.current) return;
+
+    if (swiperRef.current.activeIndex !== serverIndex) {
+      swiperRef.current.slideTo(serverIndex);
+    }
+  }, [serverIndex]);
+
+  if (!canPlay) return null;
+  const BASE_GLOW = `0 0 6px ${color}99, 0 0 16px ${color}59`;
+  const FLASH_GLOW = `0 0 8px ${color}cc, 0 0 20px ${color}66, 0 0 36px ${color}33`;
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 30 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 30 }}
+      transition={{
+        duration: 0.3,
+        ease: "easeInOut",
+      }}
+      className={cn(
+        "fixed inset-0  z-10 flex  justify-end items-end",
+        "pointer-events-none",
+        "bg-linear-to-l from-black/80 to-transparent",
+      )}
+    >
+      <div className=" h-full  pointer-events-auto">
+        <Swiper
+          modules={[Mousewheel, Keyboard]}
+          direction="vertical"
+          slidesPerView="auto"
+          centeredSlides
+          className="h-full overflow-visible!"
+          wrapperClass="items-end! "
+          mousewheel={{
+            sensitivity: 1,
+            thresholdDelta: 10,
+            forceToAxis: true,
+          }}
+          initialSlide={serverIndex}
+          keyboard={{
+            enabled: true,
+            onlyInViewport: true,
+          }}
+          // style={
+          //   {
+          //     "--swiper-wrapper-transition-timing-function":
+          //       "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+          //   } as React.CSSProperties
+          // }
+          onSwiper={(swiper: SwiperInstance) => {
+            swiperRef.current = swiper;
+            swiper.slideTo(serverIndex, 0);
+          }}
+          onSlideChange={(swiper: SwiperInstance) => {
+            setVisualIndex(swiper.activeIndex);
+          }}
+        >
+          {servers.map((item, index) => {
+            const isActive = index === visualIndex;
+            const isNear = Math.abs(index - visualIndex) === 1;
+            const isFailed = item.status === "failed";
+
+            return (
+              <SwiperSlide
+                key={item.server}
+                className={cn(
+                  "h-fit! w-fit! ",
+
+                  isActive && "",
+
+                  isNear && "",
+
+                  !isActive && !isNear && "",
+                )}
+                onClick={() => handleServerSelect(index)}
+              >
+                <div
+                  className={cn(
+                    "transition-all duration-400 origin-right",
+                    " py-8 px-4 text-right ",
+                    isActive && "scale-110 -translate-x-10",
+                    isNear && !isActive && "opacity-50 -translate-x-8",
+                    !isActive && !isNear && "opacity-50",
+                  )}
+                >
+                  <div>
+                    {/* Server name */}
+                    <p
+                      className={cn(
+                        "text-2xl font-semibold ",
+
+                        isActive && "",
+
+                        isNear && !isActive && "",
+
+                        !isActive && !isNear && "",
+
+                        isFailed && "line-through",
+
+                        audiowide.className,
+                      )}
+                      style={
+                        isActive
+                          ? {
+                              color,
+                              textShadow: BASE_GLOW,
+                            }
+                          : undefined
+                      }
+                    >
+                      {item.name}
+                    </p>
+                    {/* Description */}
+                    <p className={cn("mt-0.5")}>{item.message || item.desc}</p>
+                  </div>
+                  {/* Server status */}
+                  <span
+                    className={cn(
+                      "flex items-center justify-end capitalize text-sm mt-2 gap-3",
+                      isActive && item.status !== "failed" && "text-foreground",
+
+                      item.status === "available" && "text-green-400",
+
+                      item.status === "checking" && "text-white/70",
+
+                      item.status === "failed" && "text-red-400",
+
+                      item.status === "queue" && "text-white/30",
+                    )}
+                  >
+                    <span>
+                      {item.status === "available" && "available"}
+
+                      {item.status === "checking" && "checking..."}
+
+                      {item.status === "queue" && "queue"}
+
+                      {item.status === "failed" && "No video found"}
+                    </span>
+
+                    {item.status === "available" && (
+                      <Check
+                        strokeWidth={3}
+                        className="size-3 landscape:size-2.5"
+                      />
+                    )}
+
+                    {item.status === "checking" && (
+                      <LoaderCircle
+                        strokeWidth={3}
+                        className="size-3 animate-spin landscape:size-2.5"
+                      />
+                    )}
+
+                    {item.status === "failed" && (
+                      <X
+                        strokeWidth={3}
+                        className="size-3 landscape:size-2.5"
+                      />
+                    )}
+
+                    {item.status === "queue" && (
+                      <Minus
+                        strokeWidth={3}
+                        className="size-3 landscape:size-2.5"   
+                      />
+                    )}
+                  </span>
+
+                  {/* Sources */}
+                </div>
+              </SwiperSlide>
+            );
+          })}
+        </Swiper>
+      </div>
+    </motion.div>
+  );
+}

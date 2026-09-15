@@ -144,7 +144,10 @@ export default function ModalSettings({
         Settings
       </DrawerTrigger>
 
-      <DrawerContent container={playerRef} className="mx-auto max-w-xl">
+      <DrawerContent
+        container={playerRef}
+        className="mx-auto max-w-xl landscape:max-h-[140vh] landscape:scale-60"
+      >
         <DrawerHeader className="flex flex-row items-center gap-2">
           {tab !== "main" && (
             <Button
