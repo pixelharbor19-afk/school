@@ -60,7 +60,11 @@ export default function Embed() {
   const autoplayParam = searchParams.get("autoplay") === "true";
   const language = searchParams.get("language") || "en-US";
   const back = searchParams.get("back") === "false";
-  const branding = searchParams.get("branding") || "DOMAIN";
+  const brandingParam = searchParams.get("branding");
+  const branding =
+    brandingParam ||
+    getDomain(window.location.hostname) ||
+    window.location.hostname;
   const dubLang =
     searchParams.get("dubLang") || searchParams.get("dublang") || "";
   const dubType =
@@ -79,12 +83,7 @@ export default function Embed() {
     window.self === window.top ||
     whitelistSites.some((site) => document.referrer.includes(site));
 
-  const {
-    data: metadata,
-    isError: isMetadataError,
-    error: metadataError,
-    refetch: refetchTmdb,
-  } = useTmdbDetails(
+  const { data: metadata, isError: isMetadataError } = useTmdbDetails(
     media_type,
     tmdbId,
     language,
@@ -210,16 +209,22 @@ export default function Embed() {
             };
           }
 
+          const sources = links.map((source: QualityTrack, sourceIndex) => ({
+            type: source.type,
+            link: source.link,
+            resolution: source.resolution,
+            status: sourceStatuses[index]?.[sourceIndex] ?? "queue",
+          }));
+
+          const hasUsableSources = sources.some(
+            (source) => source.status !== "failed",
+          );
+
           return {
             ...server,
-            status: "available",
-            message: undefined,
-            sources: links.map((source: QualityTrack, sourceIndex) => ({
-              type: source.type,
-              link: source.link,
-              resolution: source.resolution,
-              status: sourceStatuses[index]?.[sourceIndex] ?? "queue",
-            })),
+            status: hasUsableSources ? "available" : "failed",
+            message: hasUsableSources ? undefined : "No usable sources found",
+            sources,
           };
         }
 
@@ -231,6 +236,7 @@ export default function Embed() {
   const noWorkingServers = servers.every(
     (server) => server.status === "failed",
   );
+
   /*
    * Current server.
    */
@@ -314,6 +320,11 @@ export default function Embed() {
     if (!server) return;
 
     if (server.status === "failed") {
+      console.log("[PLAYER] Server failed", {
+        server: server.server,
+        serverIndex,
+      });
+
       if (server.dubSupport && dubLang) {
         const params = new URLSearchParams(searchParams.toString());
 
@@ -329,6 +340,11 @@ export default function Embed() {
       );
 
       if (availableIndex !== -1) {
+        console.log("[PLAYER] Switching server", {
+          from: server.server,
+          to: servers[availableIndex].server,
+        });
+
         handleServerSelect(availableIndex);
         return;
       }
@@ -338,6 +354,11 @@ export default function Embed() {
       );
 
       if (queueIndex !== -1) {
+        console.log("[PLAYER] Switching queued server", {
+          from: server.server,
+          to: servers[queueIndex].server,
+        });
+
         handleServerSelect(queueIndex);
       }
 
@@ -348,15 +369,32 @@ export default function Embed() {
       const nextSourceIndex = sourceIndex + 1;
 
       if (nextSourceIndex < sources.length) {
+        console.log("[PLAYER] Switching source", {
+          server: server.server,
+          from: sourceIndex,
+          to: nextSourceIndex,
+        });
+
         setSourceIndex(nextSourceIndex);
         return;
       }
+
+      console.log("[PLAYER] No more sources", {
+        server: server.server,
+        sourceIndex,
+        totalSources: sources.length,
+      });
 
       const availableIndex = servers.findIndex(
         (item, index) => index !== serverIndex && item.status === "available",
       );
 
       if (availableIndex !== -1) {
+        console.log("[PLAYER] No more sources → switching server", {
+          from: server.server,
+          to: servers[availableIndex].server,
+        });
+
         handleServerSelect(availableIndex);
         return;
       }
@@ -366,6 +404,11 @@ export default function Embed() {
       );
 
       if (queueIndex !== -1) {
+        console.log("[PLAYER] No more sources → switching queued server", {
+          from: server.server,
+          to: servers[queueIndex].server,
+        });
+
         handleServerSelect(queueIndex);
       }
     }
@@ -386,6 +429,12 @@ export default function Embed() {
    */
 
   const handleSourceFailed = () => {
+    console.log("[PLAYER] Source failed", {
+      server: servers[serverIndex]?.server,
+      source: sourceIndex,
+      type: currentSource?.type,
+    });
+
     setSourceStatus("failed");
   };
   /*
