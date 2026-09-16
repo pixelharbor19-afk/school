@@ -100,7 +100,7 @@ export function sourceQueryOptions(
     refetchOnReconnect: false,
 
     queryFn: async () => {
-      const { data: token } = await axios.post("/backend/token", {
+      const { data: token } = await axios.post("/backend/npminstall", {
         [FIELD_MAP.id]: tmdbId,
         [FIELD_MAP.mediaType]: media_type,
         [FIELD_MAP.path]: path,
