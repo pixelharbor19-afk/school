@@ -45,6 +45,7 @@ export default function PlayerPage() {
   const [episode, setEpisode] = useState("1");
 
   const [branding, setBranding] = useState("StreameX");
+  const [loadingScreen, setLoadingScreen] = useState("1"); // and 2
   const [server, setServer] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [color, setColor] = useState("");
@@ -68,7 +69,7 @@ export default function PlayerPage() {
     if (subtitle) params.set("subtitle", subtitle);
     if (color) params.set("color", color.replace("#", ""));
     if (progress) params.set("progress", progress);
-
+    if (loadingScreen) params.set("loading", loadingScreen);
     params.set("back", String(back));
 
     const query = params.toString();
@@ -270,6 +271,29 @@ export default function PlayerPage() {
                           }
                           placeholder="Your brand name"
                         />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="mb-2 block text-sm text-muted-foreground">
+                          Loading Screen
+                        </label>
+
+                        <Select
+                          value={loadingScreen}
+                          onValueChange={(value) => {
+                            if (value) {
+                              setLoadingScreen(value);
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="h-11 w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+
+                          <SelectContent>
+                            <SelectItem value="1">Loading Screen 1</SelectItem>
+                            <SelectItem value="2">Loading Screen 2</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       {/* Server */}

@@ -18,7 +18,13 @@ export default function Spinner({ waiting, canPlay }: SpinnerProps) {
           exit={{ opacity: 0, scale: 0.85 }}
           transition={{ duration: 0.2 }}
         >
-          <Tailspin size="60" stroke="8" speed="0.9" color="white" />
+          <span className="block md:hidden">
+            <Tailspin size="45" stroke="8" speed="0.9" color="white" />
+          </span>
+
+          <span className="hidden md:block">
+            <Tailspin size="60" stroke="8" speed="0.9" color="white" />
+          </span>
         </motion.div>
       )}
     </AnimatePresence>

@@ -129,6 +129,7 @@ export default function ServerModal({
 
                               setShowServer(false);
                             }}
+                            index={sourceIdx + 1}
                           />
                         );
                       })}
@@ -212,11 +213,13 @@ function SourceItem({
   current,
   status,
   onClick,
+  index,
 }: {
   source: ServerTypes["sources"][number];
   current: boolean;
   status: SourceStatus;
   onClick: () => void;
+  index: number;
 }) {
   return (
     <button
@@ -238,9 +241,7 @@ function SourceItem({
           source.status === "failed" && "line-through",
         )}
       >
-        {source.resolution
-          ? `${source.resolution}p`
-          : source.type.toUpperCase()}
+        {source.resolution ? `${source.resolution}p` : ` Source ${index}`}
       </span>
 
       <span

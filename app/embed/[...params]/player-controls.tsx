@@ -176,7 +176,7 @@ export default function VideoControls({
             onPointerDown={lockTimer}
             // onMouseLeave={!isMobile ? resetTimer : undefined}
           >
-            <div className="flex gap-4">
+            <div className="flex md:gap-4 gap-3">
               {!back && (
                 <button
                   onClick={() => router.back()}

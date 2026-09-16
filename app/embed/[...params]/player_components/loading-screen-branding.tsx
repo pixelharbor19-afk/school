@@ -37,7 +37,7 @@ type Props = {
   back: boolean;
 };
 
-export default function LoadingScreen({
+export default function BrandLoadingScreen({
   servers,
   serverIndex,
   sourceIndex,
@@ -280,13 +280,13 @@ export default function LoadingScreen({
                                 >
                                   {source.resolution
                                     ? `${source.resolution}p`
-                                    : source.type.toUpperCase()}
+                                    : ` Source ${sourceIdx + 1}`}
                                 </span>
 
                                 {/* Hide source status on mobile */}
                                 <span
                                   className={cn(
-                                    "hidden text-xs font-medium capitalize md:block md:text-sm",
+                                    "text-xs font-medium capitalize md:block md:text-sm",
                                     status === "ready" && "text-green-400",
                                     status === "connecting" &&
                                       "animate-pulse text-white/80",
@@ -407,7 +407,7 @@ export default function LoadingScreen({
   );
 }
 
-function getLoadingText(
+export function getLoadingText(
   server: ServerTypes | undefined,
   sourceStatus: SourceStatus,
 ) {

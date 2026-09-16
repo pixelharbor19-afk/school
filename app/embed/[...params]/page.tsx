@@ -18,7 +18,7 @@ import useSubtitle from "@/hooks/subs";
 import { sourceQueryOptions, QualityTrack, DubTypes } from "@/hooks/source";
 import { cn } from "@/hooks/utils";
 
-import LoadingScreen from "@/app/embed/[...params]/player_components/loading-screen";
+import LoadingScreen from "@/app/embed/[...params]/player_components/loading-screen-branding";
 
 import VideoControls from "./player-controls";
 
@@ -41,6 +41,9 @@ import Pause from "./player_components/overlay-pause";
 import { usePlayerSettings } from "./player_store/settings";
 import { useTrackEmbedder } from "@/hooks/useTrackEmbedder";
 import { PlayerError } from "./player_components/error";
+import LoadingScreen2 from "./player_components/loading-screen-backdrop";
+import BrandLoadingScreen from "@/app/embed/[...params]/player_components/loading-screen-branding";
+import BackdropLoadingScreen from "./player_components/loading-screen-backdrop";
 export default function Embed() {
   const { params } = useParams();
   const router = useRouter();
@@ -58,6 +61,7 @@ export default function Embed() {
     ? requestedServer!
     : "andromeda";
   const color = `#${searchParams.get("color") || "dc2626"}`;
+  const loading = searchParams.get("loading") || "1";
   const autoplayParam = searchParams.get("autoplay") === "true";
   const language = searchParams.get("language") || "en-US";
   const back = searchParams.get("back") === "false";
@@ -549,10 +553,12 @@ export default function Embed() {
       });
 
       hls.on(Hls.Events.ERROR, (_, data) => {
-        if (data.response?.code === 429) {
-          console.log("[PLAYER] Playback rate limited", {
+        if (data.response?.code === 429 && data.url?.includes(".workers.dev")) {
+          console.log("[PLAYER] Worker rate limited", {
+            worker: new URL(data.url).hostname,
             server: servers[serverIndex]?.server,
             source: sourceIndex,
+            type: "hls",
             url: data.url,
           });
         }
@@ -580,6 +586,26 @@ export default function Embed() {
 
       dash.initialize(video, srcLink, true);
 
+      dash.on(
+        dashjs.MediaPlayer.events.FRAGMENT_LOADING_COMPLETED,
+        (event: any) => {
+          const request = event?.request;
+
+          if (
+            request?.responsecode === 429 &&
+            request.url?.includes(".workers.dev")
+          ) {
+            console.log("[PLAYER] Worker chunk rate limited", {
+              worker: new URL(request.url).hostname,
+              server: servers[serverIndex]?.server,
+              source: sourceIndex,
+              type: "dash",
+              url: request.url,
+            });
+          }
+        },
+      );
+
       dash.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
         const representations = dash.getRepresentationsByType("video");
 
@@ -597,7 +623,7 @@ export default function Embed() {
           .setQualities([...new Set(qualities)].sort((a, b) => b - a));
       });
 
-      dash.on(dashjs.MediaPlayer.events.ERROR, () => {
+      dash.on(dashjs.MediaPlayer.events.ERROR, (event) => {
         console.log("[DASH ERROR]", event);
         handleSourceFailed();
       });
@@ -981,18 +1007,34 @@ export default function Embed() {
 
       <Spinner waiting={waiting} canPlay={canPlay} />
 
-      <LoadingScreen
-        color={color}
-        canPlay={canPlay}
-        branding={branding}
-        servers={servers}
-        serverIndex={serverIndex}
-        sourceIndex={sourceIndex}
-        sourceStatus={currentSource?.status ?? "queue"}
-        handleSourceSelect={handleSourceSelect}
-        handleServerSelect={handleServerSelect}
-        back={back}
-      />
+      {loading === "1" ? (
+        <BrandLoadingScreen
+          color={color}
+          canPlay={canPlay}
+          branding={branding}
+          servers={servers}
+          serverIndex={serverIndex}
+          sourceIndex={sourceIndex}
+          sourceStatus={currentSource?.status ?? "queue"}
+          handleSourceSelect={handleSourceSelect}
+          handleServerSelect={handleServerSelect}
+          back={back}
+        />
+      ) : (
+        <BackdropLoadingScreen
+          color={color}
+          canPlay={canPlay}
+          branding={branding}
+          servers={servers}
+          serverIndex={serverIndex}
+          sourceIndex={sourceIndex}
+          sourceStatus={currentSource?.status ?? "queue"}
+          handleSourceSelect={handleSourceSelect}
+          handleServerSelect={handleServerSelect}
+          back={back}
+          metadata={metadata}
+        />
+      )}
 
       <SkipSegment
         className="absolute bottom-27 right-3 z-60 md:bottom-23 md:right-5 lg:bottom-32 lg:right-7 landscape:bottom-20"
