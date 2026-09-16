@@ -916,16 +916,18 @@ export default function Embed() {
       />
     );
   }
+
   if (isMetadataForbidden || isSourceForbidden) {
     return (
       <PlayerError
-        title="VPN Detected"
-        description="Please disable your VPN or proxy connection to continue watching."
-        hint="Turn off your VPN and refresh the page to try again."
+        title="Access Restricted"
+        description="Your connection could not be verified for this request."
+        hint="Try disabling your VPN or proxy, or open the page in a different browser."
         back={back}
       />
     );
   }
+
   if (isMetadataError) {
     return (
       <PlayerError
