@@ -924,7 +924,7 @@ export default function Embed() {
         description="Your connection could not be verified for this request."
         hint="Try disabling your VPN or proxy, or open the page in a different browser."
         back={back}
-        directUrl={`https://vidstuck.xyz/embed/${media_type}/${tmdbId}`}
+        // directUrl={`https://vidstuck.xyz/embed/${media_type}/${tmdbId}`}
       />
     );
   }

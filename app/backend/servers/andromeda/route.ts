@@ -44,15 +44,15 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const referer = req.headers.get("referer") || "";
+  // const referer = req.headers.get("referer") || "";
 
-  if (!isValidReferer(referer)) {
-    logRequest(req, "ANDROMEDA", 403, "invalid referrer");
-    return NextResponse.json(
-      { success: false, error: "Forbidden", server: path },
-      { status: 403 },
-    );
-  }
+  // if (!isValidReferer(referer)) {
+  //   logRequest(req, "ANDROMEDA", 403, "invalid referrer");
+  //   return NextResponse.json(
+  //     { success: false, error: "Forbidden", server: path },
+  //     { status: 403 },
+  //   );
+  // }
 
   try {
     let stream: any;
