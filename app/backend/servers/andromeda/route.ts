@@ -42,39 +42,15 @@ export async function GET(req: NextRequest) {
     );
   }
 
-   const referer = req.headers.get("referer") || "";
-   const validReferer = isValidReferer(referer);
-   const userAgent = req.headers.get("user-agent") || "NONE";
-   const fetchSite = req.headers.get("sec-fetch-site") || "NONE";
-   const fetchMode = req.headers.get("sec-fetch-mode") || "NONE";
-   const fetchDest = req.headers.get("sec-fetch-dest") || "NONE";
+  const referer = req.headers.get("referer") || "";
 
-   let refererOrigin = "NONE";
-
-   try {
-     if (referer) refererOrigin = new URL(referer).origin;
-   } catch {}
-
-   console.log(
-     `[ANDROMEDA] ${tmdbId}/${mediaType}/${season}/${episode} | ` +
-       `REFERRER CHECK | ` +
-       `referer="${referer || "NONE"}" | ` +
-       `origin="${refererOrigin}" | ` +
-       `valid=${validReferer} | ` +
-       `UA="${userAgent}" | ` +
-       `Sec-Fetch-Site="${fetchSite}" | ` +
-       `Sec-Fetch-Mode="${fetchMode}" | ` +
-       `Sec-Fetch-Dest="${fetchDest}" | ` +
-       `IP=${req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"}`,
-   );
-
-   if (!validReferer) {
-     logRequest(req, "ANDROMEDA", 403, "invalid referrer");
-     return NextResponse.json(
-       { success: false, error: "Forbidden", server: path },
-       { status: 403 },
-     );
-   }
+  if (!isValidReferer(referer)) {
+    logRequest(req, "ANDROMEDA", 403, "invalid referrer");
+    return NextResponse.json(
+      { success: false, error: "Forbidden", server: path },
+      { status: 403 },
+    );
+  }
 
   try {
     let stream: any;

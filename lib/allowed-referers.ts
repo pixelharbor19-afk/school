@@ -1,8 +1,8 @@
 const ALLOWED_REFERERS = [
-  "http://192.168.1.4:3000",
-  "http://localhost:3000",
+  "http://192.168.1.4:3000/",
+  "http://localhost:3000/",
   //
-  "https://vidstuck.xyz",
+  "https://vidstuck.xyz/",
 ];
 
 export const ALLOWED_ORIGINS = [
