@@ -44,13 +44,21 @@ export async function GET(req: NextRequest) {
 
   const referer = req.headers.get("referer") || "";
   const validReferer = isValidReferer(referer);
+  const userAgent = req.headers.get("user-agent") || "NONE";
+
+  let refererOrigin = "NONE";
+
+  try {
+    if (referer) refererOrigin = new URL(referer).origin;
+  } catch {}
 
   console.log(
     `[ANDROMEDA] ${tmdbId}/${mediaType}/${season}/${episode} | ` +
       `REFERRER CHECK | ` +
       `referer="${referer || "NONE"}" | ` +
+      `origin="${refererOrigin}" | ` +
       `valid=${validReferer} | ` +
-      `origin="${referer ? new URL(referer).origin : "NONE"}" | ` +
+      `UA="${userAgent}" | ` +
       `IP=${req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"}`,
   );
 
