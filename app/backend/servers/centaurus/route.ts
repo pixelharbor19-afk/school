@@ -65,19 +65,26 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    if (!isValidReferer(req.headers.get("referer") || "")) {
-      logRequest(req, "CENTAURUS", 403, "Forbidden");
+    const referer = req.headers.get("referer") || "";
+    const validReferer = isValidReferer(referer);
+
+    console.log(
+      `[ANDROMEDA] ${tmdbId}/${mediaType}/${season}/${episode} | ` +
+        `REFERRER CHECK | ` +
+        `referer="${referer || "NONE"}" | ` +
+        `valid=${validReferer} | ` +
+        `origin="${referer ? new URL(referer).origin : "NONE"}" | ` +
+        `IP=${req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"}`,
+    );
+
+    if (!validReferer) {
+      logRequest(req, "ANDROMEDA", 403, "invalid referrer");
 
       return NextResponse.json(
-        {
-          success: false,
-          error: "Forbidden",
-          server: path,
-        },
+        { success: false, error: "Forbidden", server: path },
         { status: 403 },
       );
     }
-
     const { data: cached } = await supabase
       .from("moviebox_cache")
       .select("dubs")
