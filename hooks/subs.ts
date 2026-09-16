@@ -62,7 +62,7 @@ export default function useSubtitle({
         `/backend/subtitle?${search.toString()}`,
       );
 
-      return data.subtitles ?? [];
+      return data.captions ?? [];
     },
   });
 }
