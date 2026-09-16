@@ -911,16 +911,16 @@ export default function Embed() {
       />
     );
   }
-  if (isMetadataForbidden || isSourceForbidden) {
-    return (
-      <PlayerError
-        title="VPN Detected"
-        description="Please disable your VPN or proxy connection to continue watching."
-        hint="Turn off your VPN and refresh the page to try again."
-        back={back}
-      />
-    );
-  }
+  // if (isMetadataForbidden || isSourceForbidden) {
+  //   return (
+  //     <PlayerError
+  //       title="VPN Detected"
+  //       description="Please disable your VPN or proxy connection to continue watching."
+  //       hint="Turn off your VPN and refresh the page to try again."
+  //       back={back}
+  //     />
+  //   );
+  // }
   if (isMetadataError) {
     return (
       <PlayerError
