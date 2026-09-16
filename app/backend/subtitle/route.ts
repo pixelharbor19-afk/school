@@ -1,7 +1,9 @@
+import { ALLOWED_ORIGINS } from "@/lib/allowed-referers";
 import { FIELD_MAP } from "@/lib/field-map";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { fetch, ProxyAgent } from "undici";
+
 interface MediaOption {
   id: string;
   display: string;
@@ -17,8 +19,32 @@ const subtitleSupabase = createClient(
   process.env.SUPABASE_URL_SUBTITLE!,
   process.env.SUPABASE_SERVICE_ROLE_KEY_SUBTITLE!,
 );
+
 const residentialProxy = new ProxyAgent(process.env.RESIDENTIAL_PROXY!);
+
+function getCorsHeaders(origin: string | null) {
+  const headers = new Headers({
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  });
+
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    headers.set("Access-Control-Allow-Origin", origin);
+    headers.set("Vary", "Origin");
+  }
+
+  return headers;
+}
+
+export async function OPTIONS(req: NextRequest) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: getCorsHeaders(req.headers.get("origin")),
+  });
+}
+
 export async function GET(req: NextRequest) {
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
   const { searchParams } = req.nextUrl;
 
   const tmdbId = searchParams.get(FIELD_MAP.id);
@@ -32,7 +58,10 @@ export async function GET(req: NextRequest) {
         success: false,
         error: "id is required",
       },
-      { status: 400 },
+      {
+        status: 400,
+        headers: corsHeaders,
+      },
     );
   }
 
@@ -56,9 +85,14 @@ export async function GET(req: NextRequest) {
       .maybeSingle();
 
     if (cached) {
-      return NextResponse.json({
-        captions: cached.captions as MediaOption[],
-      });
+      return NextResponse.json(
+        {
+          captions: cached.captions as MediaOption[],
+        },
+        {
+          headers: corsHeaders,
+        },
+      );
     }
 
     const { data: moviebox, error } = await movieboxSupabase
@@ -81,7 +115,10 @@ export async function GET(req: NextRequest) {
           success: false,
           error: "No valid dub found",
         },
-        { status: 404 },
+        {
+          status: 404,
+          headers: corsHeaders,
+        },
       );
     }
 
@@ -122,7 +159,10 @@ export async function GET(req: NextRequest) {
           status: response.status,
           data,
         },
-        { status: response.status },
+        {
+          status: response.status,
+          headers: corsHeaders,
+        },
       );
     }
 
@@ -148,9 +188,14 @@ export async function GET(req: NextRequest) {
       },
     );
 
-    return NextResponse.json({
-      captions,
-    });
+    return NextResponse.json(
+      {
+        captions,
+      },
+      {
+        headers: corsHeaders,
+      },
+    );
   } catch (error) {
     console.error("API error:", error);
 
@@ -159,7 +204,10 @@ export async function GET(req: NextRequest) {
         success: false,
         error: error instanceof Error ? error.message : "Request failed",
       },
-      { status: 500 },
+      {
+        status: 500,
+        headers: corsHeaders,
+      },
     );
   }
 }
