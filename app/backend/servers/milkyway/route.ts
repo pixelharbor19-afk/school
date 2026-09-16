@@ -18,15 +18,7 @@ const STREAMDATA_URL = "https://streamdata.vaplayer.ru/api.php";
 
 export async function GET(req: NextRequest) {
   const path = req.nextUrl.pathname.split("/").pop()!;
-  console.log(
-    `[REF DEBUG] ` +
-      `referer="${req.headers.get("referer") || "NONE"}" | ` +
-      `origin="${req.headers.get("origin") || "NONE"}" | ` +
-      `sec-fetch-site="${req.headers.get("sec-fetch-site") || "NONE"}" | ` +
-      `sec-fetch-mode="${req.headers.get("sec-fetch-mode") || "NONE"}" | ` +
-      `ua="${req.headers.get("user-agent") || "NONE"}" | ` +
-      `ip="${req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"}"`,
-  );
+
   try {
     const tmdbId = req.nextUrl.searchParams.get(FIELD_MAP.id);
     const mediaType = req.nextUrl.searchParams.get(FIELD_MAP.mediaType);
@@ -54,14 +46,14 @@ export async function GET(req: NextRequest) {
         { status: 401 },
       );
     }
-    const referer = req.headers.get("referer") || "";
-    if (!isValidReferer(referer)) {
-      logRequest(req, "MILKY WAY", 401, "invalid referrer");
-      return NextResponse.json(
-        { success: false, error: "Forbidden", server: path },
-        { status: 403 },
-      );
-    }
+    // const referer = req.headers.get("referer") || "";
+    // if (!isValidReferer(referer)) {
+    //   logRequest(req, "MILKY WAY", 401, "invalid referrer");
+    //   return NextResponse.json(
+    //     { success: false, error: "Forbidden", server: path },
+    //     { status: 403 },
+    //   );
+    // }
     // -------- Cache Lookup --------
     let streamUrls: string[];
     let subtitles: any[];

@@ -14,15 +14,8 @@ const supabase = createClient(
 );
 
 export async function GET(req: NextRequest) {
-  console.log(
-    `[REF DEBUG] ` +
-      `referer="${req.headers.get("referer") || "NONE"}" | ` +
-      `origin="${req.headers.get("origin") || "NONE"}" | ` +
-      `sec-fetch-site="${req.headers.get("sec-fetch-site") || "NONE"}" | ` +
-      `sec-fetch-mode="${req.headers.get("sec-fetch-mode") || "NONE"}" | ` +
-      `ua="${req.headers.get("user-agent") || "NONE"}" | ` +
-      `ip="${req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"}"`,
-  );
+
+  
   const { searchParams, pathname } = req.nextUrl;
 
   const tmdbId = searchParams.get(FIELD_MAP.id);
@@ -51,15 +44,15 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const referer = req.headers.get("referer") || "";
+  // const referer = req.headers.get("referer") || "";
 
-  if (!isValidReferer(referer)) {
-    logRequest(req, "ANDROMEDA", 403, "invalid referrer");
-    return NextResponse.json(
-      { success: false, error: "Forbidden", server: path },
-      { status: 403 },
-    );
-  }
+  // if (!isValidReferer(referer)) {
+  //   logRequest(req, "ANDROMEDA", 403, "invalid referrer");
+  //   return NextResponse.json(
+  //     { success: false, error: "Forbidden", server: path },
+  //     { status: 403 },
+  //   );
+  // }
 
   try {
     let stream: any;

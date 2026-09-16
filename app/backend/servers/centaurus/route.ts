@@ -16,15 +16,7 @@ const supabase = createClient(
 export async function GET(req: NextRequest) {
   const { searchParams, pathname } = req.nextUrl;
   const path = pathname.split("/").pop()!;
-  console.log(
-    `[REF DEBUG] ` +
-      `referer="${req.headers.get("referer") || "NONE"}" | ` +
-      `origin="${req.headers.get("origin") || "NONE"}" | ` +
-      `sec-fetch-site="${req.headers.get("sec-fetch-site") || "NONE"}" | ` +
-      `sec-fetch-mode="${req.headers.get("sec-fetch-mode") || "NONE"}" | ` +
-      `ua="${req.headers.get("user-agent") || "NONE"}" | ` +
-      `ip="${req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"}"`,
-  );
+
   try {
     const tmdbId = searchParams.get(FIELD_MAP.id);
     const mediaType = searchParams.get(FIELD_MAP.mediaType);
@@ -73,18 +65,18 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    if (!isValidReferer(req.headers.get("referer") || "")) {
-      logRequest(req, "CENTAURUS", 403, "Forbidden");
+    // if (!isValidReferer(req.headers.get("referer") || "")) {
+    //   logRequest(req, "CENTAURUS", 403, "Forbidden");
 
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Forbidden",
-          server: path,
-        },
-        { status: 403 },
-      );
-    }
+    //   return NextResponse.json(
+    //     {
+    //       success: false,
+    //       error: "Forbidden",
+    //       server: path,
+    //     },
+    //     { status: 403 },
+    //   );
+    // }
 
     const { data: cached } = await supabase
       .from("moviebox_cache")
@@ -309,7 +301,7 @@ export async function GET(req: NextRequest) {
       sourceType = "mp4";
     } else {
       logRequest(req, "CENTAURUS", 404, "No sources found");
-
+     
       return NextResponse.json(
         {
           success: false,
