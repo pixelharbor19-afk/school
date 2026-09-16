@@ -65,18 +65,18 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // if (!isValidReferer(req.headers.get("referer") || "")) {
-    //   logRequest(req, "CENTAURUS", 403, "Forbidden");
+    if (!isValidReferer(req.headers.get("referer") || "")) {
+      logRequest(req, "CENTAURUS", 403, "Forbidden");
 
-    //   return NextResponse.json(
-    //     {
-    //       success: false,
-    //       error: "Forbidden",
-    //       server: path,
-    //     },
-    //     { status: 403 },
-    //   );
-    // }
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Forbidden",
+          server: path,
+        },
+        { status: 403 },
+      );
+    }
 
     const { data: cached } = await supabase
       .from("moviebox_cache")
@@ -301,7 +301,7 @@ export async function GET(req: NextRequest) {
       sourceType = "mp4";
     } else {
       logRequest(req, "CENTAURUS", 404, "No sources found");
-      console.log(scraped);
+
       return NextResponse.json(
         {
           success: false,

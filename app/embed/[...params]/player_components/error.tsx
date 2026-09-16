@@ -40,23 +40,25 @@ export function PlayerError({
         </button>
       )}
       <div className="relative z-10 flex w-full max-w-lg flex-col items-center px-6 text-center">
-        <h1 className="text-3xl font-semibold tracking-tight text-white text-shadow-lg md:text-4xl">
+        <h1 className="md:text-4xl text-lg font-semibold tracking-tight text-white text-shadow-lg">
           {title}
         </h1>
 
-        <p className="mt-4 max-w-md text-sm leading-6 text-white/45 text-shadow-md md:text-base">
+        <p className="md:mt-4 mt-2 max-w-md text-sm leading-6 text-white/45 text-shadow-md md:text-base ">
           {description}
         </p>
 
-        <div className="my-8 h-px w-16 bg-white/10" />
+        <div className="md:my-8 my-4 h-px w-16 bg-white/10" />
 
-        <p className="text-sm text-white/25 text-shadow-sm">{hint}</p>
+        <p className="md:text-sm text-xs text-white/25 text-shadow-sm">
+          {hint}
+        </p>
 
         <a
           href={DISCORD_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-6 text-sm font-medium text-[#5865F2] transition-colors hover:text-[#7289DA]"
+          className="md:mt-6 mt-3 md:text-sm text-xs font-medium text-[#5865F2] transition-colors hover:text-[#7289DA]"
         >
           Join our Discord
         </a>

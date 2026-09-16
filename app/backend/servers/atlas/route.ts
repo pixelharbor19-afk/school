@@ -41,14 +41,14 @@ export async function GET(req: NextRequest) {
       { status: 401 },
     );
   }
-  // const referer = req.headers.get("referer") || "";
-  // if (!isValidReferer(referer)) {
-  //   logRequest(req, "ATLAS", 401, "invalid referrer");
-  //   return NextResponse.json(
-  //     { success: false, error: "Forbidden", server: path },
-  //     { status: 403 },
-  //   );
-  // }
+  const referer = req.headers.get("referer") || "";
+  if (!isValidReferer(referer)) {
+    logRequest(req, "ATLAS", 401, "invalid referrer");
+    return NextResponse.json(
+      { success: false, error: "Forbidden", server: path },
+      { status: 403 },
+    );
+  }
 
   try {
     const { data: cached } = await supabase

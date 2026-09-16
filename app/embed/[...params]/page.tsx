@@ -895,7 +895,7 @@ export default function Embed() {
     setTracked(true);
   }, [isLoading, isSandboxed, playing, tracked]);
 
-  if (isSandboxed) {
+  if (!isSandboxed) {
     return (
       <PlayerError
         title="Sandbox Detected"
