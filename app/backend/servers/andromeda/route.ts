@@ -66,8 +66,10 @@ export async function GET(req: NextRequest) {
       .gt("expires_at", new Date().toISOString())
       .maybeSingle();
 
+    let cacheStatus = "CACHE MISS";
+
     if (cached) {
-      logRequest(req, "ANDROMEDA", 200, "CACHE HIT");
+      cacheStatus = "CACHE HIT";
 
       stream = {
         type: "dash",
@@ -142,8 +144,6 @@ export async function GET(req: NextRequest) {
           },
         );
       }
-
-      logRequest(req, "ANDROMEDA", 200, "CACHE MISS");
     }
 
     const links = [];
@@ -200,7 +200,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    logRequest(req, "ANDROMEDA", 200, "OK");
+    logRequest(req, "ANDROMEDA", 200, cacheStatus);
 
     return NextResponse.json({
       success: true,
