@@ -924,10 +924,23 @@ export default function Embed() {
         description="Your connection could not be verified for this request."
         hint="Try disabling your VPN or proxy, or open the page in a different browser."
         back={back}
-        // directUrl={`https://vidstuck.xyz/embed/${media_type}/${tmdbId}`}
       />
     );
   }
+
+  // if (!isNoReferrer || !isSourceNoReferer) {
+  //   return (
+  //     <PlayerError
+  //       title="Access Restricted"
+  //       description="This browser doesn't allow the embedded player to verify your connection."
+  //       hint="Copy the link below and paste it into Safari or another browser to open the player directly."
+  //       back={back}
+  //       directUrl={`https://vidstuck.xyz/embed/${media_type}/${tmdbId}${
+  //         media_type === "tv" ? `?season=${season}&episode=${episode}` : ""
+  //       }`}
+  //     />
+  //   );
+  // }
 
   if (isMetadataError) {
     return (
