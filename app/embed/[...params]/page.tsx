@@ -172,12 +172,17 @@ export default function Embed() {
     ),
   });
 
+  const activatedResults = results.filter((_, index) =>
+    activatedServers.includes(SERVERS[index].server),
+  );
+
   const isSourceRateLimited =
-    results.length > 0 &&
-    results.every((result) => result.error?.response?.status === 429);
+    activatedResults.length > 0 &&
+    activatedResults.every((result) => result.error?.response?.status === 429);
+
   const isSourceForbidden =
-    results.length > 0 &&
-    results.every((result) => result.error?.response?.status === 403);
+    activatedResults.length > 0 &&
+    activatedResults.every((result) => result.error?.response?.status === 403);
 
   /*
    * Build the server list from each server's
@@ -252,9 +257,9 @@ export default function Embed() {
     [results, metadataLoad, activatedServers, sourceStatuses],
   );
 
-  const noWorkingServers = servers.every(
-    (server) => server.status === "failed",
-  );
+  const noWorkingServers =
+    activatedServers.length === SERVERS.length &&
+    servers.every((server) => server.status === "failed");
 
   /*
    * Current server.
@@ -911,16 +916,16 @@ export default function Embed() {
       />
     );
   }
-  // if (isMetadataForbidden || isSourceForbidden) {
-  //   return (
-  //     <PlayerError
-  //       title="VPN Detected"
-  //       description="Please disable your VPN or proxy connection to continue watching."
-  //       hint="Turn off your VPN and refresh the page to try again."
-  //       back={back}
-  //     />
-  //   );
-  // }
+  if (isMetadataForbidden || isSourceForbidden) {
+    return (
+      <PlayerError
+        title="VPN Detected"
+        description="Please disable your VPN or proxy connection to continue watching."
+        hint="Turn off your VPN and refresh the page to try again."
+        back={back}
+      />
+    );
+  }
   if (isMetadataError) {
     return (
       <PlayerError
