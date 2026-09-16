@@ -1,5 +1,6 @@
 import { cn } from "@/hooks/utils";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ExternalLink } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 interface PlayerErrorProps {
@@ -7,6 +8,7 @@ interface PlayerErrorProps {
   description: string;
   hint: string;
   back: boolean;
+  directUrl?: string;
 }
 
 const DISCORD_URL = "https://discord.gg/bgVHdHgHCe";
@@ -16,6 +18,7 @@ export function PlayerError({
   description,
   hint,
   back,
+  directUrl,
 }: PlayerErrorProps) {
   const router = useRouter();
   return (
@@ -47,21 +50,33 @@ export function PlayerError({
         <p className="md:mt-4 mt-2 max-w-md text-sm leading-6 text-white/45 text-shadow-md md:text-base ">
           {description}
         </p>
-
-        <div className="md:my-8 my-4 h-px w-16 bg-white/10" />
+        <div className="md:my-8 my-4">
+          {directUrl ? (
+            <Link
+              href={directUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className=" text-sm font-medium text-white underline underline-offset-4 flex items-center gap-2"
+            >
+              Open player directly <ExternalLink className="size-4" />
+            </Link>
+          ) : (
+            <div className=" h-px w-16 bg-white/10" />
+          )}
+        </div>
 
         <p className="md:text-sm text-xs text-white/25 text-shadow-sm">
           {hint}
         </p>
 
-        <a
+        <Link
           href={DISCORD_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="md:mt-6 mt-3 md:text-sm text-xs font-medium text-[#5865F2] transition-colors hover:text-[#7289DA]"
         >
           Join our Discord
-        </a>
+        </Link>
       </div>
     </div>
   );
