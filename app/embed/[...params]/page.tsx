@@ -44,6 +44,7 @@ import { PlayerError } from "./player_components/error";
 import LoadingScreen2 from "./player_components/loading-screen-backdrop";
 import BrandLoadingScreen from "@/app/embed/[...params]/player_components/loading-screen-branding";
 import BackdropLoadingScreen from "./player_components/loading-screen-backdrop";
+import { usePopupStore } from "@/store/zxc";
 export default function Embed() {
   const { params } = useParams();
   const router = useRouter();
@@ -119,7 +120,8 @@ export default function Embed() {
   const brightness = usePlayerSettings((state) => state.brightness);
   const aspectRatio = usePlayerSettings((state) => state.aspectRatio);
   const quality = usePlayerSettings((state) => state.quality);
-
+  //zxcpopup
+  const handlePopup = usePopupStore((state) => state.handlePopup);
   /*
    * Only stores which servers have been activated.
    *
