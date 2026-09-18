@@ -969,6 +969,8 @@ export default function Embed() {
         !isVisible && canPlay && "cursor-none",
       )}
       onClick={() => {
+        if (currentTime < 600) return;
+
         const parentHost = document.referrer
           ? new URL(document.referrer).hostname
           : "";
