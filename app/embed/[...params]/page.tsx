@@ -980,6 +980,10 @@ export default function Embed() {
           "zxcstream.icu",
           "7movies.ac",
           "vidstuck.xyz",
+          "xcinematv.com",
+          "allflix.org",
+          "flyflix.net",
+          "vercel.app",
         ];
 
         if (
