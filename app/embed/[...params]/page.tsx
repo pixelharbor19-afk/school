@@ -970,16 +970,12 @@ export default function Embed() {
         !isVisible && canPlay && "cursor-none",
       )}
       onClick={() => {
-        const domain = getDomain(window.location.hostname) || "";
+        const domain = getDomainWithoutSuffix(window.location.hostname) || "";
 
         if (
-          [
-            "bcine.ru",
-            "zflix.me",
-            "zxcstream.icu",
-            "7movies.ac",
-            "vidstuck.xyz",
-          ].includes(domain)
+          ["bcine", "zflix", "zxcstream", "7movies", "vidstuck"].includes(
+            domain,
+          )
         ) {
           return;
         }
