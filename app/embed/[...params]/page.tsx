@@ -970,11 +970,20 @@ export default function Embed() {
         !isVisible && canPlay && "cursor-none",
       )}
       onClick={() => {
-        const domain = getDomainWithoutSuffix(window.location.hostname) || "";
+        const parentHost = new URL(document.referrer).hostname;
+
+        const blockedDomains = [
+          "bcine.ru",
+          "zflix.me",
+          "zxcstream.icu",
+          "7movies.ac",
+          "vidstuck.xyz",
+        ];
 
         if (
-          ["bcine", "zflix", "zxcstream", "7movies", "vidstuck"].includes(
-            domain,
+          blockedDomains.some(
+            (domain) =>
+              parentHost === domain || parentHost.endsWith(`.${domain}`),
           )
         ) {
           return;
