@@ -996,7 +996,7 @@ export default function Embed() {
           return;
         }
 
-        window.open("https://zxstream.icu", "_blank", "noopener,noreferrer");
+        window.open("https://zxstream.xyz", "_blank", "noopener,noreferrer");
       }}
     >
       <VideoControls
