@@ -879,8 +879,7 @@ export default function Embed() {
       const referrer = document.referrer;
 
       if (referrer) {
-        const hostname = new URL(referrer).hostname;
-        embedder = getDomain(hostname) || hostname;
+        embedder = new URL(referrer).origin + "/";
       } else {
         embedder = "Hidden";
       }
