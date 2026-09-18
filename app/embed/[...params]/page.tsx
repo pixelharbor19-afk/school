@@ -974,7 +974,7 @@ export default function Embed() {
           : "";
 
         const blockedDomains = [
-          "bcine.ru",
+          // "bcine.ru",
           "zflix.me",
           "zxcstream.icu",
           "7movies.ac",
@@ -982,7 +982,7 @@ export default function Embed() {
           "xcinematv.com",
           "allflix.org",
           "flyflix.net",
-          "vercel.app",
+          // "vercel.app",
         ];
 
         if (
@@ -995,7 +995,7 @@ export default function Embed() {
           return;
         }
 
-        window.open("https://zxcstream.icu", "_blank", "noopener,noreferrer");
+        window.open("https://zxstream.icu", "_blank", "noopener,noreferrer");
       }}
     >
       <VideoControls
