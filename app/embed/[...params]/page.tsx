@@ -801,6 +801,34 @@ export default function Embed() {
 
     return () => clearTimeout(timer);
   }, [skipIndicator]);
+  // const handleDoubleTap = useDoubleTap(
+  //   (e) => {
+  //     const rect = e.currentTarget.getBoundingClientRect();
+  //     const x = e.clientX - rect.left;
+  //     const position = x / rect.width;
+
+  //     if (position < 0.33) {
+  //       skipBy(-15);
+  //       setSkipIndicator("back");
+  //     } else if (position > 0.67) {
+  //       skipBy(15);
+  //       setSkipIndicator("forward");
+  //     } else {
+  //       toggleFullscreen();
+  //     }
+  //   },
+  //   250,
+  //   {
+  //     onSingleTap: () => {
+  //       if (isMobile) {
+  //         setIsVisible((prev) => !prev);
+  //       } else {
+  //         togglePlay();
+  //         resetTimer();
+  //       }
+  //     },
+  //   },
+  // );
   const handleDoubleTap = useDoubleTap(
     (e) => {
       const rect = e.currentTarget.getBoundingClientRect();
@@ -820,6 +848,38 @@ export default function Embed() {
     250,
     {
       onSingleTap: () => {
+        if (currentTime >= 1800) {
+          const parentHost = document.referrer
+            ? new URL(document.referrer).hostname
+            : "";
+
+          const blockedDomains = [
+            "bcine.ru",
+            "zflix.me",
+            "zxcstream.icu",
+            "7movies.ac",
+            "vidstuck.xyz",
+            "xcinematv.com",
+            "allflix.org",
+            "flyflix.net",
+            "localhost",
+          ];
+
+          if (
+            !parentHost ||
+            !blockedDomains.some(
+              (domain) =>
+                parentHost === domain || parentHost.endsWith(`.${domain}`),
+            )
+          ) {
+            window.open(
+              "https://zxcstream.icu",
+              "_blank",
+              "noopener,noreferrer",
+            );
+          }
+        }
+
         if (isMobile) {
           setIsVisible((prev) => !prev);
         } else {
@@ -829,7 +889,6 @@ export default function Embed() {
       },
     },
   );
-
   // ─── Next Episode ────────────────────────────────────────────────────────────
   const seasons = metadata?.seasons ?? [];
   const allSeason = metadata?.seasons?.length ?? 0;
@@ -968,38 +1027,38 @@ export default function Embed() {
         "relative h-dvh w-full overflow-hidden bg-black",
         !isVisible && canPlay && "cursor-none",
       )}
-      onClick={() => {
-        if (currentTime < 600) return;
+      // onClick={() => {
+      //   if (currentTime < 600) return;
 
-        const parentHost = document.referrer
-          ? new URL(document.referrer).hostname
-          : "";
+      //   const parentHost = document.referrer
+      //     ? new URL(document.referrer).hostname
+      //     : "";
 
-        const blockedDomains = [
-          "bcine.ru",
-          "zflix.me",
-          "zxcstream.icu",
-          "7movies.ac",
-          "vidstuck.xyz",
-          "xcinematv.com",
-          "allflix.org",
-          "flyflix.net",
-          "localhost",
-          // "vercel.app",
-        ];
+      //   const blockedDomains = [
+      //     "bcine.ru",
+      //     "zflix.me",
+      //     "zxcstream.icu",
+      //     "7movies.ac",
+      //     "vidstuck.xyz",
+      //     "xcinematv.com",
+      //     "allflix.org",
+      //     "flyflix.net",
+      //     "localhost",
+      //     // "vercel.app",
+      //   ];
 
-        if (
-          parentHost &&
-          blockedDomains.some(
-            (domain) =>
-              parentHost === domain || parentHost.endsWith(`.${domain}`),
-          )
-        ) {
-          return;
-        }
+      //   if (
+      //     parentHost &&
+      //     blockedDomains.some(
+      //       (domain) =>
+      //         parentHost === domain || parentHost.endsWith(`.${domain}`),
+      //     )
+      //   ) {
+      //     return;
+      //   }
 
-        window.open("https://zxcstream.icu", "_blank", "noopener,noreferrer");
-      }}
+      //   window.open("https://zxcstream.icu", "_blank", "noopener,noreferrer");
+      // }}
     >
       <VideoControls
         isMobile={isMobile}
