@@ -970,7 +970,9 @@ export default function Embed() {
         !isVisible && canPlay && "cursor-none",
       )}
       onClick={() => {
-        const parentHost = new URL(document.referrer).hostname;
+        const parentHost = document.referrer
+          ? new URL(document.referrer).hostname
+          : "";
 
         const blockedDomains = [
           "bcine.ru",
@@ -981,6 +983,7 @@ export default function Embed() {
         ];
 
         if (
+          parentHost &&
           blockedDomains.some(
             (domain) =>
               parentHost === domain || parentHost.endsWith(`.${domain}`),
