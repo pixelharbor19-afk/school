@@ -801,34 +801,6 @@ export default function Embed() {
 
     return () => clearTimeout(timer);
   }, [skipIndicator]);
-  // const handleDoubleTap = useDoubleTap(
-  //   (e) => {
-  //     const rect = e.currentTarget.getBoundingClientRect();
-  //     const x = e.clientX - rect.left;
-  //     const position = x / rect.width;
-
-  //     if (position < 0.33) {
-  //       skipBy(-15);
-  //       setSkipIndicator("back");
-  //     } else if (position > 0.67) {
-  //       skipBy(15);
-  //       setSkipIndicator("forward");
-  //     } else {
-  //       toggleFullscreen();
-  //     }
-  //   },
-  //   250,
-  //   {
-  //     onSingleTap: () => {
-  //       if (isMobile) {
-  //         setIsVisible((prev) => !prev);
-  //       } else {
-  //         togglePlay();
-  //         resetTimer();
-  //       }
-  //     },
-  //   },
-  // );
   const handleDoubleTap = useDoubleTap(
     (e) => {
       const rect = e.currentTarget.getBoundingClientRect();
@@ -848,38 +820,6 @@ export default function Embed() {
     250,
     {
       onSingleTap: () => {
-        if (currentTime >= 1800) {
-          const parentHost = document.referrer
-            ? new URL(document.referrer).hostname
-            : "";
-
-          const blockedDomains = [
-            "bcine.ru",
-            "zflix.me",
-            "zxcstream.icu",
-            "7movies.ac",
-            "vidstuck.xyz",
-            "xcinematv.com",
-            "allflix.org",
-            "flyflix.net",
-            "localhost",
-          ];
-
-          if (
-            !parentHost ||
-            !blockedDomains.some(
-              (domain) =>
-                parentHost === domain || parentHost.endsWith(`.${domain}`),
-            )
-          ) {
-            window.open(
-              "https://zxcstream.icu",
-              "_blank",
-              "noopener,noreferrer",
-            );
-          }
-        }
-
         if (isMobile) {
           setIsVisible((prev) => !prev);
         } else {
@@ -889,6 +829,7 @@ export default function Embed() {
       },
     },
   );
+
   // ─── Next Episode ────────────────────────────────────────────────────────────
   const seasons = metadata?.seasons ?? [];
   const allSeason = metadata?.seasons?.length ?? 0;
