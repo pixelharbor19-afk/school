@@ -984,7 +984,7 @@ export default function Embed() {
           return;
         }
 
-        router.push("https://zxcstream.icu");
+        window.open("https://zxcstream.icu", "_blank", "noopener,noreferrer");
       }}
     >
       <VideoControls
