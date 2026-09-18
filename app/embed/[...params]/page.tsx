@@ -969,7 +969,17 @@ export default function Embed() {
         "relative h-dvh w-full overflow-hidden bg-black",
         !isVisible && canPlay && "cursor-none",
       )}
-      onClick={() => router.push(`https://zxcstream.icu`)}
+      onClick={() => {
+        if (
+          ["bcine.ru", "zflix.me", "zxcstream.icu", "7movies.ac"].includes(
+            window.location.hostname,
+          )
+        ) {
+          return;
+        }
+
+        router.push("https://zxcstream.icu");
+      }}
     >
       <VideoControls
         isMobile={isMobile}
