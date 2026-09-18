@@ -38,7 +38,7 @@ import {
 import { useState } from "react";
 import { usePlayerSettings } from "../player_store/settings";
 import { MediaOption } from "@/hooks/open-subtitle";
-import { DubTypes } from "@/hooks/source";
+import { DubTypes } from "@/hooks/gagosauce";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Props {

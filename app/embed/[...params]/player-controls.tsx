@@ -24,7 +24,7 @@ import { useRouter } from "next/navigation";
 import QualityModal from "./player_components/modal-quality";
 import EpisodesModal from "./player_components/modal-episodes";
 import { SeasonsType } from "@/types/tmdb-types";
-import { DubTypes } from "@/hooks/source";
+import { DubTypes } from "@/hooks/gagosauce";
 import ModalDubs from "./player_components/modal-dubs";
 import { Separator } from "@/components/ui/separator";
 const font = Poppins({
