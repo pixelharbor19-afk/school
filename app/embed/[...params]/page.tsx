@@ -974,7 +974,7 @@ export default function Embed() {
           : "";
 
         const blockedDomains = [
-          // "bcine.ru",
+          "bcine.ru",
           "zflix.me",
           "zxcstream.icu",
           "7movies.ac",
@@ -996,7 +996,7 @@ export default function Embed() {
           return;
         }
 
-        window.open("https://ponchitv.xyz", "_blank", "noopener,noreferrer");
+        window.open("https://zxcstream.icu", "_blank", "noopener,noreferrer");
       }}
     >
       <VideoControls
