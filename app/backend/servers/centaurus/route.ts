@@ -101,7 +101,7 @@ export async function GET(req: NextRequest) {
       }
 
       const searchRes = await fetch(
-        `https://api1.zxcstream.xyz/search-moviebox?${searchParams.toString()}`,
+        `https://vidstuck.xyz/backend/database/search-moviebox?${searchParams.toString()}`,
         {
           cache: "no-store",
         },
@@ -262,7 +262,7 @@ export async function GET(req: NextRequest) {
     params.set("streamSignType", "1");
 
     const res = await fetch(
-      `https://api1.zxcstream.xyz/moviebox?${params.toString()}`,
+      `https://vidstuck.xyz/backend/database/moviebox?${params.toString()}`,
       {
         cache: "no-store",
       },
@@ -301,7 +301,7 @@ export async function GET(req: NextRequest) {
       sourceType = "mp4";
     } else {
       logRequest(req, "CENTAURUS", 404, "No sources found");
-     
+
       return NextResponse.json(
         {
           success: false,

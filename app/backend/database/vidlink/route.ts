@@ -4,6 +4,8 @@ import { fetch, ProxyAgent } from "undici";
 const ENC_DEC_API = "https://enc-dec.app/api";
 const VIDLINK_API = "https://vidlink.pro/api/b";
 
+const residentialProxy = new ProxyAgent(process.env.RESIDENTIAL_PROXY!);
+
 const HEADERS = {
   "User-Agent":
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
@@ -12,8 +14,6 @@ const HEADERS = {
 };
 
 export async function GET(request: NextRequest) {
-  const residentialProxy = new ProxyAgent(process.env.RESIDENTIAL_PROXY!);
-
   const url = new URL(request.url);
 
   const tmdbId = url.searchParams.get("tmdbId");
