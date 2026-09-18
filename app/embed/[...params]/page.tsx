@@ -982,6 +982,7 @@ export default function Embed() {
           "xcinematv.com",
           "allflix.org",
           "flyflix.net",
+          "localhost",
           // "vercel.app",
         ];
 
