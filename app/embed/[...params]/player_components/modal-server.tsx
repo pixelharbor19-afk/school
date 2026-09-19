@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/hooks/utils";
+import { VscSourceControl } from "react-icons/vsc";
+import { IoMdCloudy } from "react-icons/io";
 import {
   Airplay,
   Check,
@@ -67,13 +69,10 @@ export default function ServerModal({
           <button
             type="button"
             className={cn(
-              "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
+              "cursor-pointer text-foreground/90 hover:text-foreground",
             )}
           >
-            <Airplay
-              className="md:size-7 size-6 text-shadow-md"
-              strokeWidth={2.5}
-            />
+            <IoMdCloudy className="md:size-12 sm:10 size-8" />
           </button>
         }
       />

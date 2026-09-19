@@ -1,17 +1,10 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import {
-  ChevronLeft,
-  Maximize,
-  Pause,
-  Play,
-  SkipForward,
-  Volume2,
-  VolumeX,
-} from "lucide-react";
+import { ChevronLeft, SkipForward } from "lucide-react";
+import { IoMdPause } from "react-icons/io";
+import { AiOutlineFullscreen } from "react-icons/ai";
 import { cn } from "@/hooks/utils";
-import { Poppins } from "next/font/google";
 import { IntroType } from "@/hooks/intro";
 import { useState } from "react";
 import SubtitleModal from "./player_components/modal-subtitle";
@@ -26,11 +19,13 @@ import EpisodesModal from "./player_components/modal-episodes";
 import { SeasonsType } from "@/types/tmdb-types";
 import { DubTypes } from "@/hooks/gagosauce";
 import ModalDubs from "./player_components/modal-dubs";
-import { Separator } from "@/components/ui/separator";
-const font = Poppins({
-  weight: "400",
-  subsets: ["latin"],
-});
+import {
+  RiVolumeUpFill,
+  RiVolumeMuteFill,
+  RiPlayLargeFill,
+  RiReplay15Fill,
+  RiForward15Fill,
+} from "react-icons/ri";
 
 type Props = {
   isMobile: boolean;
@@ -85,6 +80,7 @@ type Props = {
   dubs: DubTypes[];
   selectedDub?: DubTypes;
   onDubChange: (dub: DubTypes) => void;
+  skipBy: (skip: number) => void;
 };
 
 export default function VideoControls({
@@ -143,6 +139,7 @@ export default function VideoControls({
   dubs,
   selectedDub,
   onDubChange,
+  skipBy,
 }: Props) {
   const router = useRouter();
   const [hoverTime, setHoverTime] = useState<number | null>(null);
@@ -163,7 +160,6 @@ export default function VideoControls({
             "absolute inset-0 pointer-events-none flex flex-col justify-between",
             "bg-linear-to-t from-black/80 via-transparent to-black/40 select-none",
             "z-30",
-            font.className,
           )}
         >
           <motion.div
@@ -176,7 +172,7 @@ export default function VideoControls({
             onPointerDown={lockTimer}
             // onMouseLeave={!isMobile ? resetTimer : undefined}
           >
-            <div className="flex md:gap-4 gap-3">
+            <div className="flex md:gap-4 gap-3 items-center">
               {!back && (
                 <button
                   onClick={() => router.back()}
@@ -186,24 +182,17 @@ export default function VideoControls({
                   )}
                 >
                   <ChevronLeft
-                    className="md:size-8 size-6 text-foreground/80 hover:text-foreground cursor-pointer"
+                    className="lg:size-12 md:size-10 size-8 text-foreground/80 hover:text-foreground cursor-pointer"
                     strokeWidth={3}
                   />
                 </button>
               )}
-
-              <Separator
-                orientation="vertical"
-                style={{ backgroundColor: color }}
-              />
-              <span className="text-left text-shadow-2xl">
-                <p className="md:text-sm text-xs text-muted-foreground">
+              <div className="sm:hidden">
+                <h3 className="text-xs text-muted-foreground">
                   You're Watching
-                </p>
-                <h1 className="tracking-wide font-bold md:text-xl text-sm line-clamp-1">
-                  {title}
-                </h1>
-              </span>
+                </h3>
+                <h1>{title}</h1>
+              </div>
             </div>
             <div className="flex-1" />
 
@@ -213,7 +202,7 @@ export default function VideoControls({
                 "text-shadow-lg transition-opacity hover:opacity-70",
               )}
             >
-              <Settings className="md:size-7 size-6" />
+              <Settings className="md:size-10 size-6" />
               <h1 className="text-sm tracking-wide text-white/80">Settings</h1>
             </button> */}
             {media_type === "tv" && (
@@ -239,27 +228,28 @@ export default function VideoControls({
             />
           </motion.div>
 
-          {/* <div className="p-4">
-            <button
-              onClick={toggleFullscreen}
-              className="flex items-center gap-3 transition-opacity hover:opacity-70"
-            >
-              <Unlock className="md:size-7 size-6" strokeWidth={2.5} />
-              <h1>Tap to Lock</h1>
-            </button>
-          </div> */}
-
           <motion.div
             initial={{ y: 30 }}
             animate={{ y: 0 }}
             exit={{ y: 30 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="md:px-6 px-4 md:py-8 py-6 landscape:py-2 landscape:px-2 pointer-events-auto flex flex-col items-center md:gap-6 gap-3 landscape:gap-1.5"
+            className="md:px-6 px-4 md:py-8 py-6 landscape:py-2 landscape:px-2 pointer-events-auto flex flex-col  md:gap-5 gap-3 landscape:gap-1.5"
             onPointerMove={lockTimer}
             onPointerDown={lockTimer}
           >
+            <div className="md:p-2 hidden sm:block">
+              <h3 className="lg:text-lg sm:text-base text-xs text-muted-foreground">
+                You're Watching
+              </h3>
+              <h1 className="lg:text-3xl sm:text-2xl  text-lg font-bold mt-1">
+                {title}
+              </h1>
+            </div>
             {/* Progress */}
-            <div className="w-full">
+            <div className="w-full flex gap-3 items-center p-1">
+              <span className="text-foreground/80 hidden sm:block text-sm md:text-base">
+                {formatTime(currentTime)}
+              </span>
               <div className="group flex items-center gap-3 px-1 w-full">
                 <div
                   ref={progressRef}
@@ -561,22 +551,11 @@ export default function VideoControls({
                 </div>
               </div>
 
-              <div
-                className={cn(
-                  "sm:hidden flex items-center gap-2 w-full justify-between tabular-nums font-medium text-xs tracking-wide p-1 font-sans",
-                )}
-              >
-                <span className="text-foreground/80">
-                  {formatTime(currentTime)}
-                </span>
-
-                <span className="text-foreground/80">
-                  {formatTime(duration)}
-                </span>
-              </div>
+              <span className="text-foreground/80 hidden sm:block text-sm md:text-base">
+                {formatTime(duration)}
+              </span>
             </div>
-
-            <div className="flex items-center justify-center sm:justify-start gap-6 md:gap-8 landscape:gap-4 w-full ">
+            <div className="flex items-center justify-center sm:justify-start gap-6 lg:gap-8 landscape:gap-4 w-full ">
               {/* Play */}
               <button
                 onClick={togglePlay}
@@ -585,17 +564,31 @@ export default function VideoControls({
                 )}
               >
                 {playing ? (
-                  <Pause
-                    className="md:size-7 size-6 fill-current"
-                    strokeWidth={2.5}
-                  />
+                  <IoMdPause className="lg:size-12 md:size-10 size-8 landscape:size-6" />
                 ) : (
-                  <Play
-                    className="md:size-7 size-6 fill-current"
-                    strokeWidth={2.5}
-                  />
+                  <RiPlayLargeFill className="lg:size-12 md:size-10 size-8 landscape:size-6" />
                 )}
               </button>
+              <button
+                onClick={() => skipBy(-15)}
+                type="button"
+                className={cn(
+                  "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl hidden md:block",
+                )}
+              >
+                <RiReplay15Fill className="lg:size-12 md:size-10 size-8 landscape:size-6" />
+              </button>
+
+              <button
+                onClick={() => skipBy(15)}
+                type="button"
+                className={cn(
+                  "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl hidden md:block",
+                )}
+              >
+                <RiForward15Fill className="lg:size-12 md:size-10 size-8 landscape:size-6" />
+              </button>
+
               {media_type === "tv" && canNext && (
                 <button
                   onClick={onNext}
@@ -604,47 +597,33 @@ export default function VideoControls({
                     "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
                   )}
                 >
-                  <SkipForward className="md:size-7 size-6 fill-current" />
+                  <SkipForward className="md:size-10 size-6 fill-current" />
                 </button>
               )}
               {/* Volume */}
-              <div className="flex items-center gap-2">
+              <div className="group flex items-center gap-2">
                 <button
                   onClick={toggleMute}
-                  className={cn(
-                    "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
-                  )}
+                  className="cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl"
                 >
                   {muted || volume === 0 ? (
-                    <VolumeX className="md:size-8 size-6" strokeWidth={2.5} />
+                    <RiVolumeMuteFill className="lg:size-12 md:size-10 size-8 landscape:size-6" />
                   ) : (
-                    <Volume2 className="md:size-8 size-6" strokeWidth={2.5} />
+                    <RiVolumeUpFill className="lg:size-12 md:size-10 size-8 landscape:size-6" />
                   )}
                 </button>
 
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step="0.01"
-                  value={muted ? 0 : volume}
-                  onChange={(e) => handleVolume(Number(e.target.value))}
-                  className="h-1 w-20 cursor-pointer accent-white md:block hidden"
-                />
-              </div>
-
-              <div
-                className={cn(
-                  "sm:flex hidden items-center gap-2 tabular-nums font-medium text-sm tracking-wide landscape:text-xs font-sans",
-                )}
-              >
-                <span className="text-foreground/90">
-                  {formatTime(currentTime)}
-                </span>
-                <span className="text-foreground/60">/</span>
-                <span className="text-foreground/90">
-                  {formatTime(duration)}
-                </span>
+                <div className="w-0 overflow-hidden opacity-0 transition-all duration-200 group-hover:w-25 group-hover:opacity-100 hidden md:block">
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step="0.01"
+                    value={muted ? 0 : volume}
+                    onChange={(e) => handleVolume(Number(e.target.value))}
+                    className="h-1.5 w-25 cursor-pointer accent-white"
+                  />
+                </div>
               </div>
 
               {/* Time */}
@@ -686,7 +665,7 @@ export default function VideoControls({
                   "transition-opacity hover:opacity-70",
                 )}
               >
-                <Gauge className="md:size-7 size-6" />
+                <Gauge className="md:size-10 size-6" />
                 <h1 className="text-sm tracking-wide text-white/90 hidden md:block">
                   {playbackRate}x
                 </h1>
@@ -750,7 +729,7 @@ export default function VideoControls({
                   "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
                 )}
               >
-                <Maximize className="md:size-7 size-6" strokeWidth={3} />
+                <AiOutlineFullscreen className="lg:size-12 md:size-10 size-8 landscape:size-6" />
               </button>
             </div>
           </motion.div>

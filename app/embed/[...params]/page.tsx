@@ -1057,6 +1057,7 @@ export default function Embed() {
         dubs={dubs}
         onDubChange={onDubChange}
         selectedDub={selectedDub}
+        skipBy={skipBy}
       />
 
       <Spinner waiting={waiting} canPlay={canPlay} />

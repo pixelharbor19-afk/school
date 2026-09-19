@@ -40,7 +40,7 @@ import { usePlayerSettings } from "../player_store/settings";
 import { MediaOption } from "@/hooks/open-subtitle";
 import { DubTypes } from "@/hooks/gagosauce";
 import { useIsMobile } from "@/hooks/use-mobile";
-
+import { RiSettings3Fill } from "react-icons/ri";
 interface Props {
   canPlay: boolean;
   playerRef: React.RefObject<HTMLDivElement | null>;
@@ -137,7 +137,7 @@ export default function ModalSettings({
               "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
             )}
           >
-            <Settings className="md:size-7 size-6" />
+            <RiSettings3Fill className="lg:size-12 md:size-10 size-8 landscape:size-6" />
           </button>
         }
       >
