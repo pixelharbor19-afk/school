@@ -25,6 +25,8 @@ import {
   RiPlayLargeFill,
   RiReplay15Fill,
   RiForward15Fill,
+  RiSkipForwardFill,
+  RiFullscreenFill,
 } from "react-icons/ri";
 
 type Props = {
@@ -182,12 +184,12 @@ export default function VideoControls({
                   )}
                 >
                   <ChevronLeft
-                    className="lg:size-12 md:size-10 size-8 text-foreground/80 hover:text-foreground cursor-pointer"
+                    className="lg:size-12 md:size-10 size-7 text-foreground/80 hover:text-foreground cursor-pointer"
                     strokeWidth={3}
                   />
                 </button>
               )}
-              <div className="sm:hidden">
+              <div className="md:hidden">
                 <h3 className="text-xs text-muted-foreground">
                   You're Watching
                 </h3>
@@ -237,17 +239,17 @@ export default function VideoControls({
             onPointerMove={lockTimer}
             onPointerDown={lockTimer}
           >
-            <div className="md:p-2 hidden sm:block">
-              <h3 className="lg:text-lg sm:text-base text-xs text-muted-foreground">
+            <div className="md:p-2 hidden md:block">
+              <h3 className="lg:text-lg md:text-base text-xs text-muted-foreground">
                 You're Watching
               </h3>
-              <h1 className="lg:text-3xl sm:text-2xl  text-lg font-bold mt-1">
+              <h1 className="lg:text-3xl md:text-2xl  text-lg font-bold mt-1">
                 {title}
               </h1>
             </div>
             {/* Progress */}
-            <div className="w-full flex gap-3 items-center p-1">
-              <span className="text-foreground/80 hidden sm:block text-sm md:text-base">
+            <div className="w-full flex flex-col md:flex-row md:gap-3 items-center md:p-1">
+              <span className="text-foreground/80 hidden md:block text-sm md:text-base">
                 {formatTime(currentTime)}
               </span>
               <div className="group flex items-center gap-3 px-1 w-full">
@@ -551,10 +553,19 @@ export default function VideoControls({
                 </div>
               </div>
 
-              <span className="text-foreground/80 hidden sm:block text-sm md:text-base">
+              <span className="text-foreground/80 hidden md:block text-sm md:text-base">
                 {formatTime(duration)}
               </span>
+              <div className="flex justify-between w-full px-1 md:hidden">
+                <span className="text-foreground/80 text-sm md:text-base">
+                  {formatTime(currentTime)}
+                </span>
+                <span className="text-foreground/80 text-sm md:text-base">
+                  {formatTime(duration)}
+                </span>
+              </div>
             </div>
+
             <div className="flex items-center justify-center sm:justify-start gap-6 lg:gap-8 landscape:gap-4 w-full ">
               {/* Play */}
               <button
@@ -564,9 +575,9 @@ export default function VideoControls({
                 )}
               >
                 {playing ? (
-                  <IoMdPause className="lg:size-12 md:size-10 size-8 landscape:size-6" />
+                  <IoMdPause className="lg:size-12 md:size-10 size-7 landscape:size-6" />
                 ) : (
-                  <RiPlayLargeFill className="lg:size-12 md:size-10 size-8 landscape:size-6" />
+                  <RiPlayLargeFill className="lg:size-12 md:size-10 size-7 landscape:size-6" />
                 )}
               </button>
               <button
@@ -576,7 +587,7 @@ export default function VideoControls({
                   "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl hidden md:block",
                 )}
               >
-                <RiReplay15Fill className="lg:size-12 md:size-10 size-8 landscape:size-6" />
+                <RiReplay15Fill className="lg:size-12 md:size-10 size-7 landscape:size-6" />
               </button>
 
               <button
@@ -586,7 +597,7 @@ export default function VideoControls({
                   "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl hidden md:block",
                 )}
               >
-                <RiForward15Fill className="lg:size-12 md:size-10 size-8 landscape:size-6" />
+                <RiForward15Fill className="lg:size-12 md:size-10 size-7 landscape:size-6" />
               </button>
 
               {media_type === "tv" && canNext && (
@@ -597,7 +608,7 @@ export default function VideoControls({
                     "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
                   )}
                 >
-                  <SkipForward className="md:size-10 size-6 fill-current" />
+                  <RiSkipForwardFill className="lg:size-12 md:size-10 size-7 landscape:size-6" />
                 </button>
               )}
               {/* Volume */}
@@ -607,9 +618,9 @@ export default function VideoControls({
                   className="cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl"
                 >
                   {muted || volume === 0 ? (
-                    <RiVolumeMuteFill className="lg:size-12 md:size-10 size-8 landscape:size-6" />
+                    <RiVolumeMuteFill className="lg:size-12 md:size-10 size-7 landscape:size-6" />
                   ) : (
-                    <RiVolumeUpFill className="lg:size-12 md:size-10 size-8 landscape:size-6" />
+                    <RiVolumeUpFill className="lg:size-12 md:size-10 size-7 landscape:size-6" />
                   )}
                 </button>
 
@@ -729,7 +740,7 @@ export default function VideoControls({
                   "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
                 )}
               >
-                <AiOutlineFullscreen className="lg:size-12 md:size-10 size-8 landscape:size-6" />
+                <RiFullscreenFill className="lg:size-12 md:size-10 size-7 landscape:size-6" />
               </button>
             </div>
           </motion.div>

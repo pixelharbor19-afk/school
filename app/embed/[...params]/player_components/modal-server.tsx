@@ -72,7 +72,7 @@ export default function ServerModal({
               "cursor-pointer text-foreground/90 hover:text-foreground",
             )}
           >
-            <IoMdCloudy className="md:size-12 sm:10 size-8" />
+            <IoMdCloudy className="lg:size-12 md:size-10 size-7 landscape:size-6" />
           </button>
         }
       />

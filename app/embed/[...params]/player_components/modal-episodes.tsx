@@ -4,9 +4,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { RiTvLine } from "react-icons/ri";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
+import { BsCollectionPlay, BsCollectionPlayFill } from "react-icons/bs";
 import {
   ChevronDown,
   GalleryVertical,
@@ -16,6 +18,9 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { RiPlayList2Fill } from "react-icons/ri";
+import { LuListVideo } from "react-icons/lu";
+
 import {
   Drawer,
   DrawerContent,
@@ -120,7 +125,7 @@ export default function EpisodesModal({
               "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
             )}
           >
-            <ListVideo className="md:size-7 size-6 " strokeWidth={2.5} />
+            <LuListVideo className="lg:size-9 md:size-10 size-8 landscape:size-6" />
           </button>
         }
       />

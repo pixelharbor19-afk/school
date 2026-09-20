@@ -127,7 +127,7 @@ export default function BackdropLoadingScreen({
                     size="200"
                     stroke="3"
                     bgOpacity="0.2"
-                    speed="1.5"
+                    speed="2.5"
                     color="white"
                   />
                 </span>
@@ -137,7 +137,7 @@ export default function BackdropLoadingScreen({
                     size="300"
                     stroke="5"
                     bgOpacity="0.2"
-                    speed="1.5"
+                    speed="2.5"
                     color="white"
                   />
                 </span>

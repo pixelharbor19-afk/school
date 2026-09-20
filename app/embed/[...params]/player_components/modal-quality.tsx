@@ -43,7 +43,7 @@ export default function QualityModal({
       <PopoverTrigger
         render={
           <button className={cn("cursor-pointer hidden md:block")}>
-            <h1 className="text-sm landscape:text-xs font-medium  text-foreground/90 hover:text-foreground tracking-wide">
+            <h1 className="text-sm lg:text-base landscape:text-xs font-medium  text-foreground/90 hover:text-foreground tracking-wide">
               {quality === "auto" ? "Auto" : `${quality}p`}
             </h1>
           </button>
