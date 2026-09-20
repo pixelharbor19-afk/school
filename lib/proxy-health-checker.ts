@@ -609,14 +609,18 @@ export async function workerProxyHealth(proxies: string[]) {
 
   for (const proxy of shuffledProxies) {
     try {
+      const start = Date.now();
+
       const res = await fetchWithTimeout(
         proxy,
         {
           method: "HEAD",
           headers: { Range: "bytes=0-1" },
         },
-        7000,
+        15000,
       );
+
+      console.log(`[PROXY] ${proxy} → ${res.status} | ${Date.now() - start}ms`);
 
       if (res.status === 429) {
         await blacklistWorker(proxy);
@@ -626,7 +630,9 @@ export async function workerProxyHealth(proxies: string[]) {
       if (res.ok) return proxy;
     } catch (err: any) {
       console.error(
-        `[PROXY] ${proxy} → ${err?.name || err?.message || "failed"}`,
+        `[PROXY] ${proxy} → ${
+          err?.cause?.code || err?.code || err?.name || "failed"
+        } | ${err?.cause?.message || err?.message || ""}`,
       );
     }
   }
