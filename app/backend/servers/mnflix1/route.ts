@@ -149,7 +149,7 @@ export async function GET(req: NextRequest) {
 
         links.push({
           ...link,
-          link: encryptLink(link.link),
+          link: link.link,
         });
       }
     }
