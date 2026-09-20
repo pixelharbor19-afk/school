@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { decryptUrl } from "@/lib/aes-encryptor";
+import { fetchWithTimeout } from "@/lib/fetch-timeout";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
     return new Response("Invalid url or headers", { status: 400 });
   }
 
-  const response = await fetch(mpdUrl, { headers });
+  const response = await fetchWithTimeout(mpdUrl, { headers }, 10000);
 
   if (!response.ok) {
     return new Response(await response.text(), {
