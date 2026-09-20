@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
-const PLAYER_URL = "https://backup.vidstuck.xyz/embed";
+const PLAYER_URL = "https://vidstuck.xyz/embed";
 
 function CodeBlock({ children }: { children: string }) {
   const [copied, setCopied] = useState(false);

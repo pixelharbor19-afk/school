@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
     } else {
       // Fetch fresh stream
       const workerUrl = new URL(
-        "https://backup.vidstuck.xyz/backend/database/vidlink",
+        "https://vidstuck.xyz/backend/database/vidlink",
       );
 
       workerUrl.searchParams.set("tmdbId", tmdbId);

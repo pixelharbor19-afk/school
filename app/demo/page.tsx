@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 
-const PLAYER_URL = "https://backup.vidstuck.xyz/embed";
+const PLAYER_URL = "https://vidstuck.xyz/embed";
 
 function useCopy() {
   const [copied, setCopied] = useState(false);
