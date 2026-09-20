@@ -14,8 +14,6 @@ const supabase = createClient(
 );
 
 export async function GET(req: NextRequest) {
-
-  
   const { searchParams, pathname } = req.nextUrl;
 
   const tmdbId = searchParams.get(FIELD_MAP.id);

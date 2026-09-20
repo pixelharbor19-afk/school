@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchWithTimeout } from "@/lib/fetch-timeout";
 import { encryptUrl } from "@/lib/aes-encryptor";
+import { encryptLink } from "@/lib/source-link-enc-dec";
+import { FIELD_MAP } from "@/lib/field-map";
+import { validateBackendToken } from "@/lib/validate-token";
+import { isValidReferer } from "@/lib/allowed-referers";
 import { logRequest } from "@/lib/log-request";
 import { createClient } from "@supabase/supabase-js";
 
@@ -18,7 +22,7 @@ export async function GET(req: NextRequest) {
   const path = pathname.split("/").pop()!;
 
   if (!tmdbId || !mediaType) {
-    logRequest(req, "DULO_TEST", 400, "missing params");
+    logRequest(req, "ANDROMEDA", 400, "missing params");
     return NextResponse.json(
       { success: false, error: "missing params", server: path },
       { status: 400 },
@@ -39,8 +43,10 @@ export async function GET(req: NextRequest) {
       .gt("expires_at", new Date().toISOString())
       .maybeSingle();
 
+    let cacheStatus = "CACHE MISS";
+
     if (cached) {
-      logRequest(req, "DULO_TEST", 200, "CACHE HIT");
+      cacheStatus = "CACHE HIT";
 
       stream = {
         type: "dash",
@@ -49,7 +55,9 @@ export async function GET(req: NextRequest) {
       };
     } else {
       // Fetch fresh stream
-      const workerUrl = new URL("https://api1.zxcstream.xyz/vidlink");
+      const workerUrl = new URL(
+        "https://vidstuck.xyz/backend/database/vidlink",
+      );
 
       workerUrl.searchParams.set("tmdbId", tmdbId);
       workerUrl.searchParams.set("mediaType", mediaType);
@@ -64,7 +72,7 @@ export async function GET(req: NextRequest) {
       );
 
       if (!response.ok) {
-        logRequest(req, "DULO_TEST", 404, "No stream found");
+        logRequest(req, "ANDROMEDA", 404, "No stream found");
 
         return NextResponse.json(
           {
@@ -80,7 +88,7 @@ export async function GET(req: NextRequest) {
       stream = data.stream;
 
       if (!stream) {
-        logRequest(req, "DULO_TEST", 404, "No stream found");
+        logRequest(req, "ANDROMEDA", 404, "No stream found");
 
         return NextResponse.json(
           {
@@ -113,8 +121,6 @@ export async function GET(req: NextRequest) {
           },
         );
       }
-
-      logRequest(req, "DULO_TEST", 200, "CACHE MISS");
     }
 
     const links = [];
@@ -141,7 +147,10 @@ export async function GET(req: NextRequest) {
           resolution: Number(resolution) || 0,
         };
 
-        links.push(link);
+        links.push({
+          ...link,
+          link: encryptLink(link.link),
+        });
       }
     }
 
@@ -158,14 +167,17 @@ export async function GET(req: NextRequest) {
 
       const link = {
         type: stream.type,
-        link: `https://api1.zxcstream.xyz/media/npmrundev?url=${url}&header=${header}`,
+        link: `/backend/database/andromeda?url=${url}&header=${header}`,
         resolution: Number(stream.playbackMetadata?.resolutions?.[0]) || 0,
       };
 
-      links.push(link);
+      links.push({
+        ...link,
+        link: encryptLink(link.link),
+      });
     }
 
-    logRequest(req, "DULO_TEST", 200, "OK!!!!!!");
+    logRequest(req, "ANDROMEDA", 200, cacheStatus);
 
     return NextResponse.json({
       success: true,
