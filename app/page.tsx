@@ -194,7 +194,7 @@ export default function Home() {
                   </Link>
                   <Link
                     target="_blank"
-                    href="https://vidstuck.xyz/embed/tv/60625/1/2?back=1&branding=streamex"
+                    href="https://backup.vidstuck.xyz/embed/tv/60625/1/2?back=1&branding=streamex"
                   >
                     <Button size="lg" className="p-4 h-11" variant="outline">
                       Try Now <ArrowRight />

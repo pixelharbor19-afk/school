@@ -4,6 +4,7 @@ const ALLOWED_REFERERS = [
   //
   "https://vidstuck.xyz/",
   "https://embed.vidstuck.xyz/",
+  "https://backup.vidstuck.xyz/",
 
   "https://player.zxcstream.xyz/",
   "https://player.zxcprime.xyz",
@@ -15,6 +16,7 @@ export const ALLOWED_ORIGINS = [
   //
   "https://vidstuck.xyz",
   "https://embed.vidstuck.xyz",
+  "https://backup.vidstuck.xyz",
 
   "https://player.zxcstream.xyz",
   "https://player.zxcprime.xyz",
