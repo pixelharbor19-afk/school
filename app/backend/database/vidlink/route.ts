@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
 
     const response = await fetch(vidlinkUrl, {
       dispatcher: residentialProxy,
-      signal: AbortSignal.timeout(15_000),
+      signal: AbortSignal.timeout(8_000),
       headers: VIDLINK_HEADERS,
     });
 
