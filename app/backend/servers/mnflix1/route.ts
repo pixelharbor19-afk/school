@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchWithTimeout } from "@/lib/fetch-timeout";
 import { encryptUrl } from "@/lib/aes-encryptor";
-import { encryptLink } from "@/lib/source-link-enc-dec";
-import { FIELD_MAP } from "@/lib/field-map";
-import { validateBackendToken } from "@/lib/validate-token";
-import { isValidReferer } from "@/lib/allowed-referers";
+
 import { logRequest } from "@/lib/log-request";
 import { createClient } from "@supabase/supabase-js";
 
@@ -173,7 +170,7 @@ export async function GET(req: NextRequest) {
 
       links.push({
         ...link,
-        link: encryptLink(link.link),
+        link: link.link,
       });
     }
 
