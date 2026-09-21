@@ -334,7 +334,11 @@ export default function VideoControls({
                   onPointerDown={lockTimer}
                 />
 
-                <div className="w-0 overflow-hidden opacity-0 transition-all duration-200 group-hover:w-25 group-hover:opacity-100 hidden md:block">
+                <div
+                  className="w-0 overflow-hidden opacity-0 transition-all duration-200 group-hover:w-25 group-hover:opacity-100 hidden md:block pointer-events-auto"
+                  onPointerMove={lockTimer}
+                  onPointerDown={lockTimer}
+                >
                   <input
                     type="range"
                     min={0}
