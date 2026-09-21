@@ -35,6 +35,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTvSeason } from "@/hooks/fetch-seasons";
 import { SeasonsType } from "@/types/tmdb-types";
 import { cn } from "@/lib/utils";
+import PlayerButton from "../reusable_button";
 
 export default function EpisodesModal({
   seasons,
@@ -42,12 +43,14 @@ export default function EpisodesModal({
   playerRef,
   canPlay,
   resetTimer,
+  lockTimer,
 }: {
   seasons: SeasonsType[];
   color: string;
   playerRef: React.RefObject<HTMLDivElement | null>;
   canPlay: boolean;
   resetTimer: () => void;
+  lockTimer: () => void;
 }) {
   const { params } = useParams();
   const tmdbId = String(params?.[1]);
@@ -119,14 +122,12 @@ export default function EpisodesModal({
     >
       <DrawerTrigger
         render={
-          <button
-            type="button"
-            className={cn(
-              "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
-            )}
-          >
-            <LuListVideo className="lg:size-9 md:size-10 size-8 landscape:size-6" />
-          </button>
+          <PlayerButton
+            icon={LuListVideo}
+            label="Episodes"
+            onPointerMove={lockTimer}
+            onPointerDown={lockTimer}
+          />
         }
       />
 

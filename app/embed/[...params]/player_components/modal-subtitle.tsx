@@ -7,6 +7,7 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { MdSubtitles } from "react-icons/md";
 import { Button } from "@/components/ui/button";
 import { MediaOption } from "@/hooks/open-subtitle";
 import { cn } from "@/hooks/utils";
@@ -21,6 +22,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import PlayerButton from "../reusable_button";
 
 interface Props {
   subtitles: MediaOption[];
@@ -30,6 +32,7 @@ interface Props {
   canPlay: boolean;
   playerRef: React.RefObject<HTMLDivElement | null>;
   resetTimer: () => void;
+  lockTimer: () => void;
 }
 
 const TAB_TITLES = {
@@ -47,6 +50,7 @@ export default function SubtitleModal({
   canPlay,
   playerRef,
   resetTimer,
+  lockTimer,
 }: Props) {
   const [tab, setTab] = useState<"main" | "style" | "delay">("main");
   const [subtitlesModal, setSubtitlesModal] = useState(false);
@@ -88,11 +92,12 @@ export default function SubtitleModal({
     >
       <PopoverTrigger
         render={
-          <button className={cn("cursor-pointer hidden md:block")}>
-            <h1 className="text-sm lg:text-base landscape:text-xs font-medium  text-foreground/90 hover:text-foreground tracking-wide">
-              {selectedSubtitle ? selectedSubtitle.display : "Subtitle"}
-            </h1>
-          </button>
+          <PlayerButton
+            icon={MdSubtitles}
+            label="Subtitle"
+            onPointerMove={lockTimer}
+            onPointerDown={lockTimer}
+          />
         }
       />
 

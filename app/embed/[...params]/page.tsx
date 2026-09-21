@@ -1092,7 +1092,7 @@ export default function Embed() {
       )}
 
       <SkipSegment
-        className="absolute bottom-27 right-3 z-60 md:bottom-23 md:right-5 lg:bottom-32 lg:right-7 landscape:bottom-20"
+        className="absolute bottom-30 right-3 z-60 md:bottom-32 md:right-5 lg:bottom-35 lg:right-7 landscape:bottom-20"
         canPlay={canPlay}
         currentTime={currentTime}
         intro={introData?.intro}

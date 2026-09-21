@@ -27,7 +27,11 @@ import {
   RiForward15Fill,
   RiSkipForwardFill,
   RiFullscreenFill,
+  RiExpandDiagonalLine,
 } from "react-icons/ri";
+import PlayerButton from "./reusable_button";
+import PlayerProgress from "./player_components/progress";
+import { Separator } from "@/components/ui/separator";
 
 type Props = {
   isMobile: boolean;
@@ -169,25 +173,19 @@ export default function VideoControls({
             animate={{ y: 0 }}
             exit={{ y: -30 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="md:px-6 px-4 md:py-8 py-6 landscape:py-2 landscape:px-2 pointer-events-auto flex items-center md:gap-8 gap-6"
-            onPointerMove={lockTimer}
-            onPointerDown={lockTimer}
+            className="md:px-6 px-4 md:py-8 py-6 landscape:py-2 landscape:px-2  flex items-center md:gap-8 gap-6"
+
             // onMouseLeave={!isMobile ? resetTimer : undefined}
           >
             <div className="flex md:gap-4 gap-3 items-center">
               {!back && (
-                <button
+                <PlayerButton
+                  icon={ChevronLeft}
                   onClick={() => router.back()}
-                  className={cn(
-                    "flex items-center md:gap-6 gap-3",
-                    "text-shadow-lg transition-opacity hover:opacity-70",
-                  )}
-                >
-                  <ChevronLeft
-                    className="lg:size-12 md:size-10 size-7 text-foreground/80 hover:text-foreground cursor-pointer"
-                    strokeWidth={3}
-                  />
-                </button>
+                  label="Back"
+                  onPointerMove={lockTimer}
+                  onPointerDown={lockTimer}
+                />
               )}
               <div className="md:hidden">
                 <h3 className="text-xs text-muted-foreground">
@@ -214,6 +212,7 @@ export default function VideoControls({
                 playerRef={playerRef}
                 canPlay={canPlay}
                 resetTimer={resetTimer}
+                lockTimer={lockTimer}
               />
             )}
 
@@ -227,6 +226,7 @@ export default function VideoControls({
               canPlay={canPlay}
               playerRef={playerRef}
               resetTimer={resetTimer}
+              lockTimer={lockTimer}
             />
           </motion.div>
 
@@ -235,325 +235,43 @@ export default function VideoControls({
             animate={{ y: 0 }}
             exit={{ y: 30 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="md:px-6 px-4 md:py-8 py-6 landscape:py-2 landscape:px-2 pointer-events-auto flex flex-col  md:gap-5 gap-3 landscape:gap-1.5"
+            className="md:px-6 px-4 md:py-8 py-6 landscape:py-2 landscape:px-2  flex flex-col  md:gap-5 gap-3 landscape:gap-1.5"
             onPointerMove={lockTimer}
             onPointerDown={lockTimer}
           >
-            <div className="md:p-2 hidden md:block">
-              <h3 className="lg:text-lg md:text-base text-xs text-muted-foreground">
-                You're Watching
-              </h3>
-              <h1 className="lg:text-3xl md:text-2xl  text-lg font-bold mt-1">
+            <div className="md:px-1 hidden md:block">
+              <span className="flex gap-3">
+                <Separator className="bg-red-600" orientation="vertical" />
+                <h3 className="lg:text-lg md:text-sm text-xs text-muted-foreground">
+                  You're Watching
+                </h3>
+              </span>
+              <h1 className="lg:text-3xl md:text-xl  text-lg font-bold mt-1 tracking-tight">
                 {title}
               </h1>
             </div>
             {/* Progress */}
-            <div className="w-full flex flex-col md:flex-row md:gap-3 items-center md:p-1">
-              <span className="text-foreground/80 hidden md:block text-sm md:text-base">
+            <div className="w-full flex flex-col md:flex-row  items-center md:p-1 md:gap-3">
+              <span className="text-foreground/80 hidden md:block text-sm lg:text-base tabular-nums">
                 {formatTime(currentTime)}
               </span>
-              <div className="group flex items-center gap-3 px-1 w-full">
-                <div
-                  ref={progressRef}
-                  className="relative h-6 flex-1 cursor-pointer touch-none "
-                  onPointerDown={handleSeekStart}
-                  onPointerMove={handleSeekMove}
-                  onPointerUp={commitSeek}
-                  onPointerCancel={commitSeek}
-                  onMouseMove={(e) => {
-                    if (!duration) return;
+              <PlayerProgress
+                color={color}
+                bufferedProgress={bufferedProgress}
+                currentTime={currentTime}
+                duration={duration}
+                progress={progress}
+                progressRef={progressRef}
+                intro={intro}
+                outro={outro}
+                formatTime={formatTime}
+                handleSeekStart={handleSeekStart}
+                handleSeekMove={handleSeekMove}
+                commitSeek={commitSeek}
+                lockTimer={lockTimer}
+              />
 
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const x = Math.max(
-                      0,
-                      Math.min(e.clientX - rect.left, rect.width),
-                    );
-                    const time = (x / rect.width) * duration;
-
-                    setHoverX(x);
-                    setHoverTime(time);
-                  }}
-                  onMouseLeave={() => {
-                    setHoverTime(null);
-                  }}
-                >
-                  <AnimatePresence>
-                    {hoverTime !== null && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 4, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                        transition={{ duration: 0.15, ease: "easeOut" }}
-                        className="pointer-events-none absolute bottom-full z-50 mb-2 -translate-x-1/2"
-                        style={{ left: hoverX }}
-                      >
-                        <div className="rounded-sm bg-black/50 px-2 py-1 text-sm tabular-nums text-white shadow-lg font-sans">
-                          {formatTime(hoverTime)}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                  {duration > 0 && (
-                    <div className="absolute inset-x-0 top-1/2 flex h-1.5 -translate-y-1/2 gap-0.5 md:gap-1 group-hover:scale-y-150 transition-transform duration-150">
-                      {/* Before intro */}
-                      {intro && intro.start_sec > 0 && (
-                        <div
-                          className="relative h-full rounded-l-full rounded-r-[1px] bg-white/20"
-                          style={{
-                            width: `${(intro.start_sec / duration) * 100}%`,
-                          }}
-                        >
-                          {/* Buffered */}
-                          <div
-                            className="absolute inset-y-0 left-0 rounded-full bg-white/30"
-                            style={{
-                              width: `${Math.min(
-                                100,
-                                (bufferedProgress / 100) *
-                                  (duration / intro.start_sec) *
-                                  100,
-                              )}%`,
-                            }}
-                          />
-
-                          {/* Played */}
-                          <div
-                            className="absolute inset-y-0 left-0 rounded-l-full rounded-r-[1px]"
-                            style={{
-                              width: `${Math.min(
-                                100,
-                                (currentTime / intro.start_sec) * 100,
-                              )}%`,
-                              backgroundColor: color,
-                            }}
-                          />
-                        </div>
-                      )}
-
-                      {/* Intro */}
-                      {intro && (
-                        <div
-                          className={cn(
-                            "relative h-full bg-white/20",
-                            intro && intro.start_sec > 0
-                              ? "rounded-r-[1px]"
-                              : "rounded-l-full rounded-r-[1px]",
-                          )}
-                          style={{
-                            width: `${((intro.end_sec - intro.start_sec) / duration) * 100}%`,
-                          }}
-                        >
-                          {/* Buffered */}
-                          <div
-                            className="absolute inset-y-0 left-0 rounded-full bg-white/30"
-                            style={{
-                              width: `${Math.min(
-                                100,
-                                Math.max(
-                                  0,
-                                  (((bufferedProgress / 100) * duration -
-                                    intro.start_sec) /
-                                    (intro.end_sec - intro.start_sec)) *
-                                    100,
-                                ),
-                              )}%`,
-                            }}
-                          />
-
-                          {/* Played */}
-                          <div
-                            className={cn(
-                              "absolute inset-y-0 left-0",
-                              intro && intro.start_sec > 0
-                                ? "rounded-r-[1px]"
-                                : "rounded-l-full rounded-r-[1px]",
-                            )}
-                            style={{
-                              width: `${Math.min(
-                                100,
-                                Math.max(
-                                  0,
-                                  ((currentTime - intro.start_sec) /
-                                    (intro.end_sec - intro.start_sec)) *
-                                    100,
-                                ),
-                              )}%`,
-                              backgroundColor: "#facc15",
-                            }}
-                          />
-                        </div>
-                      )}
-
-                      {/* Main */}
-                      <div
-                        className={cn(
-                          "relative h-full  bg-white/20",
-                          !intro ? "rounded-full" : "rounded-[1px]",
-                        )}
-                        style={{
-                          width: `${
-                            (((outro?.start_sec ?? duration) -
-                              (intro?.end_sec ?? 0)) /
-                              duration) *
-                            100
-                          }%`,
-                        }}
-                      >
-                        {/* Buffered */}
-                        <div
-                          className="absolute inset-y-0 left-0 rounded-full bg-white/30"
-                          style={{
-                            width: `${Math.min(
-                              100,
-                              Math.max(
-                                0,
-                                (((bufferedProgress / 100) * duration -
-                                  (intro?.end_sec ?? 0)) /
-                                  ((outro?.start_sec ?? duration) -
-                                    (intro?.end_sec ?? 0))) *
-                                  100,
-                              ),
-                            )}%`,
-                          }}
-                        />
-
-                        {/* Played */}
-                        <div
-                          className={cn(
-                            "absolute inset-y-0 left-0 rounded-[1px]",
-                            !intro ? "rounded-full" : "rounded-[1px]",
-                          )}
-                          style={{
-                            width: `${Math.min(
-                              100,
-                              Math.max(
-                                0,
-                                ((currentTime - (intro?.end_sec ?? 0)) /
-                                  ((outro?.start_sec ?? duration) -
-                                    (intro?.end_sec ?? 0))) *
-                                  100,
-                              ),
-                            )}%`,
-                            backgroundColor: color,
-                          }}
-                        />
-                      </div>
-
-                      {/* Outro */}
-                      {outro && (
-                        <div
-                          className={cn(
-                            "relative h-full bg-white/20",
-                            outro.end_sec < duration
-                              ? "rounded-[1px]"
-                              : "rounded-l-[1px] rounded-r-full",
-                          )}
-                          style={{
-                            width: `${((outro.end_sec - outro.start_sec) / duration) * 100}%`,
-                          }}
-                        >
-                          {/* Buffered */}
-                          <div
-                            className={cn(
-                              "absolute inset-y-0 left-0 rounded-full bg-white/30",
-                              outro.end_sec < duration
-                                ? "rounded-full"
-                                : "rounded-l-full rounded-r-full",
-                            )}
-                            style={{
-                              width: `${Math.min(
-                                100,
-                                Math.max(
-                                  0,
-                                  (((bufferedProgress / 100) * duration -
-                                    outro.start_sec) /
-                                    (outro.end_sec - outro.start_sec)) *
-                                    100,
-                                ),
-                              )}%`,
-                            }}
-                          />
-
-                          {/* Played */}
-                          <div
-                            className={cn(
-                              "absolute inset-y-0 left-0",
-                              outro.end_sec < duration
-                                ? "rounded-[1px]"
-                                : "rounded-l-[1px] rounded-r-full",
-                            )}
-                            style={{
-                              width: `${Math.min(
-                                100,
-                                Math.max(
-                                  0,
-                                  ((currentTime - outro.start_sec) /
-                                    (outro.end_sec - outro.start_sec)) *
-                                    100,
-                                ),
-                              )}%`,
-                              backgroundColor: "#f97316",
-                            }}
-                          />
-                        </div>
-                      )}
-
-                      {/* After outro */}
-                      {outro && outro.end_sec < duration && (
-                        <div
-                          className="relative h-full rounded-l-[1px] rounded-r-full bg-white/20"
-                          style={{
-                            width: `${((duration - outro.end_sec) / duration) * 100}%`,
-                          }}
-                        >
-                          {/* Buffered */}
-                          <div
-                            className="absolute inset-y-0 left-0  rounded-full rounded-r-full bg-white/30"
-                            style={{
-                              width: `${Math.min(
-                                100,
-                                Math.max(
-                                  0,
-                                  (((bufferedProgress / 100) * duration -
-                                    outro.end_sec) /
-                                    (duration - outro.end_sec)) *
-                                    100,
-                                ),
-                              )}%`,
-                            }}
-                          />
-
-                          {/* Played */}
-                          <div
-                            className="absolute inset-y-0 left-0  rounded-l-[1px] rounded-r-full"
-                            style={{
-                              width: `${Math.min(
-                                100,
-                                Math.max(
-                                  0,
-                                  ((currentTime - outro.end_sec) /
-                                    (duration - outro.end_sec)) *
-                                    100,
-                                ),
-                              )}%`,
-                              backgroundColor: color,
-                            }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Thumb */}
-                  <motion.div
-                    className="group-hover:scale-130 transition-transform duration-150 absolute top-1/2 z-10 h-3.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-xs bg-white shadow-md"
-                    animate={{ left: `${progress}%` }}
-                    transition={{ duration: 0.05, ease: "easeOut" }}
-                  />
-                </div>
-              </div>
-
-              <span className="text-foreground/80 hidden md:block text-sm md:text-base">
+              <span className="text-foreground/80 hidden md:block text-sm lg:text-base tabular-nums">
                 {formatTime(duration)}
               </span>
               <div className="flex justify-between w-full px-1 md:hidden">
@@ -566,63 +284,55 @@ export default function VideoControls({
               </div>
             </div>
 
-            <div className="flex items-center justify-center sm:justify-start gap-6 lg:gap-8 landscape:gap-4 w-full ">
+            <div className="flex items-center justify-center md:justify-start gap-6   landscape:gap-4 w-full ">
               {/* Play */}
-              <button
+              <PlayerButton
+                icon={playing ? IoMdPause : RiPlayLargeFill}
                 onClick={togglePlay}
-                className={cn(
-                  "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
-                )}
-              >
-                {playing ? (
-                  <IoMdPause className="lg:size-12 md:size-10 size-7 landscape:size-6" />
-                ) : (
-                  <RiPlayLargeFill className="lg:size-12 md:size-10 size-7 landscape:size-6" />
-                )}
-              </button>
-              <button
+                label={playing ? "Pause" : "Play"}
+                onPointerMove={lockTimer}
+                onPointerDown={lockTimer}
+              />
+              <PlayerButton
+                icon={RiReplay15Fill}
                 onClick={() => skipBy(-15)}
-                type="button"
-                className={cn(
-                  "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl hidden md:block",
-                )}
-              >
-                <RiReplay15Fill className="lg:size-12 md:size-10 size-7 landscape:size-6" />
-              </button>
+                className="hidden md:block"
+                label="Backward 15s"
+                onPointerMove={lockTimer}
+                onPointerDown={lockTimer}
+              />
 
-              <button
+              <PlayerButton
+                icon={RiForward15Fill}
                 onClick={() => skipBy(15)}
-                type="button"
-                className={cn(
-                  "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl hidden md:block",
-                )}
-              >
-                <RiForward15Fill className="lg:size-12 md:size-10 size-7 landscape:size-6" />
-              </button>
+                className="hidden md:block"
+                label="Forward 15s"
+                onPointerMove={lockTimer}
+                onPointerDown={lockTimer}
+              />
 
               {media_type === "tv" && canNext && (
-                <button
+                <PlayerButton
+                  icon={RiSkipForwardFill}
                   onClick={onNext}
                   disabled={!canNext}
-                  className={cn(
-                    "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
-                  )}
-                >
-                  <RiSkipForwardFill className="lg:size-12 md:size-10 size-7 landscape:size-6" />
-                </button>
+                  className="hidden md:block"
+                  label="Next Episode"
+                  onPointerMove={lockTimer}
+                  onPointerDown={lockTimer}
+                />
               )}
               {/* Volume */}
               <div className="group flex items-center gap-2">
-                <button
+                <PlayerButton
+                  icon={
+                    muted || volume === 0 ? RiVolumeMuteFill : RiVolumeUpFill
+                  }
                   onClick={toggleMute}
-                  className="cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl"
-                >
-                  {muted || volume === 0 ? (
-                    <RiVolumeMuteFill className="lg:size-12 md:size-10 size-7 landscape:size-6" />
-                  ) : (
-                    <RiVolumeUpFill className="lg:size-12 md:size-10 size-7 landscape:size-6" />
-                  )}
-                </button>
+                  label="Volume"
+                  onPointerMove={lockTimer}
+                  onPointerDown={lockTimer}
+                />
 
                 <div className="w-0 overflow-hidden opacity-0 transition-all duration-200 group-hover:w-25 group-hover:opacity-100 hidden md:block">
                   <input
@@ -638,7 +348,7 @@ export default function VideoControls({
               </div>
 
               {/* Time */}
-              <div className="flex-1 sm:block hidden" />
+              <div className="flex-1 md:block hidden" />
 
               {/* <button
                 onClick={() => {
@@ -688,6 +398,7 @@ export default function VideoControls({
                 onDubChange={onDubChange}
                 canPlay={canPlay}
                 resetTimer={resetTimer}
+                lockTimer={lockTimer}
               />
               <SubtitleModal
                 playerRef={playerRef}
@@ -697,6 +408,7 @@ export default function VideoControls({
                 onSubtitleChange={onSubtitleChange}
                 canPlay={canPlay}
                 resetTimer={resetTimer}
+                lockTimer={lockTimer}
               />
               {/* <button
                 onClick={() => {
@@ -715,11 +427,12 @@ export default function VideoControls({
                 </h1>
               </button> */}
 
-              <QualityModal
+              {/* <QualityModal
                 canPlay={canPlay}
                 playerRef={playerRef}
                 resetTimer={resetTimer}
-              />
+                lockTimer={lockTimer}
+              /> */}
               {/* Fullscreen */}
               <ModalSettings
                 canPlay={canPlay}
@@ -731,17 +444,16 @@ export default function VideoControls({
                 dubs={dubs}
                 selectedDub={selectedDub}
                 onDubChange={onDubChange}
+                lockTimer={lockTimer}
               />
 
-              <button
+              <PlayerButton
+                icon={RiExpandDiagonalLine}
                 onClick={toggleFullscreen}
-                type="button"
-                className={cn(
-                  "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
-                )}
-              >
-                <RiFullscreenFill className="lg:size-12 md:size-10 size-7 landscape:size-6" />
-              </button>
+                label="Fullscreen"
+                onPointerMove={lockTimer}
+                onPointerDown={lockTimer}
+              />
             </div>
           </motion.div>
         </motion.div>

@@ -40,7 +40,8 @@ import { usePlayerSettings } from "../player_store/settings";
 import { MediaOption } from "@/hooks/open-subtitle";
 import { DubTypes } from "@/hooks/gagosauce";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { RiSettings3Fill } from "react-icons/ri";
+import { RiSettings3Fill, RiSettings4Fill } from "react-icons/ri";
+import PlayerButton from "../reusable_button";
 interface Props {
   canPlay: boolean;
   playerRef: React.RefObject<HTMLDivElement | null>;
@@ -51,6 +52,7 @@ interface Props {
   dubs: DubTypes[];
   selectedDub?: DubTypes;
   onDubChange: (dub: DubTypes) => void;
+  lockTimer: () => void;
 }
 
 const TAB_TITLES = {
@@ -80,6 +82,7 @@ export default function ModalSettings({
   dubs,
   selectedDub,
   onDubChange,
+  lockTimer,
 }: Props) {
   const isMobile = useIsMobile();
   const [tab, setTab] = useState<
@@ -131,14 +134,13 @@ export default function ModalSettings({
     >
       <DrawerTrigger
         render={
-          <button
-            type="button"
-            className={cn(
-              "cursor-pointer text-foreground/90 hover:text-foreground shadow-2xl",
-            )}
-          >
-            <RiSettings3Fill className="lg:size-12 md:size-10 size-7 landscape:size-6" />
-          </button>
+          <PlayerButton
+            icon={RiSettings4Fill}
+            label="Settings"
+            settings={true}
+            onPointerMove={lockTimer}
+            onPointerDown={lockTimer}
+          />
         }
       >
         Settings

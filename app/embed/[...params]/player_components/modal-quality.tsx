@@ -12,17 +12,21 @@ import { Check, Hd, Settings2 } from "lucide-react";
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { usePlayerSettings } from "../player_store/settings";
+import { RiHdLine } from "react-icons/ri";
+import PlayerButton from "../reusable_button";
 
 interface Props {
   canPlay: boolean;
   playerRef: React.RefObject<HTMLDivElement | null>;
   resetTimer: () => void;
+  lockTimer: () => void;
 }
 
 export default function QualityModal({
   canPlay,
   playerRef,
   resetTimer,
+  lockTimer,
 }: Props) {
   const [open, setOpen] = useState(false);
 
@@ -42,11 +46,12 @@ export default function QualityModal({
     >
       <PopoverTrigger
         render={
-          <button className={cn("cursor-pointer hidden md:block")}>
-            <h1 className="text-sm lg:text-base landscape:text-xs font-medium  text-foreground/90 hover:text-foreground tracking-wide">
-              {quality === "auto" ? "Auto" : `${quality}p`}
-            </h1>
-          </button>
+          <PlayerButton
+            icon={RiHdLine}
+            label="Quality"
+            onPointerMove={lockTimer}
+            onPointerDown={lockTimer}
+          />
         }
       />
 

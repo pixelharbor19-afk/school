@@ -12,7 +12,9 @@ import { Check, Languages } from "lucide-react";
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DubTypes } from "@/hooks/gagosauce";
+import { FaLanguage } from "react-icons/fa6";
 
+import PlayerButton from "../reusable_button";
 interface Props {
   dubs: DubTypes[];
   selectedDub?: DubTypes;
@@ -20,6 +22,7 @@ interface Props {
   canPlay: boolean;
   playerRef: React.RefObject<HTMLDivElement | null>;
   resetTimer: () => void;
+  lockTimer: () => void;
 }
 
 export default function ModalDubs({
@@ -29,6 +32,7 @@ export default function ModalDubs({
   canPlay,
   playerRef,
   resetTimer,
+  lockTimer,
 }: Props) {
   const [open, setOpen] = useState(false);
 
@@ -44,11 +48,12 @@ export default function ModalDubs({
     >
       <PopoverTrigger
         render={
-          <button className={cn("cursor-pointer hidden md:block")}>
-            <h1 className="text-sm landscape:text-xs font-medium  text-foreground/90 hover:text-foreground">
-              {selectedDub?.lanName ?? "Audio"}
-            </h1>
-          </button>
+          <PlayerButton
+            icon={FaLanguage}
+            label="Audio"
+            onPointerMove={lockTimer}
+            onPointerDown={lockTimer}
+          />
         }
       />
 

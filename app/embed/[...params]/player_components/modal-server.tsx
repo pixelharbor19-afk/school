@@ -27,6 +27,7 @@ import type {
   SourceStatus,
 } from "@/app/embed/[...params]/player_types/server-types";
 import { useState } from "react";
+import PlayerButton from "../reusable_button";
 
 interface Props {
   servers: ServerTypes[];
@@ -38,6 +39,7 @@ interface Props {
   canPlay: boolean;
   playerRef: React.RefObject<HTMLDivElement | null>;
   resetTimer: () => void;
+  lockTimer: () => void;
 }
 
 export default function ServerModal({
@@ -50,6 +52,7 @@ export default function ServerModal({
   canPlay,
   playerRef,
   resetTimer,
+  lockTimer,
 }: Props) {
   const [showServer, setShowServer] = useState(false);
   if (!canPlay) return null;
@@ -66,14 +69,12 @@ export default function ServerModal({
     >
       <PopoverTrigger
         render={
-          <button
-            type="button"
-            className={cn(
-              "cursor-pointer text-foreground/90 hover:text-foreground",
-            )}
-          >
-            <IoMdCloudy className="lg:size-12 md:size-10 size-7 landscape:size-6" />
-          </button>
+          <PlayerButton
+            icon={IoMdCloudy}
+            label="Servers"
+            onPointerMove={lockTimer}
+            onPointerDown={lockTimer}
+          />
         }
       />
 
