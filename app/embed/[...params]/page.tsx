@@ -1032,6 +1032,8 @@ export default function Embed() {
         media_type={media_type}
         genres={genres}
         year={year}
+        season={season}
+        episode={episode}
         intro={introData?.intro ?? null}
         outro={introData?.outro ?? null}
         canNext={canNext}

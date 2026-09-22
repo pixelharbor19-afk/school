@@ -26,8 +26,6 @@ import {
 } from "react-icons/ri";
 import PlayerButton from "./reusable_button";
 import PlayerProgress from "./player_components/progress";
-import { Separator } from "@/components/ui/separator";
-
 type Props = {
   isMobile: boolean;
   color: string;
@@ -56,6 +54,8 @@ type Props = {
   media_type: string;
   genres: Genre[] | undefined;
   year: string;
+  season: number;
+  episode: number;
 
   intro: IntroType | null;
   outro: IntroType | null;
@@ -113,6 +113,8 @@ export default function VideoControls({
   media_type,
   genres,
   year,
+  season,
+  episode,
 
   intro,
   outro,
@@ -189,7 +191,9 @@ export default function VideoControls({
                 <h3 className="text-xs text-muted-foreground">
                   You're Watching
                 </h3>
-                <h1>{title}</h1>
+                <h1>
+                  {title} {media_type === "tv" && `S${season}E${episode}`}
+                </h1>
               </div>
             </div>
             <div className="flex-1" />
@@ -226,6 +230,13 @@ export default function VideoControls({
               resetTimer={resetTimer}
               lockTimer={lockTimer}
             />
+            {/* <PlayerButton
+              icon={RiShareForwardFill}
+              onClick={() => router.back()}
+              label="Share"
+              onPointerMove={lockTimer}
+              onPointerDown={lockTimer}
+            /> */}
           </motion.div>
           <motion.div
             initial={{ opacity: 0 }}
@@ -282,7 +293,7 @@ export default function VideoControls({
               </span>
 
               <h1 className="mt-2 text-2xl font-bold tracking-tight lg:text-4xl">
-                {title}
+                {title} {media_type === "tv" && `S${season}E${episode}`}
               </h1>
               <div className="mt-3 flex items-center gap-2">
                 <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-gray-300">

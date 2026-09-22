@@ -4,23 +4,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { RiTvLine } from "react-icons/ri";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
-import { BsCollectionPlay, BsCollectionPlayFill } from "react-icons/bs";
 import {
   ChevronDown,
   GalleryVertical,
   GalleryVerticalEnd,
-  ListVideo,
   VideoOff,
 } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
-import { RiPlayList2Fill } from "react-icons/ri";
-import { LuListVideo } from "react-icons/lu";
-
 import {
   Drawer,
   DrawerContent,
@@ -36,6 +29,7 @@ import { useTvSeason } from "@/hooks/fetch-seasons";
 import { SeasonsType } from "@/types/tmdb-types";
 import { cn } from "@/lib/utils";
 import PlayerButton from "../reusable_button";
+import { MdLocalMovies, MdVideoLibrary } from "react-icons/md";
 
 export default function EpisodesModal({
   seasons,
@@ -123,7 +117,7 @@ export default function EpisodesModal({
       <DrawerTrigger
         render={
           <PlayerButton
-            icon={LuListVideo}
+            icon={MdVideoLibrary}
             label="Episodes"
             onPointerMove={lockTimer}
             onPointerDown={lockTimer}
