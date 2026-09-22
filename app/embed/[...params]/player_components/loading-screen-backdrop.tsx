@@ -12,6 +12,9 @@ import { TmdbDetailsResponse } from "@/types/tmdb-types";
 import { ServerTypes, SourceStatus } from "../player_types/server-types";
 import { getLoadingText } from "./loading-screen-branding";
 import { useState } from "react";
+import ServerModal from "./modal-server";
+import PlayerButton from "../reusable_button";
+import DynamicTip from "../tips";
 
 const audiowide = Audiowide({
   weight: "400",
@@ -30,6 +33,10 @@ type Props = {
   branding: string;
   back: boolean;
   metadata: TmdbDetailsResponse | undefined;
+  //
+  playerRef: React.RefObject<HTMLDivElement | null>;
+  resetTimer: () => void;
+  lockTimer: () => void;
 };
 
 export default function BackdropLoadingScreen({
@@ -44,6 +51,10 @@ export default function BackdropLoadingScreen({
   branding,
   back,
   metadata,
+  //
+  playerRef,
+  resetTimer,
+  lockTimer,
 }: Props) {
   const server = servers[serverIndex];
   const text = getLoadingText(server, sourceStatus);
@@ -82,7 +93,7 @@ export default function BackdropLoadingScreen({
 
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              animate={{ opacity: backdropLoading ? 0 : 1 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
               className="absolute flex flex-col items-center justify-center gap-6"
             >
@@ -159,17 +170,31 @@ export default function BackdropLoadingScreen({
             </motion.div>
           </div>
 
-          {!back && (
-            <button
-              onClick={() => router.back()}
-              className="absolute top-0 left-0 px-4 py-6 md:px-6 md:py-8 landscape:px-2 landscape:py-2"
-            >
-              <ChevronLeft
-                className="size-6 cursor-pointer text-foreground/80 hover:text-foreground md:size-8"
-                strokeWidth={3}
+          <div className="absolute inset-x-0 top-0 md:px-6 px-4 md:py-8 py-6 landscape:py-2 landscape:px-2  flex items-center md:gap-8 gap-6 z-20">
+            {!back && (
+              <PlayerButton
+                icon={ChevronLeft}
+                onClick={() => router.back()}
+                label="Back"
+                onPointerMove={lockTimer}
+                onPointerDown={lockTimer}
               />
-            </button>
-          )}
+            )}
+            <div className="flex-1"></div>
+            <ServerModal
+              servers={servers}
+              serverIndex={serverIndex}
+              sourceIndex={sourceIndex}
+              sourceStatus={sourceStatus}
+              handleServerSelect={handleServerSelect}
+              handleSourceSelect={handleSourceSelect}
+              canPlay={canPlay}
+              playerRef={playerRef}
+              resetTimer={resetTimer}
+              lockTimer={lockTimer}
+            />
+          </div>
+          <DynamicTip />
         </motion.div>
       )}
     </AnimatePresence>

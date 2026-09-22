@@ -104,7 +104,7 @@ export default function Pause({
                 ))}
               </div>
             )}
-
+            <div className="h-px w-16 bg-white/40 mt-6" />
             {/* Overview */}
             {metadata.overview && (
               <p
@@ -115,11 +115,8 @@ export default function Pause({
                 {metadata.overview}
               </p>
             )}
-            <div className="h-px w-16 bg-white/40 mt-6" />
+
             {/* Resume hint */}
-            <div className="mt-8 flex items-center gap-2 md:text-base text-xs text-white/50">
-              <span>Press space to continue watching</span>
-            </div>
           </motion.div>
         </motion.div>
       )}

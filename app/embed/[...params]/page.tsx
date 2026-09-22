@@ -1092,6 +1092,10 @@ export default function Embed() {
           handleServerSelect={handleServerSelect}
           back={back}
           metadata={metadata}
+          //
+          playerRef={playerRef}
+          resetTimer={resetTimer}
+          lockTimer={lockTimer}
         />
       )}
 

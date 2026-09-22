@@ -55,7 +55,6 @@ export default function ServerModal({
   lockTimer,
 }: Props) {
   const [showServer, setShowServer] = useState(false);
-  if (!canPlay) return null;
 
   return (
     <Popover
