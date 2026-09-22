@@ -5,6 +5,7 @@ type PlayerButtonProps = {
   icon: ComponentType<{ className?: string }>;
   label?: string;
   onClick?: () => void;
+  iconClassName?: string;
   className?: string;
   disabled?: boolean;
   settings?: boolean;
@@ -19,6 +20,7 @@ export default function PlayerButton({
   onPointerMove,
   onPointerDown,
   className,
+  iconClassName,
   disabled,
   settings,
 }: PlayerButtonProps) {
@@ -40,6 +42,7 @@ export default function PlayerButton({
         className={cn(
           "lg:size-10 md:size-8 size-7 landscape:size-6 transition duration-300 ease-in-out",
           settings ? "hover:rotate-90" : "",
+          iconClassName,
         )}
       />
 

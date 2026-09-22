@@ -1,22 +1,18 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { ChevronLeft, SkipForward } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { IoMdPause } from "react-icons/io";
-import { AiOutlineFullscreen } from "react-icons/ai";
 import { cn } from "@/hooks/utils";
 import { IntroType } from "@/hooks/intro";
-import { useState } from "react";
 import SubtitleModal from "./player_components/modal-subtitle";
 import { MediaOption } from "@/hooks/open-subtitle";
 import ModalSettings from "./player_components/modal-settings";
 import ServerModal from "./player_components/modal-server";
 import { ServerTypes, SourceStatus } from "./player_types/server-types";
-import { usePlayerSettings } from "./player_store/settings";
 import { useRouter } from "next/navigation";
-import QualityModal from "./player_components/modal-quality";
 import EpisodesModal from "./player_components/modal-episodes";
-import { SeasonsType } from "@/types/tmdb-types";
+import { Genre, SeasonsType } from "@/types/tmdb-types";
 import { DubTypes } from "@/hooks/gagosauce";
 import ModalDubs from "./player_components/modal-dubs";
 import {
@@ -26,7 +22,6 @@ import {
   RiReplay15Fill,
   RiForward15Fill,
   RiSkipForwardFill,
-  RiFullscreenFill,
   RiExpandDiagonalLine,
 } from "react-icons/ri";
 import PlayerButton from "./reusable_button";
@@ -59,6 +54,8 @@ type Props = {
   lockTimer: () => void;
   title: string;
   media_type: string;
+  genres: Genre[] | undefined;
+  year: string;
 
   intro: IntroType | null;
   outro: IntroType | null;
@@ -114,6 +111,8 @@ export default function VideoControls({
   lockTimer,
   title,
   media_type,
+  genres,
+  year,
 
   intro,
   outro,
@@ -148,11 +147,6 @@ export default function VideoControls({
   skipBy,
 }: Props) {
   const router = useRouter();
-  const [hoverTime, setHoverTime] = useState<number | null>(null);
-  const [hoverX, setHoverX] = useState(0);
-
-  const { aspectRatio, setAspectRatio, quality, qualities, setQuality } =
-    usePlayerSettings();
 
   return (
     <AnimatePresence>
@@ -187,6 +181,10 @@ export default function VideoControls({
                   onPointerDown={lockTimer}
                 />
               )}
+              <span
+                className="h-9 w-px rounded-full md:hidden"
+                style={{ backgroundColor: color }}
+              />
               <div className="md:hidden">
                 <h3 className="text-xs text-muted-foreground">
                   You're Watching
@@ -229,7 +227,40 @@ export default function VideoControls({
               lockTimer={lockTimer}
             />
           </motion.div>
-
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex gap-12 "
+          >
+            <PlayerButton
+              icon={RiReplay15Fill}
+              onClick={() => skipBy(-15)}
+              label="Backward 15s"
+              onPointerMove={lockTimer}
+              onPointerDown={lockTimer}
+              className="md:hidden"
+              iconClassName="size-9 "
+            />
+            <PlayerButton
+              icon={playing ? IoMdPause : RiPlayLargeFill}
+              onClick={togglePlay}
+              label={playing ? "Pause" : "Play"}
+              onPointerMove={lockTimer}
+              onPointerDown={lockTimer}
+              iconClassName="size-12 md:hidden"
+            />
+            <PlayerButton
+              icon={RiForward15Fill}
+              onClick={() => skipBy(15)}
+              label="Forward 15s"
+              onPointerMove={lockTimer}
+              onPointerDown={lockTimer}
+              className="md:hidden"
+              iconClassName="size-9"
+            />
+          </motion.div>
           <motion.div
             initial={{ y: 30 }}
             animate={{ y: 0 }}
@@ -239,16 +270,38 @@ export default function VideoControls({
             onPointerMove={lockTimer}
             onPointerDown={lockTimer}
           >
-            <div className="md:px-1 hidden md:block">
-              <span className="flex gap-3">
-                <Separator className="bg-red-600" orientation="vertical" />
-                <h3 className="lg:text-lg md:text-sm text-xs text-muted-foreground">
+            <div className="hidden md:block md:px-1">
+              <span className="flex gap-3 items-center">
+                <span
+                  className="h-4 w-0.5 rounded-full"
+                  style={{ backgroundColor: color }}
+                />
+                <h3 className="lg:text-base md:text-sm text-xs text-gray-400">
                   You're Watching
                 </h3>
               </span>
-              <h1 className="lg:text-3xl md:text-xl  text-lg font-bold mt-1 tracking-tight">
+
+              <h1 className="mt-2 text-2xl font-bold tracking-tight lg:text-4xl">
                 {title}
               </h1>
+              <div className="mt-3 flex items-center gap-2">
+                <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-gray-300">
+                  {media_type === "tv" ? "Series" : "Movie"}
+                </span>
+
+                {genres?.slice(0, 1).map((genre) => (
+                  <span
+                    key={genre.id}
+                    className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-gray-300"
+                  >
+                    {genre.name}
+                  </span>
+                ))}
+
+                <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-gray-300">
+                  {year}
+                </span>
+              </div>
             </div>
             {/* Progress */}
             <div className="w-full flex flex-col md:flex-row  items-center md:p-1 md:gap-3">
@@ -292,6 +345,7 @@ export default function VideoControls({
                 label={playing ? "Pause" : "Play"}
                 onPointerMove={lockTimer}
                 onPointerDown={lockTimer}
+                className="hidden md:block"
               />
               <PlayerButton
                 icon={RiReplay15Fill}

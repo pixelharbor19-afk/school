@@ -106,7 +106,7 @@ export default function Embed() {
   const title = metadata?.title || "";
   const date = metadata?.release_date;
   const latestDate = metadata?.last_air_date;
-
+  const genres = metadata?.genres;
   const year = date ? String(new Date(date).getFullYear()) : "";
 
   const imdbId = metadata?.imdb_id || null;
@@ -1030,6 +1030,8 @@ export default function Embed() {
         // toggleAspectRatio={toggleAspectRatio}
         title={title}
         media_type={media_type}
+        genres={genres}
+        year={year}
         intro={introData?.intro ?? null}
         outro={introData?.outro ?? null}
         canNext={canNext}

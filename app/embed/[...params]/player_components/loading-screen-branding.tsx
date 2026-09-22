@@ -195,7 +195,7 @@ export default function BrandLoadingScreen({
             exit={{ opacity: 0, y: 30 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
             className={cn(
-              "absolute bottom-0 w-full p-3 md:p-5 landscape:hidden",
+              "absolute bottom-0 w-full p-3 md:p-5 hidden md:block",
             )}
           >
             <div className="mx-auto grid w-full max-w-5xl grid-cols-2 items-end gap-1.5 sm:grid-cols-4 md:gap-3">

@@ -50,6 +50,7 @@ export default function BackdropLoadingScreen({
   const router = useRouter();
 
   const backdrop = metadata?.backdrop_paths;
+  const title = metadata?.title;
   const logo = metadata?.logo_paths;
   const genres = metadata?.genres?.slice(0, 2).map((genre) => genre.name);
   const [backdropLoading, setBackdropLoading] = useState(true);
@@ -81,23 +82,31 @@ export default function BackdropLoadingScreen({
 
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: logoLoading ? 0 : 1 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
               className="absolute flex flex-col items-center justify-center gap-6"
             >
-              <img
-                className="w-full max-w-3xs object-contain drop-shadow-2xl md:max-h-48 md:max-w-xl max-h-32"
-                src={`https://image.tmdb.org/t/p/original/${logo}`}
-                alt=""
-                onLoad={() => setLogoLoading(false)}
-              />
+              {logo?.length === 0 ? (
+                <h1 className="lg:text-7xl md:text-6xl sm:text-5xl text-4xl font-black">
+                  {title}
+                </h1>
+              ) : (
+                <motion.img
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: logoLoading ? 0 : 1 }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  className="w-full max-w-3xs object-contain drop-shadow-2xl md:max-h-48 md:max-w-xl max-h-32"
+                  src={`https://image.tmdb.org/t/p/original/${logo}`}
+                  alt=""
+                  onLoad={() => setLogoLoading(false)}
+                />
+              )}
 
               {genres?.length ? (
                 <div className="flex flex-wrap items-center justify-center gap-2 md:text-xs text-[0.6rem] font-medium tracking-[0.2rem] text-muted-foreground uppercase">
                   <span>{genres.join(" / ")}</span>
                 </div>
               ) : null}
-
               <div className="flex flex-col items-center justify-center md:gap-3 gap-1">
                 <motion.p
                   key={text}
