@@ -15,7 +15,11 @@ import { useIntro } from "@/hooks/intro";
 import { MediaOption, useOpenSubtitle } from "@/hooks/open-subtitle";
 import { useSandboxDetection } from "@/hooks/useSandboxDetection";
 import useSubtitle from "@/hooks/subs";
-import { sourceQueryOptions, QualityTrack, DubTypes } from "@/hooks/gagosauce";
+import {
+  sourceQueryOptions,
+  QualityTrack,
+  DubTypes,
+} from "@/hooks/angsarapmomia";
 import { cn } from "@/hooks/utils";
 
 import LoadingScreen from "@/app/embed/[...params]/player_components/loading-screen-branding";

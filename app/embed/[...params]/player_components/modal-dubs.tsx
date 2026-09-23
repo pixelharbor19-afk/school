@@ -11,7 +11,7 @@ import { cn } from "@/hooks/utils";
 import { Check, Languages } from "lucide-react";
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { DubTypes } from "@/hooks/gagosauce";
+import { DubTypes } from "@/hooks/angsarapmomia";
 import { FaLanguage } from "react-icons/fa6";
 
 import PlayerButton from "../reusable_button";

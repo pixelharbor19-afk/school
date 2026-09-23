@@ -7,7 +7,7 @@ import { useQueries } from "@tanstack/react-query";
 import { useParams, useSearchParams } from "next/navigation";
 
 import { useTmdbDetails } from "@/hooks/fetch-details";
-import { sourceQueryOptions } from "@/hooks/gagosauce";
+import { sourceQueryOptions } from "@/hooks/angsarapmomia";
 import { Button } from "@/components/ui/button";
 
 export type SourceStatus = "queue" | "connecting" | "ready" | "failed";

@@ -38,7 +38,7 @@ import {
 import { useState } from "react";
 import { usePlayerSettings } from "../player_store/settings";
 import { MediaOption } from "@/hooks/open-subtitle";
-import { DubTypes } from "@/hooks/gagosauce";
+import { DubTypes } from "@/hooks/angsarapmomia";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RiSettings3Fill, RiSettings4Fill } from "react-icons/ri";
 import PlayerButton from "../reusable_button";
