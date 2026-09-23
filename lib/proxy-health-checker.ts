@@ -630,7 +630,7 @@ export async function workerProxyHealth(proxies: string[]) {
           method: "HEAD",
           headers: { Range: "bytes=0-1" },
         },
-        15000,
+        10000,
       );
 
       console.log(`[PROXY] ${proxy} → ${res.status} | ${Date.now() - start}ms`);
