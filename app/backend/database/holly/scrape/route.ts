@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { fetch, ProxyAgent } from "undici";
 
 const HOLLY_BASE = "https://hollymoviehd.cc";
 const HOLLY_AJAX = `${HOLLY_BASE}/wp-admin/admin-ajax.php`;
+
+const residentialProxy = new ProxyAgent(process.env.RESIDENTIAL_PROXY!);
 
 const HOLLY_HEADERS = {
   "User-Agent":
@@ -37,6 +40,7 @@ export async function GET(request: NextRequest) {
   const pageUrl = buildHollyUrl(slug);
 
   const pageRes = await fetch(pageUrl, {
+    dispatcher: residentialProxy,
     headers: {
       ...HOLLY_HEADERS,
       Accept: "text/html,*/*;q=0.8",
@@ -66,6 +70,7 @@ export async function GET(request: NextRequest) {
   }
 
   const ajaxRes = await fetch(HOLLY_AJAX, {
+    dispatcher: residentialProxy,
     method: "POST",
     headers: {
       ...HOLLY_HEADERS,
@@ -96,7 +101,9 @@ export async function GET(request: NextRequest) {
   };
 
   try {
-    ajaxData = await ajaxRes.json();
+    ajaxData = (await ajaxRes.json()) as {
+      servers_iframe?: Record<string, string>;
+    };
   } catch {
     return json({ error: "ajax returned non-JSON" }, 502);
   }
