@@ -1,84 +1,55 @@
-import { NextResponse } from "next/server";
-import { execFile } from "child_process";
-import { promisify } from "util";
+import { NextRequest, NextResponse } from "next/server";
+import { fetch, ProxyAgent } from "undici";
 
-const execFileAsync = promisify(execFile);
+export async function GET(request: NextRequest) {
+  const query = request.nextUrl.searchParams.get("query") || "";
 
-const EMBED_URL =
-  "https://goodstream.cc/embed/W3cPjhjEzF?e=S3ZjdmxnTFY4MExOOWdEeGZDbGZDb2hIUFlmWTIyZ3JIU2phaXNuYTNCTT0A";
+  const residentialProxy = new ProxyAgent(process.env.RESIDENTIAL_PROXY!);
 
-const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36";
-
-function curl(args: string[]) {
-  return execFileAsync("curl", args, {
-    maxBuffer: 10 * 1024 * 1024,
-  });
-}
-
-export async function GET() {
-  const embed = new URL(EMBED_URL);
-  const e = embed.searchParams.get("e");
-
-  const { stdout: html } = await curl([
-    "-sS",
-    "-L",
-    EMBED_URL,
-    "-H",
-    "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-    "-H",
-    "Accept-Language: en-US,en;q=0.9",
-    "-H",
-    "Cache-Control: no-cache",
-    "-H",
-    "Pragma: no-cache",
-    "-H",
-    `Referer: ${EMBED_URL}`,
-    "-H",
-    `User-Agent: ${USER_AGENT}`,
-  ]);
-
-  const csrfToken =
-    html.match(/id="csrf_token"\s+value="([^"]+)"/)?.[1] || null;
-
-  if (!csrfToken) {
-    return NextResponse.json(
-      { error: "csrf_token not found" },
-      { status: 404 },
-    );
-  }
-
-  const { stdout: sourceText } = await curl([
-    "-sS",
-    "-L",
-    "-X",
-    "POST",
-    EMBED_URL,
-    "-H",
-    "Accept: */*",
-    "-H",
-    "Accept-Language: en-US,en;q=0.9",
-    "-H",
-    "Origin: https://goodstream.cc",
-    "-H",
-    `Referer: ${EMBED_URL}`,
-    "-H",
-    `User-Agent: ${USER_AGENT}`,
-    "-F",
-    `e=${e || ""}`,
-    "-F",
-    `token=${csrfToken}`,
-  ]);
-
-  try {
-    return NextResponse.json(JSON.parse(sourceText));
-  } catch {
-    return NextResponse.json(
-      {
-        error: "Source returned non-JSON",
-        response: sourceText,
+  const response = await fetch(
+    "https://hollymoviehd.cc/wp-admin/admin-ajax.php",
+    {
+      method: "POST",
+      dispatcher: residentialProxy,
+      headers: {
+        Accept: "*/*",
+        "Accept-Language": "en-US,en;q=0.7",
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        Origin: "https://hollymoviehd.cc",
+        Referer: "https://hollymoviehd.cc/the-wild-robot-2024/",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+        "X-Requested-With": "XMLHttpRequest",
       },
-      { status: 502 },
-    );
-  }
+      body: new URLSearchParams({
+        s: query,
+        action: "searchwp_live_search",
+        swpengine: "default",
+        swpquery: query,
+      }),
+    },
+  );
+
+  const html = await response.text();
+
+  const results = html
+    .match(/<li>([\s\S]*?)<\/li>/g)
+    ?.map((item) => {
+      const url = item.match(/class="thumb"[^>]*href="([^"]+)"/)?.[1];
+
+      const title = item.match(/class="ss-title"[^>]*>([\s\S]*?)<\/a>/)?.[1];
+
+      const info = item.match(/<p>([\s\S]*?)<\/p>/)?.[1];
+
+      if (!title) return null;
+
+      return {
+        title: title.trim(),
+        url,
+        info: info?.trim(),
+      };
+    })
+    .filter(Boolean);
+
+  return NextResponse.json(results || []);
 }
