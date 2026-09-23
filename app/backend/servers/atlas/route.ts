@@ -66,7 +66,9 @@ export async function GET(req: NextRequest) {
         .toLowerCase()
         .trim()
         .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "")}-${year}`;
+        .replace(/^-|-$/g, "")}${
+        mediaType === "tv" ? `-season-${season}-episode-${episode}` : `-${year}`
+      }`;
 
       const scrapeRes = await fetch(
         `${holly}/scrape?slug=${encodeURIComponent(slug)}`,

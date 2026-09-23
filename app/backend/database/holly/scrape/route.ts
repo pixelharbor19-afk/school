@@ -29,9 +29,15 @@ function buildHollyUrl(slug: string) {
     .replace(/\s+/g, "-")
     .replace(/^\/|\/$/g, "");
 
-  return /season-\d+-episode-\d+/i.test(clean)
-    ? `${HOLLY_BASE}/episode/${clean}/`
-    : `${HOLLY_BASE}/${clean}/`;
+  if (/season-\d+-episode-\d+/i.test(clean)) {
+    return `${HOLLY_BASE}/episode/${clean}/`;
+  }
+
+  if (/season-\d+/i.test(clean)) {
+    return `${HOLLY_BASE}/series/${clean}/`;
+  }
+
+  return `${HOLLY_BASE}/${clean}/`;
 }
 export async function GET(request: NextRequest) {
   const slug = request.nextUrl.searchParams.get("slug");
