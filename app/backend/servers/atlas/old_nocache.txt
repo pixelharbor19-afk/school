@@ -6,8 +6,11 @@ import { validateBackendToken } from "@/lib/validate-token";
 import { encryptLink } from "@/lib/source-link-enc-dec";
 import { encryptUrl } from "@/lib/aes-encryptor";
 
-const domain = "https://vidstuck.xyz";
-const holly = "https://vidstuck.xyz/backend/database/holly";
+//search
+//https://vidstuck.xyz/backend/database/holly/scrape?slug=
+
+//source
+//https://vidstuck.xyz/backend/database/holly/resolve?embed_url=
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_HOLLY_SUPABASE_URL_HOLLY!,
@@ -15,6 +18,8 @@ const supabase = createClient(
 );
 
 export async function GET(req: NextRequest) {
+  const domain = "https://vidstuck.xyz";
+
   const path = req.nextUrl.pathname.split("/").pop()!;
   const tmdbId = req.nextUrl.searchParams.get(FIELD_MAP.id);
   const mediaType = req.nextUrl.searchParams.get(FIELD_MAP.mediaType);
@@ -33,7 +38,6 @@ export async function GET(req: NextRequest) {
       { status: 400 },
     );
   }
-
   if (
     !validateBackendToken(tmdbId, mediaType, season, episode, path, ts, token)
   ) {
@@ -45,9 +49,6 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    let sources: any[] = [];
-
-    // 1. Check cache
     const { data: cached } = await supabase
       .from("holly_movie_cache")
       .select("sources")
@@ -57,94 +58,16 @@ export async function GET(req: NextRequest) {
       .eq("episode", episode)
       .single();
 
-    // 2. Use cached sources
-    if (cached?.sources?.length) {
-      sources = cached.sources;
-    } else {
-      // 3. Scrape Holly
-      const slug = `${title
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "")}-${year}`;
-
-      const scrapeRes = await fetch(
-        `${holly}/scrape?slug=${encodeURIComponent(slug)}`,
-      );
-
-      if (!scrapeRes.ok) {
-        logRequest(req, "ATLAS", 404, "Holly scrape failed");
-        return NextResponse.json(
-          { success: false, error: "Holly scrape failed", server: path },
-          { status: 404 },
-        );
-      }
-
-      const scraped = await scrapeRes.json();
-
-      if (!scraped?.qualities?.length) {
-        logRequest(req, "ATLAS", 404, "No Holly embeds found");
-        return NextResponse.json(
-          { success: false, error: "No Holly embeds found", server: path },
-          { status: 404 },
-        );
-      }
-
-      const embeds = scraped.qualities.map((quality: any) => ({
-        quality: quality.quality,
-        embed_url: quality.embed_url,
-      }));
-
-      // 4. Resolve embeds
-      const resolved = await Promise.all(
-        embeds.map(async (embed: any) => {
-          try {
-            const resolveRes = await fetch(
-              `${holly}/resolve?embed_url=${encodeURIComponent(
-                embed.embed_url,
-              )}`,
-            );
-
-            if (!resolveRes.ok) return [];
-
-            const data = await resolveRes.json();
-
-            return data?.sources ?? [];
-          } catch {
-            return [];
-          }
-        }),
-      );
-
-      sources = resolved.flat();
-
-      if (!sources.length) {
-        logRequest(req, "ATLAS", 404, "No Holly sources found");
-        return NextResponse.json(
-          { success: false, error: "No Holly sources found", server: path },
-          { status: 404 },
-        );
-      }
-
-      // 5. Save embeds + sources to cache
-      await supabase.from("holly_movie_cache").upsert(
-        {
-          tmdb_id: Number(tmdbId),
-          media_type: mediaType,
-          season,
-          episode,
-          embeds,
-          sources,
-        },
-        {
-          onConflict: "tmdb_id,media_type,season,episode",
-        },
+    if (!cached?.sources?.length) {
+      logRequest(req, "ATLAS", 404, "No cached sources");
+      return NextResponse.json(
+        { success: false, error: "No cached sources", server: path },
+        { status: 404 },
       );
     }
 
-    // 6. Return sources
     const links = await Promise.all(
-      sources
+      cached.sources
         .filter((s: any) => s.type !== "mp4")
         .sort(
           (a: any, b: any) =>
@@ -166,7 +89,6 @@ export async function GET(req: NextRequest) {
           };
         }),
     );
-
     if (!links.length) {
       logRequest(req, "ATLAS", 404, "No /pl/ sources found");
       return NextResponse.json(
@@ -174,19 +96,13 @@ export async function GET(req: NextRequest) {
         { status: 404 },
       );
     }
-
     logRequest(req, "ATLAS", 200, "OK");
-
     return NextResponse.json({
       success: true,
       links,
       server: path,
     });
-  } catch (error) {
-    console.error("[ATLAS]", error);
-
-    logRequest(req, "ATLAS", 500, "Internal server error");
-
+  } catch {
     return NextResponse.json(
       { success: false, error: "Internal server error", server: path },
       { status: 500 },
