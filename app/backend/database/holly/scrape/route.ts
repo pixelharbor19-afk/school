@@ -23,13 +23,16 @@ function json(data: unknown, status = 200) {
 }
 
 function buildHollyUrl(slug: string) {
-  const clean = slug.replace(/^\/|\/$/g, "");
+  const clean = slug
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/^\/|\/$/g, "");
 
   return /season-\d+-episode-\d+/i.test(clean)
     ? `${HOLLY_BASE}/episode/${clean}/`
     : `${HOLLY_BASE}/${clean}/`;
 }
-
 export async function GET(request: NextRequest) {
   const slug = request.nextUrl.searchParams.get("slug");
 
@@ -52,7 +55,7 @@ export async function GET(request: NextRequest) {
   }
 
   if (!pageRes.ok) {
-    return json({ error: `Page fetch failed: HTTP ${pageRes.status}` }, 502);
+    return json({ error: `Page fetch failed: HTTP ${pageRes.status}` }, 404);
   }
 
   const html = await pageRes.text();
