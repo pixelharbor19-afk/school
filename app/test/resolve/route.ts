@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { execFile } from "child_process";
 import { promisify } from "util";
-
+type Source = { file: string; label?: string; type?: string };
+type SourceResponse = { success?: boolean; sources?: Source[] };
 const execFileAsync = promisify(execFile);
 
 const GOOD_BASE = "https://goodstream.cc";
 
-const HEADERS = {
-  "User-Agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
-  "Accept-Language": "en-US,en;q=0.9",
-  "Cache-Control": "max-age=0",
-};
 
 function json(data: unknown, status = 200) {
   return NextResponse.json(data, {
@@ -49,11 +44,7 @@ export async function GET(request: NextRequest) {
       "POST",
       fullEmbedUrl,
       "-H",
-      `Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8`,
-      "-H",
-      `Accept-Language: ${HEADERS["Accept-Language"]}`,
-      "-H",
-      `Cache-Control: ${HEADERS["Cache-Control"]}`,
+      "Accept: application/json, text/plain, */*",
       "-H",
       "Content-Type: application/x-www-form-urlencoded",
       "-H",
@@ -61,29 +52,12 @@ export async function GET(request: NextRequest) {
       "-H",
       `Referer: ${fullEmbedUrl}`,
       "-H",
-      "Sec-Fetch-Dest: document",
-      "-H",
-      "Sec-Fetch-Mode: navigate",
-      "-H",
-      "Sec-Fetch-Site: same-origin",
-      "-H",
-      "Sec-Fetch-User: ?1",
-      "-H",
-      "Upgrade-Insecure-Requests: 1",
-      "-H",
-      `User-Agent: ${HEADERS["User-Agent"]}`,
+      "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
       "--data",
       "",
     ]);
 
-    const sourceData: {
-      success?: boolean;
-      sources?: {
-        file: string;
-        label?: string;
-        type?: string;
-      }[];
-    } = JSON.parse(stdout);
+    const sourceData: SourceResponse = JSON.parse(stdout);
 
     if (!sourceData.success) {
       return json(
