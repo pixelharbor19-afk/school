@@ -90,33 +90,23 @@ export async function GET(req: NextRequest) {
         );
       }
 
-      const embeds = scraped.qualities.map((quality: any) => ({
-        quality: quality.quality,
-        embed_url: quality.embed_url,
-      }));
+      const embed = scraped.qualities[0];
 
-      // 4. Resolve embeds
-      const resolved = await Promise.all(
-        embeds.map(async (embed: any) => {
-          try {
-            const resolveRes = await fetch(
-              `${holly}/resolve?embed_url=${encodeURIComponent(
-                embed.embed_url,
-              )}`,
-            );
-
-            if (!resolveRes.ok) return [];
-
-            const data = await resolveRes.json();
-
-            return data?.sources ?? [];
-          } catch {
-            return [];
-          }
-        }),
+      const resolveRes = await fetch(
+        `${holly}/resolve?embed_url=${encodeURIComponent(embed.embed_url)}`,
       );
 
-      sources = resolved.flat();
+      if (!resolveRes.ok) {
+        logRequest(req, "ATLAS", 502, "Holly resolve failed");
+        return NextResponse.json(
+          { success: false, error: "Holly resolve failed", server: path },
+          { status: 502 },
+        );
+      }
+
+      const data = await resolveRes.json();
+
+      sources = data?.sources ?? [];
 
       if (!sources.length) {
         logRequest(req, "ATLAS", 404, "No Holly sources found");
@@ -126,14 +116,14 @@ export async function GET(req: NextRequest) {
         );
       }
 
-      // 5. Save embeds + sources to cache
+      // Save embeds + sources
       await supabase.from("holly_movie_cache").upsert(
         {
           tmdb_id: Number(tmdbId),
           media_type: mediaType,
           season,
           episode,
-          embeds,
+          embeds: [embed],
           sources,
         },
         {
