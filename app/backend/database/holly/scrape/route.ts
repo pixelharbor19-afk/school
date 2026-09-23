@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
       ...HOLLY_HEADERS,
       Accept: "text/html,*/*;q=0.8",
     },
+    signal: AbortSignal.timeout(10000),
   });
 
   if (pageRes.status === 429) {
@@ -95,6 +96,7 @@ export async function GET(request: NextRequest) {
       nonce,
       ...(imdbid ? { imdbid } : {}),
     }),
+    signal: AbortSignal.timeout(10000),
   });
 
   if (ajaxRes.status === 429) {

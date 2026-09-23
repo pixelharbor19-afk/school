@@ -6,7 +6,7 @@ type SourceResponse = { success?: boolean; sources?: Source[] };
 const execFileAsync = promisify(execFile);
 
 const GOOD_BASE = "https://goodstream.cc";
-
+const RESIDENTIAL_PROXY = process.env.RESIDENTIAL_PROXY!;
 
 function json(data: unknown, status = 200) {
   return NextResponse.json(data, {
@@ -40,6 +40,10 @@ export async function GET(request: NextRequest) {
     const { stdout } = await execFileAsync("curl", [
       "-sS",
       "-L",
+      "--max-time",
+      "10",
+      "-x",
+      RESIDENTIAL_PROXY,
       "-X",
       "POST",
       fullEmbedUrl,
