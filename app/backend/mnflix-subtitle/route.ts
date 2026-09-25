@@ -89,6 +89,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(
         {
           captions: cached.captions as MediaOption[],
+          meow: true,
         },
         {
           headers: corsHeaders,
@@ -192,6 +193,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(
       {
         captions,
+        meow: false,
       },
       {
         headers: corsHeaders,
