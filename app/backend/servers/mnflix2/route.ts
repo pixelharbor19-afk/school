@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     const path = pathname.split("/").pop()!;
 
     if (!tmdbId || !mediaType) {
-      logRequest(req, "MILKY WAY", 400, "missing params");
+      logRequest(req, "MNFLIX2", 400, "missing params");
       return NextResponse.json(
         { success: false, error: "missing params", server: path },
         { status: 400 },
@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
       streamUrls = data?.data?.stream_urls ?? [];
 
       if (data?.status_code !== "200" || !streamUrls.length) {
-        logRequest(req, "MILKY WAY", 404, "no streams found");
+        logRequest(req, "MNFLIX2", 404, "no streams found");
         return NextResponse.json(
           { success: false, error: "No streams found", server: path },
           { status: 404 },
@@ -114,7 +114,7 @@ export async function GET(req: NextRequest) {
     const shuffledProxy = await workerProxyHealth(workerProxies);
 
     if (!shuffledProxy) {
-      logRequest(req, "MILKY WAY", 502, "No proxy available");
+      logRequest(req, "MNFLIX2", 502, "No proxy available");
 
       return NextResponse.json(
         {
@@ -150,7 +150,7 @@ export async function GET(req: NextRequest) {
       }),
     );
 
-    logRequest(req, "MILKY WAY", 200, "OK");
+    logRequest(req, "MNFLIX2", 200, "OK");
     return NextResponse.json({
       success: true,
       links,
@@ -159,7 +159,7 @@ export async function GET(req: NextRequest) {
       server: path,
     });
   } catch (err: any) {
-    console.error("API Error:", err);
+    console.error("MNFLIX2 ERROR:", err instanceof Error ? err.message : err);
     return NextResponse.json(
       { success: false, error: "Internal server error", server: path },
       { status: 500 },

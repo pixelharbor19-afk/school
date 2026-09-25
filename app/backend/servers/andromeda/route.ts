@@ -213,7 +213,7 @@ export async function GET(req: NextRequest) {
       server: path,
     });
   } catch (err) {
-    console.error("API Error:", err);
+    console.error("ANDROMEDA ERROR:", err instanceof Error ? err.message : err);
 
     return NextResponse.json(
       {

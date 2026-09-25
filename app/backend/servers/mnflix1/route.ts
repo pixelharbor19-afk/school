@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   const path = pathname.split("/").pop()!;
 
   if (!tmdbId || !mediaType) {
-    logRequest(req, "ANDROMEDA", 400, "missing params");
+    logRequest(req, "MNFLIX1", 400, "missing params");
     return NextResponse.json(
       { success: false, error: "missing params", server: path },
       { status: 400 },
@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
       );
 
       if (!response.ok) {
-        logRequest(req, "ANDROMEDA", 404, "No stream found");
+        logRequest(req, "MNFLIX1", 404, "No stream found");
 
         return NextResponse.json(
           {
@@ -85,7 +85,7 @@ export async function GET(req: NextRequest) {
       stream = data.stream;
 
       if (!stream) {
-        logRequest(req, "ANDROMEDA", 404, "No stream found");
+        logRequest(req, "MNFLIX1", 404, "No stream found");
 
         return NextResponse.json(
           {
@@ -174,7 +174,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    logRequest(req, "ANDROMEDA", 200, cacheStatus);
+    logRequest(req, "MNFLIX1", 200, cacheStatus);
 
     return NextResponse.json({
       success: true,
@@ -183,7 +183,7 @@ export async function GET(req: NextRequest) {
       server: path,
     });
   } catch (err) {
-    console.error("API Error:", err);
+    console.error("MNFLIX1 ERROR:", err instanceof Error ? err.message : err);
 
     return NextResponse.json(
       {
