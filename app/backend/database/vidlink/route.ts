@@ -1,3 +1,4 @@
+import { fetchWithTimeout } from "@/lib/fetch-timeout";
 import { NextRequest, NextResponse } from "next/server";
 import { fetch, ProxyAgent } from "undici";
 
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
   };
 
   try {
-    const encryptedResponse = await fetch(
+    const encryptedResponse = await fetchWithTimeout(
       `${ENC_DEC_API}/enc-vidlink?text=${encodeURIComponent(tmdbId)}`,
       {
         headers: HEADERS,

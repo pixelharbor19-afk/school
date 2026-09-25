@@ -1,4 +1,5 @@
 // app/api/subtitle/route.ts
+import { fetchWithTimeout } from "@/lib/fetch-timeout";
 import { NextRequest, NextResponse } from "next/server";
 
 function normalizeTimestamps(input: string): string {
@@ -38,7 +39,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const res = await fetch(url);
+    const res = await fetchWithTimeout(url);
     if (!res.ok) {
       return NextResponse.json(
         { error: "Upstream fetch failed" },
