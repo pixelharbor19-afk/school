@@ -1,5 +1,6 @@
 import { ALLOWED_ORIGINS } from "@/lib/allowed-referers";
 import { FIELD_MAP } from "@/lib/field-map";
+import { logRequest } from "@/lib/log-request";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { fetch, ProxyAgent } from "undici";
@@ -197,7 +198,12 @@ export async function GET(req: NextRequest) {
       },
     );
   } catch (err) {
-    console.error("SUBTITLE ERROR:", err instanceof Error ? err.message : err);
+    logRequest(
+      req,
+      "SUBTITLE",
+      500,
+      err instanceof Error ? err.message : "Request failed",
+    );
 
     return NextResponse.json(
       {

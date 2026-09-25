@@ -232,7 +232,7 @@ export async function GET(req: NextRequest) {
 
     const errorType = error instanceof Error ? error.name : "UnknownError";
 
-    console.error(`[SCRAPE] ${source.name} ${errorType} | ${message}`);
+    console.error(`[SCRAPE MOVIEBOX] ${source.name} ${errorType} | ${message}`);
 
     return NextResponse.json(
       {

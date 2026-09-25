@@ -183,7 +183,7 @@ export async function GET(req: NextRequest) {
       server: path,
     });
   } catch (err: any) {
-    console.error("MILKY WAY ERROR:", err instanceof Error ? err.message : err);
+    logRequest(req, "MILKY WAY", 500, err instanceof Error ? err.message : err);
     return NextResponse.json(
       { success: false, error: "Internal server error", server: path },
       { status: 500 },

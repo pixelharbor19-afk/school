@@ -213,7 +213,12 @@ export async function GET(req: NextRequest) {
       server: path,
     });
   } catch (err) {
-    console.error("ANDROMEDA ERROR:", err instanceof Error ? err.message : err);
+    logRequest(
+      req,
+      "ANDROMEDA",
+      500,
+      err instanceof Error ? err.message : "Internal server error",
+    );
 
     return NextResponse.json(
       {

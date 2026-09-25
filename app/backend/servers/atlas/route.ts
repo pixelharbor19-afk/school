@@ -180,9 +180,12 @@ export async function GET(req: NextRequest) {
       server: path,
     });
   } catch (error) {
-    console.error("[ATLAS]", error);
-
-    logRequest(req, "ATLAS", 500, "Internal server error");
+    logRequest(
+      req,
+      "ATLAS",
+      500,
+      error instanceof Error ? error.message : "Internal server error",
+    );
 
     return NextResponse.json(
       { success: false, error: "Internal server error", server: path },

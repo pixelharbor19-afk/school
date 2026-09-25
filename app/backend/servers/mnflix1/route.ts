@@ -183,7 +183,12 @@ export async function GET(req: NextRequest) {
       server: path,
     });
   } catch (err) {
-    console.error("MNFLIX1 ERROR:", err instanceof Error ? err.message : err);
+    logRequest(
+      req,
+      "MNFLIX1",
+      500,
+      err instanceof Error ? err.message : "Internal server error",
+    );
 
     return NextResponse.json(
       {
