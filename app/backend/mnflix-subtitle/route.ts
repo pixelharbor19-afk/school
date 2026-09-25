@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
         .eq("season", Number(season))
         .eq("episode", Number(episode));
     } else {
-      cacheQuery = cacheQuery.is("season", null).is("episode", null);
+      cacheQuery = cacheQuery.eq("season", 0).eq("episode", 0);
     }
 
     const { data: cached } = await cacheQuery
@@ -180,8 +180,8 @@ export async function GET(req: NextRequest) {
       {
         tmdb_id: tmdbId,
         media_type: mediaType,
-        season: season ? Number(season) : null,
-        episode: episode ? Number(episode) : null,
+        season: season ? Number(season) : 0,
+        episode: episode ? Number(episode) : 0,
         captions,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       },
