@@ -47,10 +47,10 @@ export async function GET(req: NextRequest) {
   const corsHeaders = getCorsHeaders(req.headers.get("origin"));
   const { searchParams } = req.nextUrl;
 
-  const tmdbId = searchParams.get(FIELD_MAP.id);
-  const mediaType = searchParams.get(FIELD_MAP.mediaType) || "movie";
-  const season = searchParams.get(FIELD_MAP.season) || "";
-  const episode = searchParams.get(FIELD_MAP.episode) || "";
+  const tmdbId = searchParams.get("tmdbId");
+  const mediaType = searchParams.get("mediaType") || "movie";
+  const season = searchParams.get("season") || "";
+  const episode = searchParams.get("episode") || "";
 
   if (!tmdbId) {
     return NextResponse.json(
