@@ -141,7 +141,9 @@ export async function GET(req: NextRequest) {
             playlist: stream.playlist,
             cookie: stream.playlistHeaders?.Cookie ?? null,
             created_at: new Date().toISOString(),
-            expires_at: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
+            expires_at: new Date(
+              Date.now() + 24 * 60 * 60 * 1000,
+            ).toISOString(),
           },
           {
             onConflict: "tmdb_id,media_type,season,episode",

@@ -1,0 +1,15 @@
+CREATE TABLE public.vidlink_cache (
+  id BIGSERIAL PRIMARY KEY,
+  tmdb_id TEXT NOT NULL,
+  media_type TEXT NOT NULL,
+  season TEXT NOT NULL DEFAULT '',
+  episode TEXT NOT NULL DEFAULT '',
+  playlist TEXT NOT NULL,
+  cookie TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  expires_at TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '15 minutes'),
+  UNIQUE (tmdb_id, media_type, season, episode)
+);
+
+CREATE INDEX idx_vidlink_cache_expires_at
+ON public.vidlink_cache (expires_at);
