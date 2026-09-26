@@ -7,7 +7,6 @@ import { encryptLink } from "@/lib/source-link-enc-dec";
 import { encryptUrl } from "@/lib/aes-encryptor";
 import { fetchWithTimeout } from "@/lib/fetch-timeout";
 
-const domain = "https://vidstuck.xyz";
 const holly = "https://vidstuck.xyz/backend/database/holly";
 
 const supabase = createClient(
@@ -154,7 +153,7 @@ export async function GET(req: NextRequest) {
             type: source.type,
             resolution: null,
             link: encryptLink(
-              `${domain}/backend/servers/atlas/edge?url=${encodeURIComponent(
+              `/backend/servers/atlas/edge?url=${encodeURIComponent(
                 url,
               )}&id=${tmdbId}&mediaType=${mediaType}&season=${encodeURIComponent(
                 season,
