@@ -651,6 +651,8 @@ export async function workerProxyHealth(proxies: string[]) {
           err?.cause?.code || err?.code || err?.name || "failed"
         } | ${err?.cause?.message || err?.message || ""}`,
       );
+
+      return null;
     }
   }
 
