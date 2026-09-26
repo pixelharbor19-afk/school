@@ -213,6 +213,7 @@ export async function GET(req: NextRequest) {
       links,
       subtitles: [],
       server: path,
+      meow: cacheStatus === "CACHE HIT",
     });
   } catch (err) {
     logRequest(
