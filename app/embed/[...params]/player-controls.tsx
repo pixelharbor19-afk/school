@@ -191,7 +191,7 @@ export default function VideoControls({
                 <h3 className="text-xs text-muted-foreground">
                   You're Watching
                 </h3>
-                <h1>
+                <h1 className="text-shadow-xs">
                   {title} {media_type === "tv" && `S${season}E${episode}`}
                 </h1>
               </div>
@@ -292,7 +292,7 @@ export default function VideoControls({
                 </h3>
               </span>
 
-              <h1 className="mt-2 text-2xl font-bold tracking-tight lg:text-4xl">
+              <h1 className="mt-2 text-2xl font-bold tracking-tight lg:text-4xl text-shadow-xs">
                 {title} {media_type === "tv" && `S${season}E${episode}`}
               </h1>
               <div className="mt-3 flex items-center gap-2">

@@ -16,8 +16,10 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
+  DrawerClose,
   DrawerContent,
   DrawerDescription,
+  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
@@ -67,8 +69,8 @@ export default function EpisodesModal({
   });
 
   const episodes = data?.episodes ?? [];
-  const visibleEpisodes = expanded ? episodes : episodes.slice(0, 6);
-
+  // const visibleEpisodes = expanded ? episodes : episodes.slice(0, 6);
+  const visibleEpisodes = episodes;
   const currentIndex =
     selectedSeason === season
       ? Math.max(
@@ -126,49 +128,48 @@ export default function EpisodesModal({
       />
 
       <DrawerContent className="max-w-5xl mx-auto pr-1" container={playerRef}>
-        <DrawerHeader className="">
-          <div className="flex justify-center items-center">
-            <div className="flex items-center gap-3">
-              <GalleryVerticalEnd />
-              <div className=" text-left">
-                <DrawerTitle className="text-lg">Episodes</DrawerTitle>
-                <DrawerDescription>
-                  Select an episode to watch.
-                </DrawerDescription>
-              </div>
-            </div>
-            <div className="flex-1"></div>
-            <Popover>
-              <PopoverTrigger
-                render={<Button variant="secondary" className="w-32" />}
-              >
-                <GalleryVertical /> Season {selectedSeason}
-              </PopoverTrigger>
-              <PopoverContent className="w-32 p-1" portal={false}>
-                <div className="flex flex-col">
-                  {seasons.map((item) => (
-                    <Button
-                      key={item.season_number}
-                      variant="ghost"
-                      className="justify-start cursor-pointer"
-                      onClick={() => {
-                        setSelectedSeason(item.season_number);
-                        setExpanded(false);
-                      }}
-                    >
-                      Season {item.season_number}
-                    </Button>
-                  ))}
+        <ScrollArea className="max-h-[90vh] flex-1 pr-2">
+          <DrawerHeader className="sticky top-0 z-10 bg-background">
+            <div className="flex justify-center items-center">
+              <div className="flex items-center gap-3">
+                <GalleryVerticalEnd />
+                <div className=" text-left">
+                  <DrawerTitle className="text-lg">Episodes</DrawerTitle>
+                  <DrawerDescription>
+                    Select an episode to watch.
+                  </DrawerDescription>
                 </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-        </DrawerHeader>
-
-        <ScrollArea className="max-h-[80vh] flex-1 pr-2">
+              </div>
+              <div className="flex-1"></div>
+              <Popover>
+                <PopoverTrigger
+                  render={<Button variant="secondary" className="w-32" />}
+                >
+                  <GalleryVertical /> Season {selectedSeason}
+                </PopoverTrigger>
+                <PopoverContent className="w-32 p-1" portal={false}>
+                  <div className="flex flex-col">
+                    {seasons.map((item) => (
+                      <Button
+                        key={item.season_number}
+                        variant="ghost"
+                        className="justify-start cursor-pointer"
+                        onClick={() => {
+                          setSelectedSeason(item.season_number);
+                          setExpanded(false);
+                        }}
+                      >
+                        Season {item.season_number}
+                      </Button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </DrawerHeader>
           <div className="px-4 pb-6 pt-4">
             {isLoading ? (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 ">
+              <div className="grid grid-cols-2 md:gap-4 gap-3 sm:grid-cols-3 ">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="space-y-3">
                     <Skeleton className="aspect-video w-full rounded" />
@@ -190,134 +191,136 @@ export default function EpisodesModal({
                 </p>
               </div>
             ) : (
-              <>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 ">
-                  {visibleEpisodes.map((e) => {
-                    const isActive =
-                      selectedSeason === season && e.episode_number === episode;
+              <div className="grid grid-cols-2 md:gap-4 gap-3 sm:grid-cols-3 ">
+                {visibleEpisodes.map((e) => {
+                  const isActive =
+                    selectedSeason === season && e.episode_number === episode;
 
-                    return (
-                      <div
-                        key={e.id}
-                        ref={(element) => {
-                          episodeRefs.current[e.id] = element;
-                        }}
-                      >
-                        <Link
-                          href={`/embed/tv/${tmdbId}/${selectedSeason}/${e.episode_number}${
-                            searchParams.toString()
-                              ? `?${searchParams.toString()}`
-                              : ""
-                          }`}
-                          replace
-                          onClick={closeDrawer}
-                          className="group block"
-                        >
-                          <div
-                            className={cn(
-                              "relative mb-3 aspect-video overflow-hidden rounded-md bg-neutral-900",
-                              "transition-all duration-300",
-                              "group-hover:brightness-75",
-                              isActive && "border-2",
-                            )}
-                            style={
-                              isActive
-                                ? {
-                                    outlineColor: color,
-                                    borderColor: color,
-                                  }
-                                : undefined
-                            }
-                          >
-                            {e.still_path ? (
-                              <img
-                                src={`https://image.tmdb.org/t/p/w780${e.still_path}`}
-                                alt={e.name}
-                                loading="lazy"
-                                className={cn(
-                                  "h-full w-full object-cover",
-                                  "transition-opacity duration-500",
-                                  loadedImages[e.id]
-                                    ? "opacity-100"
-                                    : "opacity-0",
-                                )}
-                                onLoad={() =>
-                                  setLoadedImages((prev) => ({
-                                    ...prev,
-                                    [e.id]: true,
-                                  }))
-                                }
-                              />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center">
-                                <span className="text-5xl font-bold text-neutral-800">
-                                  {e.episode_number}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          <div>
-                            <h3
-                              className={cn(
-                                "mb-1 line-clamp-2 font-semibold text-base",
-                                "transition-colors group-hover:text-neutral-300",
-                              )}
-                            >
-                              {e.episode_number}. {e.name}
-                            </h3>
-
-                            <div className="mb-2 flex items-center gap-2 text-xs text-neutral-500 lg:text-sm">
-                              {e.air_date && (
-                                <span>
-                                  {new Date(e.air_date).toLocaleDateString(
-                                    "en-US",
-                                    {
-                                      month: "short",
-                                      day: "numeric",
-                                      year: "numeric",
-                                    },
-                                  )}
-                                </span>
-                              )}
-
-                              {e.air_date && e.runtime && <span>•</span>}
-
-                              {e.runtime && <span>{e.runtime} min</span>}
-                            </div>
-
-                            {e.overview && (
-                              <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground lg:line-clamp-3">
-                                {e.overview}
-                              </p>
-                            )}
-                          </div>
-                        </Link>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {episodes.length > 6 && (
-                  <div className="mt-6 flex items-center justify-center">
-                    <Button
-                      variant="link"
-                      onClick={() => setExpanded(!expanded)}
+                  return (
+                    <div
+                      key={e.id}
+                      ref={(element) => {
+                        episodeRefs.current[e.id] = element;
+                      }}
                     >
-                      {expanded ? "Show Less" : "Show More"}
+                      <Link
+                        href={`/embed/tv/${tmdbId}/${selectedSeason}/${e.episode_number}${
+                          searchParams.toString()
+                            ? `?${searchParams.toString()}`
+                            : ""
+                        }`}
+                        replace
+                        onClick={closeDrawer}
+                        className="group block"
+                      >
+                        <div
+                          className={cn(
+                            "relative mb-3 aspect-video overflow-hidden rounded-md bg-neutral-900",
+                            "transition-all duration-300",
+                            "group-hover:brightness-75",
+                            isActive && "border-2",
+                          )}
+                          style={
+                            isActive
+                              ? {
+                                  outlineColor: color,
+                                  borderColor: color,
+                                }
+                              : undefined
+                          }
+                        >
+                          {e.still_path ? (
+                            <img
+                              src={`https://image.tmdb.org/t/p/w780${e.still_path}`}
+                              alt={e.name}
+                              loading="lazy"
+                              className={cn(
+                                "h-full w-full object-cover",
+                                "transition-opacity duration-500",
+                                loadedImages[e.id]
+                                  ? "opacity-100"
+                                  : "opacity-0",
+                              )}
+                              onLoad={() =>
+                                setLoadedImages((prev) => ({
+                                  ...prev,
+                                  [e.id]: true,
+                                }))
+                              }
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center">
+                              <span className="text-5xl font-bold text-neutral-800">
+                                {e.episode_number}
+                              </span>
+                            </div>
+                          )}
+                        </div>
 
-                      <ChevronDown
-                        className={cn(
-                          "transition-transform",
-                          expanded && "rotate-180",
-                        )}
-                      />
-                    </Button>
-                  </div>
-                )}
-              </>
+                        <div>
+                          <h3
+                            className={cn(
+                              "mb-1 line-clamp-2 font-semibold text-base",
+                              "transition-colors group-hover:text-neutral-300",
+                            )}
+                          >
+                            {e.episode_number}. {e.name}
+                          </h3>
+
+                          <div className="mb-2 flex items-center gap-2 text-xs text-neutral-500 lg:text-sm">
+                            {e.air_date && (
+                              <span>
+                                {new Date(e.air_date).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  },
+                                )}
+                              </span>
+                            )}
+
+                            {e.air_date && e.runtime && <span>•</span>}
+
+                            {e.runtime && <span>{e.runtime} min</span>}
+                          </div>
+
+                          {e.overview && (
+                            <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground lg:line-clamp-2">
+                              {e.overview}
+                            </p>
+                          )}
+                        </div>
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
+          {/* {episodes.length && episodes.length > 6 && (
+            <div className="p-4 flex items-center justify-center bg-background">
+              <Button variant="link" onClick={() => setExpanded(!expanded)}>
+                {expanded ? "Show Less" : "Show More"}
+
+                <ChevronDown
+                  className={cn(
+                    "transition-transform",
+                    expanded && "rotate-180",
+                  )}
+                />
+              </Button>
+            </div>
+          )} */}
+          <DrawerFooter className=" sticky bottom-0 bg-background">
+            <DrawerClose
+              className="w-full"
+              render={<Button variant="secondary" />}
+            >
+              Close
+            </DrawerClose>
+          </DrawerFooter>
         </ScrollArea>
       </DrawerContent>
     </Drawer>

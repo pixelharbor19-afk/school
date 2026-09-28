@@ -42,6 +42,7 @@ import { DubTypes } from "@/hooks/angsarapmomia";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RiSettings3Fill, RiSettings4Fill } from "react-icons/ri";
 import PlayerButton from "../reusable_button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 interface Props {
   canPlay: boolean;
   playerRef: React.RefObject<HTMLDivElement | null>;
@@ -126,7 +127,7 @@ export default function ModalSettings({
 
   return (
     <Drawer
-      swipeDirection={isMobile ? "down" : "right"}
+      swipeDirection="down"
       showSwipeHandle={true}
       onOpenChange={(open) => {
         if (!open) setTab("main");
@@ -148,375 +149,383 @@ export default function ModalSettings({
 
       <DrawerContent
         container={playerRef}
-        className="mx-auto max-w-xl landscape:max-h-[140vh] landscape:scale-60"
+        className="mx-auto max-w-xl landscape:max-h-screen"
       >
-        <DrawerHeader className="flex flex-row items-center gap-2">
-          {tab !== "main" && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => setTab("main")}
-              className="-ml-2"
-            >
-              <ArrowLeft className="size-5" />
-            </Button>
-          )}
-
-          <div>
-            <DrawerTitle className="flex items-center gap-1.5 uppercase tracking-wider text-muted-foreground md:text-base text-sm">
-              {TAB_TITLES[tab]}
-            </DrawerTitle>
-
-            {tab === "main" && (
-              <DrawerDescription>
-                Customize your playback experience.
-              </DrawerDescription>
-            )}
-          </div>
-        </DrawerHeader>
-
-        <div className="min-h-0 flex-1 overflow-y-auto p-4">
-          {tab === "main" && (
-            <div className="space-y-5">
-              <SettingsCategory title="Source">
-                <SettingsItem
-                  label="Quality"
-                  icon={<Hd className="size-5" />}
-                  value={quality === "auto" ? "Auto" : `${quality}p`}
-                  onClick={() => setTab("quality")}
-                />
-                <SettingsItem
-                  label="Audio"
-                  icon={<Languages className="size-5" />}
-                  value={selectedDub?.lanName ?? "Original"}
-                  onClick={() => setTab("audio")}
-                />
-                <SettingsItem
-                  label="Subtitles"
-                  icon={<Captions className="size-5" />}
-                  value={selectedSubtitle?.display ?? "Off"}
-                  onClick={() => setTab("subtitles")}
-                />
-              </SettingsCategory>
-
-              <Separator className="my-4" />
-
-              <SettingsCategory title="Media">
-                <SettingsItem
-                  label="Aspect Ratio"
-                  icon={<SquareDimensions className="size-5" />}
-                  value={
-                    aspectRatio === "contain"
-                      ? "Fit"
-                      : aspectRatio === "cover"
-                        ? "Crop"
-                        : "Fill"
-                  }
-                  onClick={() => setTab("aspect-ratio")}
-                />
-
-                <SettingsItem
-                  label="Brightness"
-                  icon={<Image className="size-5" />}
-                  value={`${brightness}%`}
-                  onClick={() => setTab("brightness")}
-                />
-
-                <SettingsItem
-                  label="Mirror"
-                  icon={<SquareCenterlineDashedHorizontal className="size-5" />}
-                  value={mirror ? "On" : "Off"}
-                  onClick={() => setTab("mirror")}
-                />
-
-                <SettingsItem
-                  label="Picture-in-Picture"
-                  icon={<PictureInPicture className="size-5" />}
-                  value={pictureInPicture ? "On" : "Off"}
-                  onClick={() => setTab("picture-in-picture")}
-                />
-              </SettingsCategory>
-
-              <Separator className="my-4" />
-
-              <SettingsCategory title="Playback">
-                <SettingsItem
-                  label="Playback Speed"
-                  icon={<Gauge className="size-5" />}
-                  value={`${playbackSpeed}x`}
-                  onClick={() => setTab("playback-speed")}
-                />
-
-                <SettingsItem
-                  label="Loop"
-                  icon={<Repeat className="size-5" />}
-                  value={loop ? "On" : "Off"}
-                  onClick={() => setTab("loop")}
-                />
-
-                <SettingsItem
-                  label="Autoplay"
-                  icon={<Play className="size-5" />}
-                  value={autoplay ? "On" : "Off"}
-                  onClick={() => setTab("autoplay")}
-                />
-              </SettingsCategory>
-            </div>
-          )}
-
-          {tab === "source-quality" && (
-            <SettingsPlaceholder text="Source quality options coming soon" />
-          )}
-
-          {tab === "download" && (
-            <SettingsPlaceholder text="Download options coming soon" />
-          )}
-
-          {tab === "quality" && (
-            <div className="space-y-1">
-              <button
+        <ScrollArea className="flex-1 max-h-[90dvh] landscape:max-h-screen">
+          <DrawerHeader className="flex flex-row items-center gap-2 sticky top-0 bg-background">
+            {tab !== "main" && (
+              <Button
                 type="button"
-                onClick={() => setQuality("auto")}
-                className={cn(
-                  "flex w-full items-center justify-between rounded-lg px-3 py-2.5",
-                  "text-left text-base transition-colors",
-                  quality === "auto"
-                    ? "bg-accent text-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                )}
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => setTab("main")}
+                className="-ml-2"
               >
-                <span>Auto</span>
+                <ArrowLeft className="size-5" />
+              </Button>
+            )}
 
-                {quality === "auto" && (
-                  <Check className="size-4 text-primary" strokeWidth={2.5} />
-                )}
-              </button>
+            <div>
+              <DrawerTitle className="flex items-center gap-1.5 uppercase tracking-wider text-muted-foreground md:text-base text-sm">
+                {TAB_TITLES[tab]}
+              </DrawerTitle>
 
-              {qualities.map((value) => (
+              {tab === "main" && (
+                <DrawerDescription>
+                  Customize your playback experience.
+                </DrawerDescription>
+              )}
+            </div>
+          </DrawerHeader>
+          <div className="p-2">
+            {tab === "main" && (
+              <div className="space-y-5">
+                <SettingsCategory title="Source">
+                  <SettingsItem
+                    label="Quality"
+                    icon={<Hd className="size-5" />}
+                    value={quality === "auto" ? "Auto" : `${quality}p`}
+                    onClick={() => setTab("quality")}
+                  />
+                  <SettingsItem
+                    label="Audio"
+                    icon={<Languages className="size-5" />}
+                    value={selectedDub?.lanName ?? "Original"}
+                    onClick={() => setTab("audio")}
+                  />
+                  <SettingsItem
+                    label="Subtitles"
+                    icon={<Captions className="size-5" />}
+                    value={selectedSubtitle?.display ?? "Off"}
+                    onClick={() => setTab("subtitles")}
+                  />
+                </SettingsCategory>
+
+                <Separator className="my-4" />
+
+                <SettingsCategory title="Media">
+                  <SettingsItem
+                    label="Aspect Ratio"
+                    icon={<SquareDimensions className="size-5" />}
+                    value={
+                      aspectRatio === "contain"
+                        ? "Fit"
+                        : aspectRatio === "cover"
+                          ? "Crop"
+                          : "Fill"
+                    }
+                    onClick={() => setTab("aspect-ratio")}
+                  />
+
+                  <SettingsItem
+                    label="Brightness"
+                    icon={<Image className="size-5" />}
+                    value={`${brightness}%`}
+                    onClick={() => setTab("brightness")}
+                  />
+
+                  <SettingsItem
+                    label="Mirror"
+                    icon={
+                      <SquareCenterlineDashedHorizontal className="size-5" />
+                    }
+                    value={mirror ? "On" : "Off"}
+                    onClick={() => setTab("mirror")}
+                  />
+
+                  <SettingsItem
+                    label="Picture-in-Picture"
+                    icon={<PictureInPicture className="size-5" />}
+                    value={pictureInPicture ? "On" : "Off"}
+                    onClick={() => setTab("picture-in-picture")}
+                  />
+                </SettingsCategory>
+
+                <Separator className="my-4" />
+
+                <SettingsCategory title="Playback">
+                  <SettingsItem
+                    label="Playback Speed"
+                    icon={<Gauge className="size-5" />}
+                    value={`${playbackSpeed}x`}
+                    onClick={() => setTab("playback-speed")}
+                  />
+
+                  <SettingsItem
+                    label="Loop"
+                    icon={<Repeat className="size-5" />}
+                    value={loop ? "On" : "Off"}
+                    onClick={() => setTab("loop")}
+                  />
+
+                  <SettingsItem
+                    label="Autoplay"
+                    icon={<Play className="size-5" />}
+                    value={autoplay ? "On" : "Off"}
+                    onClick={() => setTab("autoplay")}
+                  />
+                </SettingsCategory>
+              </div>
+            )}
+
+            {tab === "source-quality" && (
+              <SettingsPlaceholder text="Source quality options coming soon" />
+            )}
+
+            {tab === "download" && (
+              <SettingsPlaceholder text="Download options coming soon" />
+            )}
+
+            {tab === "quality" && (
+              <div className="space-y-1">
                 <button
-                  key={value}
                   type="button"
-                  onClick={() => setQuality(value)}
+                  onClick={() => setQuality("auto")}
                   className={cn(
                     "flex w-full items-center justify-between rounded-lg px-3 py-2.5",
-                    "text-left md:text-base text-sm transition-colors",
-                    quality === value
+                    "text-left text-base transition-colors",
+                    quality === "auto"
                       ? "bg-accent text-foreground"
                       : "text-muted-foreground hover:bg-accent hover:text-foreground",
                   )}
                 >
-                  <span>{value}p</span>
+                  <span>Auto</span>
 
-                  {quality === value && (
+                  {quality === "auto" && (
                     <Check className="size-4 text-primary" strokeWidth={2.5} />
                   )}
                 </button>
-              ))}
-            </div>
-          )}
-          {tab === "audio" && (
-            <div className="space-y-0.5">
-              {dubs.map((dub) => (
-                <button
-                  key={`${dub.lanCode}-${dub.type}`}
-                  type="button"
-                  onClick={() => {
-                    onDubChange(dub);
-                    setTab("main");
-                  }}
-                  className={cn(
-                    "flex w-full items-center justify-between rounded-lg px-3 py-2.5",
-                    "text-left md:text-base text-sm transition-colors",
-                    selectedDub?.lanCode === dub.lanCode &&
-                      selectedDub?.type === dub.type
-                      ? "bg-accent text-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                  )}
-                >
-                  <span>{dub.lanName}</span>
 
-                  {selectedDub?.lanCode === dub.lanCode &&
-                    selectedDub?.type === dub.type && (
+                {qualities.map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setQuality(value)}
+                    className={cn(
+                      "flex w-full items-center justify-between rounded-lg px-3 py-2.5",
+                      "text-left md:text-base text-sm transition-colors",
+                      quality === value
+                        ? "bg-accent text-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                    )}
+                  >
+                    <span>{value}p</span>
+
+                    {quality === value && (
                       <Check
                         className="size-4 text-primary"
                         strokeWidth={2.5}
                       />
                     )}
-                </button>
-              ))}
+                  </button>
+                ))}
+              </div>
+            )}
+            {tab === "audio" && (
+              <div className="space-y-0.5">
+                {dubs.map((dub) => (
+                  <button
+                    key={`${dub.lanCode}-${dub.type}`}
+                    type="button"
+                    onClick={() => {
+                      onDubChange(dub);
+                      setTab("main");
+                    }}
+                    className={cn(
+                      "flex w-full items-center justify-between rounded-lg px-3 py-2.5",
+                      "text-left md:text-base text-sm transition-colors",
+                      selectedDub?.lanCode === dub.lanCode &&
+                        selectedDub?.type === dub.type
+                        ? "bg-accent text-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                    )}
+                  >
+                    <span>{dub.lanName}</span>
 
-              {!dubs.length && (
-                <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-                  No audio languages available
-                </p>
-              )}
-            </div>
-          )}
-          {tab === "subtitles" && (
-            <div className="space-y-0.5">
-              <SubtitleItem
-                label="Off"
-                selected={!selectedSubtitle}
-                onClick={() => {
-                  onSubtitleChange(null);
+                    {selectedDub?.lanCode === dub.lanCode &&
+                      selectedDub?.type === dub.type && (
+                        <Check
+                          className="size-4 text-primary"
+                          strokeWidth={2.5}
+                        />
+                      )}
+                  </button>
+                ))}
+
+                {!dubs.length && (
+                  <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+                    No audio languages available
+                  </p>
+                )}
+              </div>
+            )}
+            {tab === "subtitles" && (
+              <div className="space-y-0.5">
+                <SubtitleItem
+                  label="Off"
+                  selected={!selectedSubtitle}
+                  onClick={() => {
+                    onSubtitleChange(null);
+                    setTab("main");
+                  }}
+                />
+
+                {subtitles.map((subtitle) => (
+                  <SubtitleItem
+                    key={subtitle.id}
+                    label={subtitle.display}
+                    selected={selectedSubtitle?.id === subtitle.id}
+                    onClick={() => {
+                      onSubtitleChange(subtitle);
+                      setTab("main");
+                    }}
+                  />
+                ))}
+
+                {openSubtitleData.map((subtitle) => (
+                  <SubtitleItem
+                    key={subtitle.id}
+                    label={subtitle.display}
+                    selected={selectedSubtitle?.id === subtitle.id}
+                    onClick={() => {
+                      onSubtitleChange(subtitle);
+                      setTab("main");
+                    }}
+                  />
+                ))}
+
+                {!subtitles.length && !openSubtitleData.length && (
+                  <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+                    No subtitles available
+                  </p>
+                )}
+              </div>
+            )}
+            {tab === "aspect-ratio" && (
+              <div className="space-y-1">
+                {(["contain", "cover", "fill"] as const).map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setAspectRatio(value)}
+                    className={cn(
+                      "flex w-full items-center justify-between rounded-lg px-3 py-2.5",
+                      "md:text-base text-sm transition-colors",
+                      "hover:bg-accent",
+                      aspectRatio === value && "bg-accent",
+                    )}
+                  >
+                    <span>
+                      {value === "contain"
+                        ? "Fit"
+                        : value === "cover"
+                          ? "Crop"
+                          : "Fill"}
+                    </span>
+
+                    {aspectRatio === value && <span>✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {tab === "brightness" && (
+              <div className="space-y-1">
+                {[50, 75, 100, 125, 150].map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => {
+                      setBrightness(value);
+                      setTab("main");
+                    }}
+                    className={cn(
+                      "flex w-full items-center justify-between rounded-lg px-3 py-2.5",
+                      "text-left md:text-base text-sm transition-colors",
+                      brightness === value
+                        ? "bg-accent text-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                    )}
+                  >
+                    <span>{value}%</span>
+
+                    {brightness === value && (
+                      <Check
+                        className="size-4 text-primary"
+                        strokeWidth={2.5}
+                      />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+            {tab === "mirror" && (
+              <SwitchSettings
+                label="Mirror"
+                value={mirror}
+                onChange={(value) => {
+                  setMirror(value);
                   setTab("main");
                 }}
               />
+            )}
 
-              {subtitles.map((subtitle) => (
-                <SubtitleItem
-                  key={subtitle.id}
-                  label={subtitle.display}
-                  selected={selectedSubtitle?.id === subtitle.id}
-                  onClick={() => {
-                    onSubtitleChange(subtitle);
-                    setTab("main");
-                  }}
-                />
-              ))}
+            {tab === "picture-in-picture" && (
+              <SwitchSettings
+                label="Picture-in-Picture"
+                value={pictureInPicture}
+                onChange={(value) => {
+                  setPictureInPicture(value);
+                  setTab("main");
+                }}
+              />
+            )}
 
-              {openSubtitleData.map((subtitle) => (
-                <SubtitleItem
-                  key={subtitle.id}
-                  label={subtitle.display}
-                  selected={selectedSubtitle?.id === subtitle.id}
-                  onClick={() => {
-                    onSubtitleChange(subtitle);
-                    setTab("main");
-                  }}
-                />
-              ))}
+            {tab === "audio-track" && (
+              <SettingsPlaceholder text="Audio track options coming soon" />
+            )}
 
-              {!subtitles.length && !openSubtitleData.length && (
-                <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-                  No subtitles available
-                </p>
-              )}
-            </div>
-          )}
-          {tab === "aspect-ratio" && (
-            <div className="space-y-1">
-              {(["contain", "cover", "fill"] as const).map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setAspectRatio(value)}
-                  className={cn(
-                    "flex w-full items-center justify-between rounded-lg px-3 py-2.5",
-                    "md:text-base text-sm transition-colors",
-                    "hover:bg-accent",
-                    aspectRatio === value && "bg-accent",
-                  )}
-                >
-                  <span>
-                    {value === "contain"
-                      ? "Fit"
-                      : value === "cover"
-                        ? "Crop"
-                        : "Fill"}
-                  </span>
+            {tab === "playback-speed" && (
+              <PlaybackSpeedSettings
+                value={playbackSpeed}
+                onChange={(value) => {
+                  setPlaybackSpeed(value);
+                  setTab("main");
+                }}
+              />
+            )}
 
-                  {aspectRatio === value && <span>✓</span>}
-                </button>
-              ))}
-            </div>
-          )}
+            {tab === "loop" && (
+              <SwitchSettings
+                label="Loop"
+                value={loop}
+                onChange={(value) => {
+                  setLoop(value);
+                  setTab("main");
+                }}
+              />
+            )}
 
-          {tab === "brightness" && (
-            <div className="space-y-1">
-              {[50, 75, 100, 125, 150].map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => {
-                    setBrightness(value);
-                    setTab("main");
-                  }}
-                  className={cn(
-                    "flex w-full items-center justify-between rounded-lg px-3 py-2.5",
-                    "text-left md:text-base text-sm transition-colors",
-                    brightness === value
-                      ? "bg-accent text-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                  )}
-                >
-                  <span>{value}%</span>
-
-                  {brightness === value && (
-                    <Check className="size-4 text-primary" strokeWidth={2.5} />
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-          {tab === "mirror" && (
-            <SwitchSettings
-              label="Mirror"
-              value={mirror}
-              onChange={(value) => {
-                setMirror(value);
-                setTab("main");
-              }}
-            />
-          )}
-
-          {tab === "picture-in-picture" && (
-            <SwitchSettings
-              label="Picture-in-Picture"
-              value={pictureInPicture}
-              onChange={(value) => {
-                setPictureInPicture(value);
-                setTab("main");
-              }}
-            />
-          )}
-
-          {tab === "audio-track" && (
-            <SettingsPlaceholder text="Audio track options coming soon" />
-          )}
-
-          {tab === "playback-speed" && (
-            <PlaybackSpeedSettings
-              value={playbackSpeed}
-              onChange={(value) => {
-                setPlaybackSpeed(value);
-                setTab("main");
-              }}
-            />
-          )}
-
-          {tab === "loop" && (
-            <SwitchSettings
-              label="Loop"
-              value={loop}
-              onChange={(value) => {
-                setLoop(value);
-                setTab("main");
-              }}
-            />
-          )}
-
-          {tab === "autoplay" && (
-            <SwitchSettings
-              label="Autoplay"
-              value={autoplay}
-              onChange={(value) => {
-                setAutoplay(value);
-                setTab("main");
-              }}
-            />
-          )}
-        </div>
-
-        <DrawerFooter>
-          <DrawerClose
-            className="w-full"
-            render={<Button variant="secondary" />}
-          >
-            Close
-          </DrawerClose>
-        </DrawerFooter>
+            {tab === "autoplay" && (
+              <SwitchSettings
+                label="Autoplay"
+                value={autoplay}
+                onChange={(value) => {
+                  setAutoplay(value);
+                  setTab("main");
+                }}
+              />
+            )}
+          </div>
+          <DrawerFooter className=" sticky bottom-0 bg-background">
+            <DrawerClose
+              className="w-full"
+              render={<Button variant="secondary" />}
+            >
+              Close
+            </DrawerClose>
+          </DrawerFooter>
+        </ScrollArea>
       </DrawerContent>
     </Drawer>
   );

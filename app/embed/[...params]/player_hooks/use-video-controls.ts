@@ -36,6 +36,7 @@ export function useVideoControls({
   const [playing, setPlaying] = useState(false);
   const [canPlay, setCanplay] = useState(false);
   const [ended, setEnded] = useState(false);
+  const [endingSoon, setEndingSoon] = useState(false);
   const [bufferedProgress, setBufferedProgress] = useState(0);
   const [waiting, setWaiting] = useState(false);
   const [muted, setMuted] = useState(false);
@@ -83,6 +84,12 @@ export function useVideoControls({
       setPlaying(!video.paused);
       setMuted(video.muted);
       setVolume(video.volume);
+
+      setEndingSoon(
+        video.duration > 0 &&
+          video.currentTime >= video.duration - 60 &&
+          video.currentTime < video.duration,
+      );
 
       if (!isSeekingRef.current) {
         setCurrentTime(video.currentTime);
@@ -172,6 +179,7 @@ export function useVideoControls({
 
     const handleEnded = () => {
       setEnded(true);
+      setEndingSoon(false);
       setPlaying(false);
       useWatchProgress.getState().clearProgress(progressKey);
 
@@ -223,6 +231,7 @@ export function useVideoControls({
     setEnded(false);
     setCurrentTime(0);
     setDuration(0);
+    setEndingSoon(false);
   }, [serverIndex, sourceIndex, progressKey, dubLang, dubType]);
 
   useEffect(() => {
@@ -432,6 +441,7 @@ export function useVideoControls({
   return {
     playing,
     ended,
+    endingSoon,
     canPlay,
     bufferedProgress,
     waiting,

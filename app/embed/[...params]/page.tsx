@@ -49,6 +49,7 @@ import LoadingScreen2 from "./player_components/loading-screen-backdrop";
 import BrandLoadingScreen from "@/app/embed/[...params]/player_components/loading-screen-branding";
 import BackdropLoadingScreen from "./player_components/loading-screen-backdrop";
 import { usePopupStore } from "@/store/zxc";
+import { NextEpisode } from "./player_components/next-episode";
 export default function Embed() {
   const { params } = useParams();
   const router = useRouter();
@@ -488,6 +489,7 @@ export default function Embed() {
   const {
     playing,
     ended,
+    endingSoon,
     canPlay,
     bufferedProgress,
     waiting,
@@ -1149,6 +1151,21 @@ export default function Embed() {
         playing={playing}
         isVisible={isVisible}
         canPlay={canPlay}
+      />
+
+      <NextEpisode
+        tmdbId={tmdbId}
+        season={nextSeason}
+        episode={nextEpisode}
+        media_type={media_type}
+        enable={endingSoon && canNext}
+        onNext={() => {
+          const query = searchParams.toString();
+          const url = `/embed/tv/${tmdbId}/${nextSeason}/${nextEpisode}`;
+          router.replace(query ? `${url}?${query}` : url);
+        }}
+        duration={duration}
+        currentTime={currentTime}
       />
 
       <video

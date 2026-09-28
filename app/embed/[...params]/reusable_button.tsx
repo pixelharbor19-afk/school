@@ -33,7 +33,7 @@ export default function PlayerButton({
       disabled={disabled}
       aria-label={label}
       className={cn(
-        "group relative cursor-pointer text-foreground brightness-80 hover:brightness-100 shadow-2xl pointer-events-auto",
+        "group relative cursor-pointer text-foreground brightness-90 hover:brightness-100 shadow-2xl pointer-events-auto transition duration-150",
 
         className,
       )}
