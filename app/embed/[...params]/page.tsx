@@ -19,7 +19,7 @@ import {
   sourceQueryOptions,
   QualityTrack,
   DubTypes,
-} from "@/hooks/angsarapmomia";
+} from "@/hooks/grabekanamia";
 import { cn } from "@/hooks/utils";
 
 import LoadingScreen from "@/app/embed/[...params]/player_components/loading-screen-branding";
