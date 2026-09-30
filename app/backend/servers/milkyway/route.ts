@@ -150,8 +150,6 @@ export async function GET(req: NextRequest) {
 
     const links = await Promise.all(
       streamUrls.map(async (url) => {
-        const encrypted = await encryptUrl(url);
-
         const headers = await encryptUrl(
           JSON.stringify({
             Origin: "https://nextgencloudfabric.com",
@@ -164,11 +162,7 @@ export async function GET(req: NextRequest) {
 
         return {
           type: "hls" as const,
-          link: encryptLink(
-            `${shuffledProxy}a?u=${encodeURIComponent(
-              encrypted,
-            )}&h=${encodeURIComponent(headers)}`,
-          ),
+          link: encryptLink(url),
           resolution: null,
         };
       }),

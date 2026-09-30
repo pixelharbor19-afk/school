@@ -18,6 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "VIDSTUCK",
   description: "Free movie and TV streaming player.",
+  referrer: "no-referrer",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
