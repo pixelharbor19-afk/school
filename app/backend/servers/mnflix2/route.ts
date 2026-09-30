@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchWithTimeout } from "@/lib/fetch-timeout";
 import { createClient } from "@supabase/supabase-js";
-import { encryptUrl } from "@/lib/aes-encryptor";
-import { encryptLink } from "@/lib/source-link-enc-dec";
 import { workerProxies, workerProxyHealth } from "@/lib/proxy-health-checker";
 import { logRequest } from "@/lib/log-request";
 
@@ -128,23 +126,9 @@ export async function GET(req: NextRequest) {
 
     const links = await Promise.all(
       streamUrls.map(async (url) => {
-        const encrypted = await encryptUrl(url);
-
-        const headers = await encryptUrl(
-          JSON.stringify({
-            Origin: "https://nextgencloudfabric.com",
-            Referer: "https://nextgencloudfabric.com/",
-            "User-Agent":
-              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
-            Accept: "*/*",
-          }),
-        );
-
         return {
           type: "hls" as const,
-          link: `${shuffledProxy}a?u=${encodeURIComponent(
-            encrypted,
-          )}&h=${encodeURIComponent(headers)}`,
+          link: url,
           resolution: null,
         };
       }),
