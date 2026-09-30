@@ -156,7 +156,7 @@ export async function GET(request: NextRequest) {
 
               line = line.replace(
                 match[1],
-                `${request.nextUrl.origin}/a?y=${encodeURIComponent(
+                `${request.nextUrl.protocol}//${request.headers.get("host")}/a?y=${encodeURIComponent(
                   encryptedUrl,
                 )}&h=${encodeURIComponent(encryptedHeaders)}`,
               );
@@ -178,7 +178,7 @@ export async function GET(request: NextRequest) {
           );
 
           playlist.push(
-            `${request.nextUrl.origin}/a?y=${encodeURIComponent(
+            `${request.nextUrl.protocol}//${request.headers.get("host")}/a?y=${encodeURIComponent(
               encryptedUrl,
             )}&h=${encodeURIComponent(encryptedHeaders)}`,
           );
