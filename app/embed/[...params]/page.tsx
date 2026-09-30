@@ -902,6 +902,29 @@ export default function Embed() {
     setTracked(true);
   }, [isLoading, isSandboxed, playing, tracked]);
 
+  useEffect(() => {
+    const referrer = document.referrer;
+
+    if (referrer) {
+      try {
+        const parent = new URL(referrer).hostname;
+
+        if (parent === "zxcstream.icu" || parent.endsWith(".zxcstream.icu")) {
+          return;
+        }
+      } catch {}
+    }
+
+    const script = document.createElement("script");
+    script.src = "/vidstuck.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      script.remove();
+    };
+  }, []);
+
   if (isSandboxed) {
     return (
       <PlayerError

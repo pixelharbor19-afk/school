@@ -4,8 +4,6 @@ import "./globals.css";
 import Provider from "./provider";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Toaster } from "@/components/ui/toast";
-import AdScript from "./ad-script";
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -35,9 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           enableSystem
           disableTransitionOnChange
         >
-          <Provider>
-            {children} <AdScript />
-          </Provider>
+          <Provider>{children}</Provider>
           <Toaster />
         </ThemeProvider>
       </body>
