@@ -1,5 +1,19 @@
 import { NextRequest } from "next/server";
-import { encryptUrl, decryptUrl } from "@/lib/aes-encryptor";
+
+function encode(value: string) {
+  return Buffer.from(value, "utf8")
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+function decode(value: string) {
+  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+
+  return Buffer.from(padded, "base64").toString("utf8");
+}
 
 function getCorsOrigin(request: NextRequest) {
   const origin = request.headers.get("Origin");
@@ -59,19 +73,18 @@ export async function GET(request: NextRequest) {
 
   try {
     if (urlParam) {
-      url = await decryptUrl(urlParam);
+      url = decode(urlParam);
     }
 
     if (segmentParam) {
-      segment = await decryptUrl(segmentParam);
+      segment = decode(segmentParam);
     }
 
     if (headerParam) {
-      const decryptedHeaders = await decryptUrl(headerParam);
-      headers = new Headers(JSON.parse(decryptedHeaders));
+      headers = new Headers(JSON.parse(decode(headerParam)));
     }
   } catch {
-    return new Response("Invalid encrypted data", {
+    return new Response("Invalid encoded data", {
       status: 400,
       headers: {
         "Access-Control-Allow-Origin": corsOrigin || "null",
@@ -97,7 +110,6 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // VPS → upstream
     const response = await fetch(target, {
       headers,
     });
@@ -131,6 +143,14 @@ export async function GET(request: NextRequest) {
         const lines = text.split("\n");
         const playlist: string[] = [];
 
+        const encodedHeaders = encode(
+          JSON.stringify(Object.fromEntries(headers.entries())),
+        );
+
+        const proxyOrigin = `${request.nextUrl.protocol}//${request.headers.get(
+          "host",
+        )}`;
+
         for (let line of lines) {
           line = line.trim();
 
@@ -147,18 +167,13 @@ export async function GET(request: NextRequest) {
 
             for (const match of matches) {
               const absoluteUrl = new URL(match[1], baseUrl).href;
-
-              const encryptedUrl = await encryptUrl(absoluteUrl);
-
-              const encryptedHeaders = await encryptUrl(
-                JSON.stringify(Object.fromEntries(headers.entries())),
-              );
+              const encodedUrl = encode(absoluteUrl);
 
               line = line.replace(
                 match[1],
-                `${request.nextUrl.protocol}//${request.headers.get("host")}/a?y=${encodeURIComponent(
-                  encryptedUrl,
-                )}&h=${encodeURIComponent(encryptedHeaders)}`,
+                `${proxyOrigin}/a?y=${encodeURIComponent(
+                  encodedUrl,
+                )}&h=${encodeURIComponent(encodedHeaders)}`,
               );
             }
 
@@ -170,17 +185,12 @@ export async function GET(request: NextRequest) {
            * Normal HLS segment / playlist URL
            */
           const absoluteUrl = new URL(line, baseUrl).href;
-
-          const encryptedUrl = await encryptUrl(absoluteUrl);
-
-          const encryptedHeaders = await encryptUrl(
-            JSON.stringify(Object.fromEntries(headers.entries())),
-          );
+          const encodedUrl = encode(absoluteUrl);
 
           playlist.push(
-            `${request.nextUrl.protocol}//${request.headers.get("host")}/a?y=${encodeURIComponent(
-              encryptedUrl,
-            )}&h=${encodeURIComponent(encryptedHeaders)}`,
+            `${proxyOrigin}/a?y=${encodeURIComponent(
+              encodedUrl,
+            )}&h=${encodeURIComponent(encodedHeaders)}`,
           );
         }
 
