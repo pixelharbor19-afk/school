@@ -13,9 +13,16 @@ import Script from "next/script";
 
 export default function AdScript() {
   if (
-    typeof window !== "undefined" &&
-    (window.location.hostname === "zxcstream.icu" ||
-      window.location.hostname.endsWith(".zxcstream.icu"))
+    typeof document !== "undefined" &&
+    (() => {
+      try {
+        const parent = new URL(document.referrer).hostname;
+
+        return parent === "zxcstream.icu" || parent.endsWith(".zxcstream.icu");
+      } catch {
+        return false;
+      }
+    })()
   ) {
     return null;
   }
