@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateBackendToken } from "@/lib/validate-token";
-import { isValidReferer } from "@/lib/allowed-referers";
 import { fetchWithTimeout } from "@/lib/fetch-timeout";
 import { FIELD_MAP } from "@/lib/field-map";
 import { createClient } from "@supabase/supabase-js";
@@ -150,6 +149,8 @@ export async function GET(req: NextRequest) {
 
     const links = await Promise.all(
       streamUrls.map(async (url) => {
+        const encrypted = await encryptUrl(url);
+
         const headers = await encryptUrl(
           JSON.stringify({
             Origin: "https://nextgencloudfabric.com",
@@ -162,7 +163,11 @@ export async function GET(req: NextRequest) {
 
         return {
           type: "hls" as const,
-          link: encryptLink(url),
+          link: encryptLink(
+            `/a?u=${encodeURIComponent(
+              encrypted,
+            )}&h=${encodeURIComponent(headers)}`,
+          ),
           resolution: null,
         };
       }),
