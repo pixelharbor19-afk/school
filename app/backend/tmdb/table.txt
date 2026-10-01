@@ -1,0 +1,23 @@
+CREATE TABLE tmdb_details_cache (
+  id bigint generated always as identity primary key,
+  tmdb_id integer not null,
+  media_type text not null,
+  language text not null,
+  data jsonb not null,
+  refreshed_at timestamptz not null default now(),
+  expires_at timestamptz not null default (now() + interval '7 days'),
+  unique (tmdb_id, media_type, language)
+);
+
+
+
+CREATE TABLE tmdb_season_cache (
+  id bigint generated always as identity primary key,
+  tmdb_id integer not null,
+  season integer not null,
+  language text not null,
+  data jsonb not null,
+  refreshed_at timestamptz not null default now(),
+  expires_at timestamptz not null default (now() + interval '7 days'),
+  unique (tmdb_id, season, language)
+);
