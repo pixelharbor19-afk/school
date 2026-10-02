@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
       ? `movie-${tmdbId}-rido`
       : `tv-${tmdbId}-s${season}-e${episode}-rido`;
 
-  const cacheFile = path.join("/apps/cache/rido", cacheKey, "playlist.m3u8");
+  const cacheFile = path.join("/apps/rido-cache", cacheKey, "playlist.m3u8");
 
   try {
     let playlist: string | null = null;
