@@ -24,13 +24,21 @@ export const SERVERS: ServerTypes[] = [
     sources: [],
   },
   {
-    name: "Milky Way",
+    name: "Meow",
     status: "queue",
-    server: "milkyway",
+    server: "meow",
     desc: "Alternative",
     dubSupport: false,
     sources: [],
   },
+  // {
+  //   name: "Milky Way",
+  //   status: "queue",
+  //   server: "milkyway",
+  //   desc: "Alternative",
+  //   dubSupport: false,
+  //   sources: [],
+  // },
 ];
 
 export type SourceStatus = "queue" | "connecting" | "ready" | "failed";
