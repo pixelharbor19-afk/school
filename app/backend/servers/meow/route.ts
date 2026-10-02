@@ -146,7 +146,7 @@ export async function GET(req: NextRequest) {
       {
         type: "hls" as const,
         link: encryptLink(
-          `/backend/servers/rido/edge?url=${encodeURIComponent(
+          `/backend/servers/meow/edge?url=${encodeURIComponent(
             encrypted,
           )}&id=${encodeURIComponent(tmdbId)}&mediaType=${encodeURIComponent(
             mediaType,
