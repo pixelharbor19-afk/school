@@ -81,6 +81,8 @@ export async function GET(req: NextRequest) {
 
       const ridoData = await ridoRes.json();
 
+      console.log("[MEOW] ridoData:", JSON.stringify(ridoData));
+
       const embed = ridoData?.iframes?.find((url: string) =>
         url.includes("closeload.top"),
       );
@@ -97,10 +99,12 @@ export async function GET(req: NextRequest) {
           { status: 404 },
         );
       }
-
+      console.log("[MEOW] embed:", embed);
       const sourceUrl = new URL("/backend/database/rido", req.nextUrl.origin);
 
       sourceUrl.searchParams.set("url", embed);
+
+      console.log("[MEOW] sourceUrl:", sourceUrl.toString());
 
       const sourceRes = await fetchWithTimeout(
         sourceUrl.toString(),
