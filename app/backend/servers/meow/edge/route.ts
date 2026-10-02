@@ -4,6 +4,7 @@ import path from "path";
 import { workerProxies, workerProxyHealth } from "@/lib/proxy-health-checker";
 import { decryptUrl, encryptUrl } from "@/lib/aes-encryptor";
 import { logRequest } from "@/lib/log-request";
+import { fetchWithTimeout } from "@/lib/fetch-timeout";
 
 export const runtime = "nodejs";
 
@@ -11,7 +12,7 @@ const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36";
 
 async function fetchUpstream(url: string) {
-  const response = await fetch(url, {
+  const response = await fetchWithTimeout(url, {
     headers: {
       Accept: "*/*",
       Origin: "https://closeload.top",
