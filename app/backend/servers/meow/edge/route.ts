@@ -441,7 +441,7 @@ export async function GET(req: NextRequest) {
     const createEdgeUrl = async (playlistType: string, playlistUrl: string) => {
       const encryptedPlaylistUrl = await encryptUrl(playlistUrl);
 
-      const edgeUrl = new URL(req.nextUrl.pathname, req.nextUrl.origin);
+      const edgeUrl = new URL(req.nextUrl.pathname, "https://vidstuck.xyz");
 
       edgeUrl.searchParams.set("url", encryptedPlaylistUrl);
 
