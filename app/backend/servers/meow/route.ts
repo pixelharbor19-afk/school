@@ -167,13 +167,20 @@ export async function GET(req: NextRequest) {
       meow: !!cached,
       server: path,
     });
-  } catch (err: any) {
-    logRequest(req, "TEST", 500, err instanceof Error ? err.message : err);
+  } catch (err) {
+    console.error("[MEOW]", err);
+
+    logRequest(
+      req,
+      "TEST",
+      500,
+      err instanceof Error ? err.message : String(err),
+    );
 
     return NextResponse.json(
       {
         success: false,
-        error: "Internal server error",
+        error: err instanceof Error ? err.message : String(err),
         server: path,
       },
       { status: 500 },
