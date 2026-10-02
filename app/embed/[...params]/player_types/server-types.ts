@@ -8,20 +8,19 @@ export const SERVERS: ServerTypes[] = [
     sources: [],
   },
   {
+    name: "Ursa",
+    status: "queue",
+    server: "meow",
+    desc: "Alternative",
+    dubSupport: false,
+    sources: [],
+  },
+  {
     name: "Centaurus",
     status: "queue",
     server: "centaurus",
     desc: "Multi Audio Support",
     dubSupport: true,
-    sources: [],
-  },
-
-  {
-    name: "Meow",
-    status: "queue",
-    server: "meow",
-    desc: "Alternative",
-    dubSupport: false,
     sources: [],
   },
   {
