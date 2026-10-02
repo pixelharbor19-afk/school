@@ -100,7 +100,10 @@ export async function GET(req: NextRequest) {
         );
       }
       console.log("[MEOW] embed:", embed);
-      const sourceUrl = new URL("/backend/database/rido", req.nextUrl.origin);
+      const sourceUrl = new URL(
+        "/backend/database/rido",
+        "http://127.0.0.1:3001",
+      );
 
       sourceUrl.searchParams.set("url", embed);
 
