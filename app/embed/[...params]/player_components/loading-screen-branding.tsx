@@ -199,7 +199,7 @@ export default function BrandLoadingScreen({
             )}
           >
             <div className="mx-auto grid w-full max-w-5xl grid-cols-2 items-end gap-1.5 sm:grid-cols-4 md:gap-3">
-              {servers.map((item, index) => {
+              {servers.slice(0, 4).map((item, index) => {
                 const isCurrentServer = serverIndex === index;
 
                 return (

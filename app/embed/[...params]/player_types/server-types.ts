@@ -1,5 +1,13 @@
 export const SERVERS: ServerTypes[] = [
   {
+    name: "Orion",
+    status: "queue",
+    server: "orion",
+    desc: "Multi Audio Support",
+    dubSupport: true,
+    sources: [],
+  },
+  {
     name: "Andromeda",
     status: "queue",
     server: "andromeda",
