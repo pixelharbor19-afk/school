@@ -7,14 +7,7 @@ export const SERVERS: ServerTypes[] = [
     dubSupport: false,
     sources: [],
   },
-  {
-    name: "Ursa",
-    status: "queue",
-    server: "meow",
-    desc: "Alternative",
-    dubSupport: false,
-    sources: [],
-  },
+
   {
     name: "Centaurus",
     status: "queue",
@@ -27,6 +20,14 @@ export const SERVERS: ServerTypes[] = [
     name: "Atlas",
     status: "queue",
     server: "atlas",
+    desc: "Alternative",
+    dubSupport: false,
+    sources: [],
+  },
+  {
+    name: "Ursa",
+    status: "queue",
+    server: "meow",
     desc: "Alternative",
     dubSupport: false,
     sources: [],

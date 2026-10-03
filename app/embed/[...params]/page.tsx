@@ -61,7 +61,7 @@ export default function Embed() {
     (server) => server.server === requestedServer,
   )
     ? requestedServer!
-    : "andromeda";
+    : "meow";
   const color = `#${searchParams.get("color") || "dc2626"}`;
   const loading = searchParams.get("loading") || "1";
   const autoplayParam = searchParams.get("autoplay") === "true";

@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     const date = req.nextUrl.searchParams.get(FIELD_MAP.date);
 
     if (!tmdbId || !mediaType || !title || !year || !ts || !token || !date) {
-      logRequest(req, "TEST", 400, "missing params");
+      logRequest(req, "URSA", 400, "missing params");
 
       return NextResponse.json(
         { success: false, error: "missing params", server: path },
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
     if (
       !validateBackendToken(tmdbId, mediaType, season, episode, path, ts, token)
     ) {
-      logRequest(req, "TEST", 401, "invalid token");
+      logRequest(req, "URSA", 401, "invalid token");
 
       return NextResponse.json(
         { success: false, error: "Invalid token", server: path },
@@ -81,14 +81,12 @@ export async function GET(req: NextRequest) {
 
       const ridoData = await ridoRes.json();
 
-      console.log("[MEOW] ridoData:", JSON.stringify(ridoData));
-
       const embed = ridoData?.iframes?.find((url: string) =>
         url.includes("closeload.top"),
       );
 
       if (!embed) {
-        logRequest(req, "TEST", 404, "no closeload embed");
+        logRequest(req, "URSA", 404, "no closeload embed");
 
         return NextResponse.json(
           {
@@ -99,15 +97,13 @@ export async function GET(req: NextRequest) {
           { status: 404 },
         );
       }
-      console.log("[MEOW] embed:", embed);
+
       const sourceUrl = new URL(
         "/backend/database/rido",
         "http://127.0.0.1:3001",
       );
 
       sourceUrl.searchParams.set("url", embed);
-
-      console.log("[MEOW] sourceUrl:", sourceUrl.toString());
 
       const sourceRes = await fetchWithTimeout(
         sourceUrl.toString(),
@@ -120,7 +116,7 @@ export async function GET(req: NextRequest) {
       source = sourceData?.source;
 
       if (!source) {
-        logRequest(req, "TEST", 404, "no source found");
+        logRequest(req, "URSA", 404, "no source found");
 
         return NextResponse.json(
           {
@@ -165,7 +161,7 @@ export async function GET(req: NextRequest) {
       },
     ];
 
-    logRequest(req, "TEST", 200, "OK");
+    logRequest(req, "URSA", 200, "OK");
 
     return NextResponse.json({
       success: true,
@@ -175,11 +171,11 @@ export async function GET(req: NextRequest) {
       server: path,
     });
   } catch (err) {
-    console.error("[MEOW]", err);
+    console.error("[URSA]", err);
 
     logRequest(
       req,
-      "TEST",
+      "URSA",
       500,
       err instanceof Error ? err.message : String(err),
     );
