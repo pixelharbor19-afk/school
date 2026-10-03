@@ -84,6 +84,9 @@ type Props = {
   selectedDub?: DubTypes;
   onDubChange: (dub: DubTypes) => void;
   skipBy: (skip: number) => void;
+  //
+  thumbnailVtt?: string;
+  thumbnailLoading: boolean;
 };
 
 export default function VideoControls({
@@ -147,6 +150,9 @@ export default function VideoControls({
   selectedDub,
   onDubChange,
   skipBy,
+  //
+  thumbnailVtt,
+  thumbnailLoading,
 }: Props) {
   const router = useRouter();
 
@@ -333,6 +339,9 @@ export default function VideoControls({
                 handleSeekMove={handleSeekMove}
                 commitSeek={commitSeek}
                 lockTimer={lockTimer}
+                //
+                thumbnailVtt={thumbnailVtt}
+                thumbnailLoading={thumbnailLoading}
               />
 
               <span className="text-foreground/80 hidden md:block text-sm lg:text-base tabular-nums">

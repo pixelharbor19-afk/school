@@ -3,7 +3,54 @@
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/hooks/utils";
 import type { IntroType } from "@/hooks/intro";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { Tailspin } from "ldrs/react";
+import "ldrs/react/Tailspin.css";
+type ThumbnailCue = {
+  start: number;
+  end: number;
+  url: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+function parseVttTime(time: string) {
+  const [hours, minutes, seconds] = time.split(":").map(Number);
+  return hours * 3600 + minutes * 60 + seconds;
+}
+
+function parseThumbnailVtt(vtt: string): ThumbnailCue[] {
+  const lines = vtt.split(/\r?\n/);
+  const cues: ThumbnailCue[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const timing = lines[i]?.match(
+      /^(\d{2}:\d{2}:\d{2}\.\d{3})\s+-->\s+(\d{2}:\d{2}:\d{2}\.\d{3})$/,
+    );
+
+    if (!timing) continue;
+
+    const image = lines[i + 1]?.trim();
+
+    const match = image?.match(/^(.*?)#xywh=(\d+),(\d+),(\d+),(\d+)$/);
+
+    if (!match) continue;
+
+    cues.push({
+      start: parseVttTime(timing[1]),
+      end: parseVttTime(timing[2]),
+      url: match[1],
+      x: Number(match[2]),
+      y: Number(match[3]),
+      width: Number(match[4]),
+      height: Number(match[5]),
+    });
+  }
+
+  return cues;
+}
 
 type Props = {
   color: string;
@@ -19,6 +66,10 @@ type Props = {
   handleSeekMove: (e: React.PointerEvent<HTMLDivElement>) => void;
   commitSeek: () => void;
   lockTimer: () => void;
+
+  //
+  thumbnailVtt?: string;
+  thumbnailLoading: boolean;
 };
 
 export default function PlayerProgress({
@@ -35,10 +86,27 @@ export default function PlayerProgress({
   handleSeekMove,
   commitSeek,
   lockTimer,
+  //
+  thumbnailVtt,
+  thumbnailLoading,
 }: Props) {
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [hoverX, setHoverX] = useState(0);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const thumbnailCues = useMemo(
+    () => (thumbnailVtt ? parseThumbnailVtt(thumbnailVtt) : []),
+    [thumbnailVtt],
+  );
 
+  const thumbnail = useMemo(() => {
+    if (hoverTime === null) return null;
+
+    return (
+      thumbnailCues.find(
+        (cue) => hoverTime >= cue.start && hoverTime < cue.end,
+      ) ?? null
+    );
+  }, [hoverTime, thumbnailCues]);
   return (
     <div className="group flex items-center gap-3 px-1 w-full pointer-events-auto">
       <div
@@ -68,15 +136,53 @@ export default function PlayerProgress({
         <AnimatePresence>
           {hoverTime !== null && (
             <motion.div
-              initial={{ opacity: 0, y: 4, scale: 0.95 }}
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 4, scale: 0.95 }}
-              transition={{ duration: 0.15, ease: "easeOut" }}
+              exit={{ opacity: 0, y: 10, scale: 1 }}
+              transition={{ duration: 0.15 }}
               className="pointer-events-none absolute bottom-full z-50 mb-2 -translate-x-1/2"
               style={{ left: hoverX }}
             >
-              <div className="rounded-sm bg-black/50 px-2 py-1 text-sm tabular-nums text-white shadow-lg font-sans">
-                {formatTime(hoverTime)}
+              <div className="flex flex-col items-center gap-1">
+                {thumbnail && (
+                  <div
+                    className="relative hidden overflow-hidden rounded-sm bg-black shadow-lg md:block"
+                    style={{
+                      width: thumbnail.width,
+                      height: thumbnail.height,
+                    }}
+                  >
+                    {(!imageLoaded || thumbnailLoading) && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Tailspin
+                          size="40"
+                          stroke="6"
+                          speed="0.9"
+                          color="white"
+                        />
+                      </div>
+                    )}
+
+                    <img
+                      src={thumbnail.url}
+                      alt=""
+                      draggable={false}
+                      onLoad={() => setImageLoaded(true)}
+                      className={cn(
+                        "absolute max-w-none",
+                        !imageLoaded && "invisible",
+                      )}
+                      style={{
+                        left: -thumbnail.x,
+                        top: -thumbnail.y,
+                      }}
+                    />
+                  </div>
+                )}
+
+                <div className="rounded-sm bg-black/70 px-2 py-1 text-sm tabular-nums text-white shadow-lg">
+                  {formatTime(hoverTime)}
+                </div>
               </div>
             </motion.div>
           )}

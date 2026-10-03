@@ -39,6 +39,7 @@ import BrandLoadingScreen from "@/app/embed/[...params]/player_components/loadin
 import BackdropLoadingScreen from "./player_components/loading-screen-backdrop";
 import { usePopupStore } from "@/store/zxc";
 import { NextEpisode } from "./player_components/next-episode";
+import useThumbnail from "@/hooks/thumbnail";
 export default function Embed() {
   const { params } = useParams();
   const router = useRouter();
@@ -511,6 +512,19 @@ export default function Embed() {
     media_type,
     season,
     episode,
+  });
+
+  //THUMBNAIL
+
+  const { data: thumbnailVtt, isLoading: thumbnailLoading } = useThumbnail({
+    title,
+    media_type,
+    year,
+    ...(media_type === "tv" && {
+      season,
+      episode,
+    }),
+    enable: metadataLoad,
   });
 
   useEffect(() => {
@@ -1080,6 +1094,9 @@ export default function Embed() {
         onDubChange={onDubChange}
         selectedDub={selectedDub}
         skipBy={skipBy}
+        //
+        thumbnailVtt={thumbnailVtt}
+        thumbnailLoading={thumbnailLoading}
       />
 
       <Spinner waiting={waiting} canPlay={canPlay} />
