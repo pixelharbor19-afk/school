@@ -17,31 +17,24 @@ import { useSandboxDetection } from "@/hooks/useSandboxDetection";
 import useSubtitle from "@/hooks/subs";
 import { sourceQueryOptions, QualityTrack, DubTypes } from "@/hooks/fuckyou";
 import { cn } from "@/hooks/utils";
-
-import LoadingScreen from "@/app/embed/[...params]/player_components/loading-screen-branding";
-
 import VideoControls from "./player-controls";
 
 import { useVideoControls } from "./player_hooks/use-video-controls";
 import { useHiddenOverlay } from "./player_hooks/use-overlay";
 import { useKeyboardControls } from "./player_hooks/use-keyboard";
 import { useMobile } from "./player_hooks/use-mobile";
-
 import {
   SERVERS,
   ServerTypes,
   SourceStatus,
 } from "./player_types/server-types";
-
 import SubtitleOverlay from "./player_components/overlay-subtitle";
 import Spinner from "./player_components/spinner";
 import { SkipSegment } from "./player_components/skip-segment";
 import Pause from "./player_components/overlay-pause";
-
 import { usePlayerSettings } from "./player_store/settings";
 import { useTrackEmbedder } from "@/hooks/useTrackEmbedder";
 import { PlayerError } from "./player_components/error";
-import LoadingScreen2 from "./player_components/loading-screen-backdrop";
 import BrandLoadingScreen from "@/app/embed/[...params]/player_components/loading-screen-branding";
 import BackdropLoadingScreen from "./player_components/loading-screen-backdrop";
 import { usePopupStore } from "@/store/zxc";
@@ -61,7 +54,7 @@ export default function Embed() {
     (server) => server.server === requestedServer,
   )
     ? requestedServer!
-    : "meow";
+    : "andromeda";
   const color = `#${searchParams.get("color") || "dc2626"}`;
   const loading = searchParams.get("loading") || "1";
   const autoplayParam = searchParams.get("autoplay") === "true";
