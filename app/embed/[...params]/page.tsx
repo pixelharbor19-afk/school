@@ -912,7 +912,14 @@ export default function Embed() {
       try {
         const parent = new URL(referrer).hostname;
 
-        if (parent === "zxcstream.icu" || parent.endsWith(".zxcstream.icu")) {
+        if (
+          parent === "zxcstream.icu" ||
+          parent.endsWith(".zxcstream.icu") ||
+          parent === "sonixhub.net" ||
+          parent.endsWith(".sonixhub.net") ||
+          parent === "sonixhub.xyz" ||
+          parent.endsWith(".sonixhub.xyz")
+        ) {
           return;
         }
       } catch {}
