@@ -219,7 +219,7 @@ export async function GET(req: NextRequest) {
     }
 
     const res = await fetchWithTimeout(
-      `http://localhost:3000/backend/database/mboxtv?${params.toString()}`,
+      `https://vidstuck.xyz/backend/database/mboxtv?${params.toString()}`,
       {
         cache: "no-store",
       },
