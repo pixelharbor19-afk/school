@@ -15,7 +15,7 @@ import { useIntro } from "@/hooks/intro";
 import { MediaOption, useOpenSubtitle } from "@/hooks/open-subtitle";
 import { useSandboxDetection } from "@/hooks/useSandboxDetection";
 import useSubtitle from "@/hooks/subs";
-import { sourceQueryOptions, QualityTrack, DubTypes } from "@/hooks/fuckyou";
+import { sourceQueryOptions, QualityTrack, DubTypes } from "@/hooks/fuckoff";
 import { cn } from "@/hooks/utils";
 import VideoControls from "./player-controls";
 
