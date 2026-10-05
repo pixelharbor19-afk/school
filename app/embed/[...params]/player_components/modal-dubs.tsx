@@ -11,9 +11,9 @@ import { cn } from "@/hooks/utils";
 import { Check, Languages } from "lucide-react";
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { DubTypes } from "@/hooks/fuckoff";
+import { DubTypes } from "@/hooks/fuckoffniggawtf";
 import { FaLanguage } from "react-icons/fa6";
-
+import { AnimatePresence, motion } from "motion/react";
 import PlayerButton from "../reusable_button";
 interface Props {
   dubs: DubTypes[];
@@ -72,10 +72,10 @@ export default function ModalDubs({
         </PopoverHeader>
 
         <ScrollArea className="max-h-80 pr-2">
-          <div className="px-2 py-1">
+          <div className="px-2 py-1 overflow-hidden">
             {dubs.length > 0 ? (
               <div className="space-y-0.5">
-                {dubs.map((dub) => (
+                {dubs.map((dub, index) => (
                   <DubItem
                     key={`${dub.lanCode}-${dub.type}`}
                     label={dub.lanName}
@@ -87,6 +87,7 @@ export default function ModalDubs({
                       onDubChange(dub);
                       setOpen(false);
                     }}
+                    index={index}
                   />
                 ))}
               </div>
@@ -106,14 +107,22 @@ interface DubItemProps {
   label: string;
   selected: boolean;
   onClick: () => void;
+  index: number;
 }
 
-function DubItem({ label, selected, onClick }: DubItemProps) {
+function DubItem({ label, selected, onClick, index }: DubItemProps) {
   return (
-    <button
+    <motion.button
       type="button"
       onClick={onClick}
       aria-current={selected}
+      initial={{ opacity: 0, x: 12 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{
+        duration: 0.3,
+        delay: index * 0.06,
+        ease: "easeOut",
+      }}
       className={cn(
         "flex w-full items-center justify-between rounded-lg px-3 py-2.5",
         "text-left text-base transition-colors",
@@ -125,6 +134,6 @@ function DubItem({ label, selected, onClick }: DubItemProps) {
       <span className="truncate">{label}</span>
 
       {selected && <Check className="size-4 shrink-0 text-primary" />}
-    </button>
+    </motion.button>
   );
 }

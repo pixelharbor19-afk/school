@@ -218,16 +218,15 @@ export default function EpisodesModal({
                             "relative mb-3 aspect-video overflow-hidden rounded-md bg-neutral-900",
                             "transition-all duration-300",
                             "group-hover:brightness-75",
-                            isActive && "border-2",
                           )}
-                          style={
-                            isActive
-                              ? {
-                                  outlineColor: color,
-                                  borderColor: color,
-                                }
-                              : undefined
-                          }
+                          // style={
+                          //   isActive
+                          //     ? {
+                          //         outlineColor: color,
+                          //         borderColor: color,
+                          //       }
+                          //     : undefined
+                          // }
                         >
                           {e.still_path ? (
                             <img
@@ -261,8 +260,9 @@ export default function EpisodesModal({
                           <h3
                             className={cn(
                               "mb-1 line-clamp-2 font-semibold text-base",
-                              "transition-colors group-hover:text-neutral-300",
+                              "transition-colors group-hover:text-neutral-300 line-clamp-1",
                             )}
+                            style={isActive ? { color } : undefined}
                           >
                             {e.episode_number}. {e.name}
                           </h3>

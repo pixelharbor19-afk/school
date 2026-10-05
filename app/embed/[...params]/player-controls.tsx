@@ -13,7 +13,7 @@ import { ServerTypes, SourceStatus } from "./player_types/server-types";
 import { useRouter } from "next/navigation";
 import EpisodesModal from "./player_components/modal-episodes";
 import { Genre, SeasonsType } from "@/types/tmdb-types";
-import { DubTypes } from "@/hooks/fuckoff";
+import { DubTypes } from "@/hooks/fuckoffniggawtf";
 import ModalDubs from "./player_components/modal-dubs";
 import {
   RiVolumeUpFill,
