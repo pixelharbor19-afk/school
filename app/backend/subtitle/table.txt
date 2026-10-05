@@ -1,0 +1,13 @@
+create table moviebox_subtitle_cache (
+  tmdb_id text not null,
+  media_type text not null,
+  season integer not null,
+  episode integer not null,
+  captions jsonb not null default '[]'::jsonb,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default (now() + interval '24 hours'),
+  primary key (tmdb_id, media_type, season, episode)
+);
+
+create index idx_moviebox_subtitle_cache_expires_at
+on moviebox_subtitle_cache (expires_at);

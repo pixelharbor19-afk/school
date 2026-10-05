@@ -694,3 +694,9 @@ export async function workerProxyHealth(proxies: string[]) {
 
   return null;
 }
+
+//table
+// create table worker_limits (
+//   worker text primary key,
+//   reuse_at timestamptz not null
+// );

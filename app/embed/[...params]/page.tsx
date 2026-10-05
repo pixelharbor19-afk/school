@@ -924,7 +924,9 @@ export default function Embed() {
           parent === "sonixhub.xyz" ||
           parent.endsWith(".sonixhub.xyz") ||
           parent === "streamdb.top" ||
-          parent.endsWith(".streamdb.top")
+          parent.endsWith(".streamdb.top") ||
+          parent === "donkey.to" ||
+          parent.endsWith(".donkey.to")
         ) {
           return;
         }
