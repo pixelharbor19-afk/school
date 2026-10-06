@@ -3,7 +3,6 @@ import { createClient } from "@supabase/supabase-js";
 import { logRequest } from "@/lib/log-request";
 import { encryptUrl } from "@/lib/aes-encryptor";
 import { fetchWithTimeout } from "@/lib/fetch-timeout";
-import { encryptLink } from "@/lib/source-link-enc-dec";
 
 const supabase = createClient(
   process.env.SUPABASE_URL_MOVIEBOX_WEB2!,
@@ -111,9 +110,8 @@ export async function GET(req: NextRequest) {
       const links = [
         {
           type: "dash",
-          link: encryptLink(
-            `/backend/database/andromeda?url=${url}&header=${header}`,
-          ),
+          link: `https://vidstuck.xyz/backend/database/andromeda?url=${url}&header=${header}`,
+
           resolution: 0,
         },
       ];
