@@ -302,8 +302,13 @@ export async function GET(req: NextRequest) {
       cached: false,
       server: path,
     });
-  } catch (error) {
-    console.error("[SOMBRERO]", error);
+  } catch (err) {
+    logRequest(
+      req,
+      "ANDROMEDA",
+      500,
+      err instanceof Error ? err.message : "Internal server error",
+    );
 
     return NextResponse.json(
       {
