@@ -2,6 +2,7 @@
 
 import { cn } from "@/hooks/utils";
 import { useSubtitleCue } from "../player_hooks/use-subtitle-cue";
+import { useSubtitleSettings } from "../player_store/subtitle-settings";
 import { Lexend_Deca } from "next/font/google";
 
 interface Props {
@@ -20,7 +21,10 @@ export default function SubtitleOverlay({
   currentTime,
   isVisible,
 }: Props) {
-  const cue = useSubtitleCue(subtitleUrl, currentTime);
+  const { delay, fontSize, color, background, backgroundOpacity } =
+    useSubtitleSettings();
+
+  const cue = useSubtitleCue(subtitleUrl, currentTime - delay);
 
   if (!cue) return null;
 
@@ -39,11 +43,15 @@ export default function SubtitleOverlay({
       )}
     >
       <div
-        className={cn(
-          "max-w-4xl rounded-md p-3 text-center text-white",
-          "text-[clamp(0.875rem,2.5vw,2.25rem)]",
-          "[text-shadow:0_3px_8px_rgba(0,0,0,0.9)]",
-        )}
+        className="max-w-4xl rounded-md p-3 text-center [text-shadow:0_3px_8px_rgba(0,0,0,0.9)]"
+        style={{
+          color,
+          backgroundColor:
+            background === "transparent"
+              ? "transparent"
+              : `color-mix(in srgb, ${background} ${backgroundOpacity}%, transparent)`,
+          fontSize: `calc(clamp(0.875rem, 2.5vw, 2.25rem) * ${fontSize / 100})`,
+        }}
       >
         <h1 dangerouslySetInnerHTML={{ __html: html }} />
       </div>

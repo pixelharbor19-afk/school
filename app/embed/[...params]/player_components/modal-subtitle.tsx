@@ -11,6 +11,7 @@ import { MdSubtitles } from "react-icons/md";
 import { Button } from "@/components/ui/button";
 import { MediaOption } from "@/hooks/open-subtitle";
 import { cn } from "@/hooks/utils";
+import en from "@/app/assets/en.png";
 import {
   ArrowLeft,
   Captions,
@@ -20,9 +21,10 @@ import {
   TextInitial,
   Upload,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import PlayerButton from "../reusable_button";
+import { useSubtitleSettings } from "../player_store/subtitle-settings";
 
 interface Props {
   subtitles: MediaOption[];
@@ -55,6 +57,25 @@ export default function SubtitleModal({
   const [tab, setTab] = useState<"main" | "style" | "delay">("main");
   const [subtitlesModal, setSubtitlesModal] = useState(false);
   const [customSubtitles, setCustomSubtitles] = useState<MediaOption[]>([]);
+
+  //
+
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const {
+    delay,
+    fontSize,
+    color,
+    background,
+    backgroundOpacity,
+    setDelay,
+    setFontSize,
+    setColor,
+    setBackground,
+    setBackgroundOpacity,
+    reset,
+  } = useSubtitleSettings();
+  //
   const handleOpenChange = (open: boolean) => {
     setSubtitlesModal(open);
 
@@ -130,32 +151,27 @@ export default function SubtitleModal({
           <div className="px-2">
             {tab === "main" && (
               <div className="space-y-0.5">
-                <label
-                  className={cn(
-                    "group",
-                    "flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2.5",
-                    "text-left text-base text-muted-foreground transition-colors",
-                    "hover:bg-accent/60 hover:text-foreground",
-                  )}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="lg"
+                  className="text-base justify-between w-full "
+                  onClick={() => inputRef.current?.click()}
                 >
-                  <span className="truncate">Upload subtitle</span>
-
-                  <Upload className="size-4 shrink-0 text-primary opacity-0 group-hover:opacity-100" />
-
+                  Upload subtitle
+                  <Upload />
                   <input
+                    ref={inputRef}
                     type="file"
                     accept=".vtt,.srt"
                     className="hidden"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-
-                      if (file) {
-                        handleSubtitleUpload(file);
-                        e.target.value = "";
-                      }
+                      if (file) handleSubtitleUpload(file);
+                      e.target.value = "";
                     }}
                   />
-                </label>
+                </Button>
                 <SubtitleItem
                   label="Off"
                   selected={!selectedSubtitle}
@@ -197,32 +213,154 @@ export default function SubtitleModal({
             )}
 
             {tab === "style" && (
-              <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-                Style options coming soon
-              </p>
+              <div className="space-y-5 px-3 py-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Font Size</span>
+                    <span className="text-xs text-muted-foreground">
+                      {fontSize}%
+                    </span>
+                  </div>
+
+                  <input
+                    type="range"
+                    min="75"
+                    max="150"
+                    step="5"
+                    value={fontSize}
+                    onChange={(e) => setFontSize(Number(e.target.value))}
+                    className="w-full accent-primary"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-sm">Text Color</span>
+
+                  <div className="flex items-center gap-2">
+                    {["#ffffff", "#ffff00", "#00ffff", "#00ff00"].map(
+                      (value) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setColor(value)}
+                          className={cn(
+                            "size-8 rounded-full border-2 transition-transform",
+                            color === value
+                              ? "scale-110 border-primary"
+                              : "border-border",
+                          )}
+                          style={{ backgroundColor: value }}
+                        />
+                      ),
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-sm">Background</span>
+
+                  <div className="flex items-center gap-2">
+                    {["#000000", "#ffffff", "transparent"].map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setBackground(value)}
+                        className={cn(
+                          "size-8 rounded-md border-2 transition-transform",
+                          background === value
+                            ? "scale-110 border-primary"
+                            : "border-border",
+                        )}
+                        style={{
+                          backgroundColor:
+                            value === "transparent" ? undefined : value,
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Background Opacity</span>
+                    <span className="text-xs text-muted-foreground">
+                      {backgroundOpacity}%
+                    </span>
+                  </div>
+
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={backgroundOpacity}
+                    onChange={(e) =>
+                      setBackgroundOpacity(Number(e.target.value))
+                    }
+                    className="w-full accent-primary"
+                  />
+                </div>
+              </div>
             )}
 
             {tab === "delay" && (
-              <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-                Delay controls coming soon
-              </p>
+              <div className="space-y-6 px-3 py-5">
+                <div className="text-center">
+                  <div className="text-3xl font-semibold tabular-nums">
+                    {delay > 0 ? "+" : ""}
+                    {delay.toFixed(1)}s
+                  </div>
+
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {delay === 0
+                      ? "Subtitles are synchronized"
+                      : delay > 0
+                        ? "Subtitles appear later"
+                        : "Subtitles appear earlier"}
+                  </p>
+                </div>
+
+                <input
+                  type="range"
+                  min="-10"
+                  max="10"
+                  step="0.1"
+                  value={delay}
+                  onChange={(e) => setDelay(Number(e.target.value))}
+                  className="w-full accent-primary"
+                />
+
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>-10s</span>
+                  <span>0s</span>
+                  <span>+10s</span>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setDelay(0)}
+                  disabled={delay === 0}
+                >
+                  Reset Delay
+                </Button>
+              </div>
             )}
           </div>
         </ScrollArea>
 
         {tab === "main" && (
-          <div className="flex items-center gap-1 border-t p-2">
+          <div className="px-4 p-2 border-t flex items-center gap-3">
             <Button
               type="button"
               variant="ghost"
               onClick={() => setTab("style")}
               className="flex-1"
             >
-              <TextInitial className="size-4" />
-              Style
+              Style <TextInitial />
             </Button>
 
-            <div className="h-5 w-px bg-border" />
+            <div className="h-8 w-px bg-border" />
 
             <Button
               type="button"
@@ -230,8 +368,25 @@ export default function SubtitleModal({
               onClick={() => setTab("delay")}
               className="flex-1"
             >
-              <Settings2 className="size-4" />
-              Delay
+              Delay <Settings2 />
+            </Button>
+          </div>
+        )}
+        {tab === "style" && (
+          <div className="p-4 border-t">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={reset}
+              disabled={
+                fontSize === 100 &&
+                color === "#ffffff" &&
+                background === "#000000" &&
+                backgroundOpacity === 60
+              }
+            >
+              Reset Style
             </Button>
           </div>
         )}
@@ -248,25 +403,23 @@ interface SubtitleItemProps {
 
 function SubtitleItem({ label, selected, onClick }: SubtitleItemProps) {
   return (
-    <button
+    <Button
       type="button"
       onClick={onClick}
+      variant={selected ? "secondary" : "ghost"}
       aria-current={selected}
+      size="lg"
       className={cn(
-        "group",
-        "flex w-full items-center justify-between rounded-lg px-3 py-2.5",
-        "text-left text-base transition-colors",
-        selected
-          ? "bg-accent"
-          : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+        "group w-full justify-between text-base  ",
+        selected ? "" : "text-muted-foreground font-normal",
       )}
     >
       <span className="truncate">{label}</span>
 
-      {selected && <Check className="size-4 shrink-0 text-primary" />}
-      {!selected && (
-        <Download className="size-4 shrink-0 text-primary opacity-0 group-hover:opacity-100" />
+      {selected && <Check />}
+      {!selected && label !== "Off" && (
+        <Download className="size-4 opacity-0 group-hover:opacity-100" />
       )}
-    </button>
+    </Button>
   );
 }

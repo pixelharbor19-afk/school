@@ -34,6 +34,11 @@ type PlayInfo = {
     resolutions?: string;
     quality?: string;
   }>;
+  resources?: Array<{
+    url?: string;
+    resolution?: string;
+    linkType?: string;
+  }>;
   captions?: Array<{
     url?: string;
     language?: string;
@@ -392,25 +397,15 @@ async function getPlayInfo(
 // ─────────────────────────────────────────────────────────────────────────────
 // EXTRACT DASH
 // ─────────────────────────────────────────────────────────────────────────────
-
 async function extractDash(
   subjectId: string,
   season?: number,
   episode?: number,
+  type: "dash" | "mp4" = "dash",
 ) {
   const data = await getPlayInfo(subjectId, season, episode);
 
   const playInfo = data?.data ?? data;
-
-  const streams = Array.isArray(playInfo?.streams) ? playInfo.streams : [];
-
-  const dashStreams = streams.filter((stream: any) => {
-    const format = String(stream?.format ?? "").toUpperCase();
-
-    const url = String(stream?.url ?? "");
-
-    return url && (format === "DASH" || url.includes(".mpd"));
-  });
 
   const subtitles = Array.isArray(playInfo?.captions)
     ? playInfo.captions
@@ -421,18 +416,51 @@ async function extractDash(
         }))
     : [];
 
+  if (type === "mp4") {
+    const resources = Array.isArray(playInfo?.resources)
+      ? playInfo.resources
+      : [];
+
+    const mp4Streams = resources.filter((resource: any) => {
+      const url = String(resource?.url ?? "").toLowerCase();
+
+      return (
+        url && (resource?.linkType === "OutsideUrl" || url.includes(".mp4"))
+      );
+    });
+
+    return {
+      subjectId,
+
+      streams: mp4Streams.map((resource: any) => ({
+        url: resource.url,
+        rawUrl: resource.url,
+        signCookie: "",
+        quality: resource.resolution || "auto",
+        format: "mp4",
+      })),
+
+      subtitles,
+    };
+  }
+
+  const streams = Array.isArray(playInfo?.streams) ? playInfo.streams : [];
+
+  const dashStreams = streams.filter((stream: any) => {
+    const format = String(stream?.format ?? "").toUpperCase();
+    const url = String(stream?.url ?? "");
+
+    return url && (format === "DASH" || url.includes(".mpd"));
+  });
+
   return {
     subjectId,
 
     streams: dashStreams.map((stream: any) => ({
       url: stream.url,
-
       rawUrl: stream.url,
-
       signCookie: stream.signCookie || "",
-
       quality: stream.resolutions || stream.quality || "auto",
-
       format: "dash",
     })),
 
@@ -453,6 +481,19 @@ export async function GET(request: NextRequest) {
     const seasonParam = searchParams.get("season");
 
     const episodeParam = searchParams.get("episode");
+
+    const typeParam = searchParams.get("type") || "dash";
+
+    if (typeParam !== "dash" && typeParam !== "mp4") {
+      return NextResponse.json(
+        {
+          error: "Invalid type. Use dash or mp4",
+        },
+        {
+          status: 400,
+        },
+      );
+    }
 
     if (!subjectId) {
       return NextResponse.json(
@@ -491,12 +532,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const result = await extractDash(subjectId, season, episode);
+    const result = await extractDash(subjectId, season, episode, typeParam);
 
     if (result.streams.length === 0) {
       return NextResponse.json(
         {
-          error: "No DASH stream found",
+          error: `No ${typeParam.toUpperCase()} stream found`,
           ...result,
         },
         {
